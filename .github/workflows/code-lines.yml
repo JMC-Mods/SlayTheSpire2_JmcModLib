@@ -15,6 +15,7 @@ permissions:
 env:
   BADGE_PATH: .github/badges/code-lines.json
   BADGE_LABEL: code lines
+  BADGE_CACHE_SECONDS: 300
   EXCLUDE_PATH_REGEX: '(^|/)(bin|obj|\.vs|modPublish)(/|$)'
   CLOC_EXCLUDE_LANGUAGES: Markdown,Text
 
@@ -81,7 +82,7 @@ jobs:
             label = $env:BADGE_LABEL
             message = $message
             color = "blue"
-            cacheSeconds = 3600
+            cacheSeconds = [int]$env:BADGE_CACHE_SECONDS
           }
 
           $badge | ConvertTo-Json | Set-Content -Path $env:BADGE_PATH -Encoding utf8
@@ -102,4 +103,3 @@ jobs:
           git add "$BADGE_PATH"
           git commit -m "chore: update code lines badge"
           git push
-

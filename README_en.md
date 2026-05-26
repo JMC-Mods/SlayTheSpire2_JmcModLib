@@ -4,7 +4,7 @@
 
 [📦 Releases](https://github.com/JMC2002/SlayTheSpire2_JmcModLib/releases)
 
-![Code lines](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FJMC2002%2FSlayTheSpire2_JmcModLib%2Fmaster%2F.github%2Fbadges%2Fcode-lines.json)
+![Code lines](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FJMC2002%2FSlayTheSpire2_JmcModLib%2Fmaster%2F.github%2Fbadges%2Fcode-lines.json%3Fv%3D2)
 
 # JmcModLib
 ## 0. Installation
