@@ -65,14 +65,7 @@ jobs:
           $clocJson | Set-Content -Path $clocReport -Encoding utf8
           $report = $clocJson | ConvertFrom-Json
           $total = [int]$report.SUM.code
-
-          if ($total -ge 1000000) {
-            $message = "{0:0.0}M" -f ($total / 1000000)
-          } elseif ($total -ge 1000) {
-            $message = "{0:0.0}k" -f ($total / 1000)
-          } else {
-            $message = "$total"
-          }
+          $message = "$total"
 
           New-Item -ItemType Directory -Force (Split-Path $env:BADGE_PATH) | Out-Null
 
