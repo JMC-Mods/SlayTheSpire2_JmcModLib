@@ -1,0 +1,105 @@
+name: Code Lines Badge
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths-ignore:
+      - '.github/badges/code-lines.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  BADGE_PATH: .github/badges/code-lines.json
+  BADGE_LABEL: code lines
+  EXCLUDE_PATH_REGEX: '(^|/)(bin|obj|\.vs|modPublish)(/|$)'
+  CLOC_EXCLUDE_LANGUAGES: Markdown,Text
+
+jobs:
+  update-code-lines-badge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install cloc
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cloc
+
+      - name: Count source lines with cloc
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          $fileList = ".cloc-files.txt"
+          $clocReport = ".cloc-report.json"
+          $files = git ls-files | Where-Object {
+            -not [string]::IsNullOrWhiteSpace($_) -and
+            $_ -ne $env:BADGE_PATH -and
+            $_ -notmatch $env:EXCLUDE_PATH_REGEX
+          }
+
+          $files | Set-Content -Path $fileList -Encoding utf8
+
+          $clocArgs = @(
+            "--json",
+            "--quiet",
+            "--list-file=$fileList"
+          )
+
+          if (-not [string]::IsNullOrWhiteSpace($env:CLOC_EXCLUDE_LANGUAGES)) {
+            $clocArgs += "--exclude-lang=$env:CLOC_EXCLUDE_LANGUAGES"
+          }
+
+          $clocJson = (& cloc @clocArgs) -join [Environment]::NewLine
+          if ($LASTEXITCODE -ne 0) {
+            throw "cloc failed with exit code $LASTEXITCODE"
+          }
+
+          $clocJson | Set-Content -Path $clocReport -Encoding utf8
+          $report = $clocJson | ConvertFrom-Json
+          $total = [int]$report.SUM.code
+
+          if ($total -ge 1000000) {
+            $message = "{0:0.0}M" -f ($total / 1000000)
+          } elseif ($total -ge 1000) {
+            $message = "{0:0.0}k" -f ($total / 1000)
+          } else {
+            $message = "$total"
+          }
+
+          New-Item -ItemType Directory -Force (Split-Path $env:BADGE_PATH) | Out-Null
+
+          $badge = [ordered]@{
+            schemaVersion = 1
+            label = $env:BADGE_LABEL
+            message = $message
+            color = "blue"
+            cacheSeconds = 3600
+          }
+
+          $badge | ConvertTo-Json | Set-Content -Path $env:BADGE_PATH -Encoding utf8
+          "CODE_LINES=$total" >> $env:GITHUB_ENV
+
+      - name: Commit badge update
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- "$BADGE_PATH"; then
+            echo "Code lines badge is already up to date."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$BADGE_PATH"
+          git commit -m "chore: update code lines badge"
+          git push
+
