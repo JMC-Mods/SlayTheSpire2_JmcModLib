@@ -73,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="docs\" />
+    <Folder Include="设计文档\" />
   </ItemGroup>
 
   <!-- ======================================================== -->

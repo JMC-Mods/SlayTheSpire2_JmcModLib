@@ -9,6 +9,7 @@ using JmcModLib.Core;
 using JmcModLib.Config;
 using JmcModLib.Config.UI;
 using JmcModLib.Config.Storage;
+using JmcModLib.UI.PauseMenu;
 using JmcModLib.Reflection;
 using JmcModLib.Utils;
 using JmcModLib.Prefabs;
@@ -36,14 +37,17 @@ flowchart TD
     L --> M[AttributeRouter.ScanAssembly]
     M --> N1[Config / UI / Button entries]
     M --> N2[Hotkey registrations]
+    M --> N3[PauseMenuButton 条目]
     N1 --> O[Storage 同步并生成设置 UI]
     N2 --> P[Input Relay / Steam Backend]
+    N3 --> V[暂停菜单打开时注入/刷新]
     O --> Q[用户修改设置]
     P --> R[用户触发热键]
     Q --> S[写回字段/属性 + 持久化 + 回调]
     R --> T[执行 MOD action]
     S --> U[注销/退出 Flush 与清理]
     T --> U
+    V --> U
 ```
 
 ---
@@ -62,7 +66,7 @@ flowchart TD
     E --> G[ConfigManager.Init]
     G --> H{deferred?}
     H -- no --> I[Builder.Done]
-    H -- yes --> J[WithDisplayName / WithVersion / WithConfigStorage / RegisterButton]
+    H -- yes --> J[WithDisplayName / WithVersion / WithConfigStorage / RegisterButton / RegisterPauseMenuButton]
     J --> I
     I --> K[context.IsCompleted = true]
     K --> L[OnRegistered]
@@ -77,7 +81,7 @@ flowchart TD
 | 成员 | 说明 |
 |---|---|
 | `const string Name = "JmcModLib"` | JML 名称 |
-| `const string Version = "1.1.0"` | JML 版本 |
+| `const string Version = "1.2.1"` | JML 版本 |
 | `string Tag` | `"[JmcModLib v1.1.0]"` |
 | `GetName(Assembly? assembly = null)` | 获取指定程序集名称，JML 自身返回固定名称 |
 | `GetVersion(Assembly? assembly = null)` | 获取指定程序集版本，JML 自身返回固定版本 |
@@ -134,6 +138,7 @@ flowchart TD
 | `WithConfigStorage(IConfigStorage storage)` | 无 | 在扫描前设置自定义存储 |
 | `RegisterButton(out string key, string description, Action action, string buttonText = "按钮", string group = ConfigAttribute.DefaultGroup, string? storageKey = null, string? helpText = null, string? locTable = null, string? displayNameKey = null, string? helpTextKey = null, string? buttonTextKey = null, string? groupKey = null, int order = 0, UIButtonColor color = UIButtonColor.Default)` | 见签名 | 注册手动按钮并返回 key |
 | `RegisterButton(string description, Action action, ...)` | 同上 | 注册手动按钮，不取 key |
+| `RegisterPauseMenuButton(string key, string text, Action<PauseMenuButtonContext> action, int order = 0, PauseMenuButtonAnchor anchor = PauseMenuButtonAnchor.BeforeExitActions, string? locTable = null, string? textKey = null, Func<PauseMenuButtonContext, bool>? visibleWhen = null, Func<PauseMenuButtonContext, bool>? enabledWhen = null, bool closeMenuOnClick = false, UIButtonColor color = UIButtonColor.Default)` | 另有无参和异步 overload，见暂停菜单章节 | 在当前注册链中声明运行内暂停菜单按钮 |
 | `Done()` | 无 | 完成注册并触发 Attribute 扫描 |
 
 `Done()` 可重复调用，第一次触发生命周期，之后只返回现有 context。
@@ -970,9 +975,164 @@ flowchart TD
 
 ---
 
-## 13. Build / Deploy 与子 MOD props
+## 13. UI：暂停菜单按钮扩展
+
+命名空间：`JmcModLib.UI.PauseMenu`
+
+暂停菜单按钮扩展用于向运行内右上角暂停菜单添加普通按钮。它不属于配置项，不做持久化；如果同一个动作还需要热键，应额外注册 `JmcHotkey` 或 `UIHotkey`，让二者调用同一业务方法。
 
 ### 13.1 生命周期流程图
+
+```mermaid
+flowchart TD
+    A[子 MOD Register deferred=true] --> B[RegistryBuilder.RegisterPauseMenuButton]
+    A --> C[静态方法标记 PauseMenuButtonAttribute]
+    B --> D[Builder.Done]
+    C --> D
+    D --> E[ModRegistry.OnRegistered]
+    E --> F[AttributeRouter 扫描]
+    F --> G[PauseMenuRegistry 保存条目]
+    G --> H[NPauseMenu Ready / Initialize / OnSubmenuOpened]
+    H --> I[克隆原生按钮模板]
+    I --> J[解析 settings_ui 本地化文本]
+    J --> K[计算 VisibleWhen / EnabledWhen]
+    K --> L[按 Anchor + Order + ModId + Assembly + Key 排序]
+    L --> M[刷新可见性、启用状态与焦点链]
+```
+
+### 13.2 Attribute 用法
+
+```csharp
+using JmcModLib.UI.PauseMenu;
+using JmcModLib.Utils;
+
+[PauseMenuButton(
+    "调试面板",
+    Key = "open.debug.panel",
+    LocTable = "settings_ui",
+    TextKey = "EXTENSION.JMCMODLIB.PAUSE_MENU.MyMod.open_debug_panel.TEXT",
+    Anchor = PauseMenuButtonAnchor.BeforeExitActions,
+    Order = 10)]
+internal static void OpenDebugPanel(PauseMenuButtonContext context)
+{
+    ModLogger.Info($"从暂停菜单打开调试面板，运行中={context.IsRunInProgress}");
+}
+```
+
+Attribute 入口用于静态方法，支持以下签名：
+
+| 签名 | 说明 |
+|---|---|
+| `static void Method()` | 不需要上下文的同步动作 |
+| `static void Method(PauseMenuButtonContext context)` | 需要读取当前暂停菜单状态的同步动作 |
+| `static Task Method()` | 不需要上下文的异步动作 |
+| `static Task Method(PauseMenuButtonContext context)` | 需要上下文的异步动作 |
+
+### 13.3 手动注册用法
+
+```csharp
+ModRegistry.Register<MainFile>(true)?
+    .RegisterPauseMenuButton(
+        key: "open.debug.panel",
+        text: "调试面板",
+        action: OpenDebugPanel,
+        anchor: PauseMenuButtonAnchor.BeforeExitActions,
+        order: 10,
+        locTable: "settings_ui",
+        textKey: "EXTENSION.JMCMODLIB.PAUSE_MENU.MyMod.open_debug_panel.TEXT",
+        enabledWhen: static context => context.IsRunInProgress && !context.IsGameOver)
+    .Done();
+
+static void OpenDebugPanel(PauseMenuButtonContext context)
+{
+    ModLogger.Info($"手动注册暂停菜单按钮被点击，运行状态={context.RunState?.GetType().Name}");
+}
+```
+
+手动注册适合需要动态条件、跨文件组合或显式注册链的场景。正式 MOD 建议始终显式传 `key` 与 `textKey`，避免发布后方法名或 fallback 文本变化导致本地化与反注册语义漂移。
+
+### 13.4 `PauseMenuButtonAttribute`
+
+| 属性 | 默认 | 说明 |
+|---|---:|---|
+| `Text` | 构造参数 | fallback 按钮文本 |
+| `Key` | `null` | 稳定键；为空时按声明方法推导 |
+| `Order` | `0` | 同锚点内排序，越小越靠前 |
+| `Anchor` | `BeforeExitActions` | 插入锚点 |
+| `LocTable` | `"settings_ui"` | 文本本地化表 |
+| `TextKey` | `null` | 显式按钮文本 key |
+| `CloseMenuOnClick` | `false` | 点击后是否关闭暂停菜单 |
+| `Color` | `UIButtonColor.Default` | 复用设置按钮颜色语义或等价抽象 |
+
+### 13.5 `PauseMenuButtonOptions`
+
+手动注册和底层 registry 共享的元数据对象。
+
+| 属性 | 默认 | 说明 |
+|---|---:|---|
+| `Key` | 必填 | Assembly 内唯一稳定键，用于节点名、本地化约定 key 与反注册 |
+| `Text` | 必填 | fallback 显示文本 |
+| `Order` | `0` | 同锚点内排序 |
+| `Anchor` | `BeforeExitActions` | 插入锚点 |
+| `LocTable` | `"settings_ui"` | 本地化表 |
+| `TextKey` | `null` | 显式按钮文本 key |
+| `VisibleWhen` | `null` | 运行时可见性判断；异常时隐藏 |
+| `EnabledWhen` | `null` | 运行时启用判断；异常时禁用 |
+| `CloseMenuOnClick` | `false` | 回调成功触发后是否关闭暂停菜单 |
+| `Color` | `UIButtonColor.Default` | 按钮颜色风格 |
+
+### 13.6 `PauseMenuButtonAnchor`
+
+| 值 | 说明 |
+|---|---|
+| `AfterResume` | 插在继续按钮之后 |
+| `AfterSettings` | 插在设置按钮之后 |
+| `AfterCompendium` | 插在百科大全按钮之后 |
+| `BeforeExitActions` | 插在放弃、断开连接、保存并退出这组离开/危险操作之前；默认推荐 |
+| `End` | 插在暂停菜单末尾 |
+
+排序规则固定为 `Anchor`、`Order`、`ModId`、`AssemblyName`、`Key`。不同 MOD 的相同 `Key` 允许共存，同一 Assembly 内重复 `Key` 后注册者覆盖先注册者并记录 warning。
+
+### 13.7 `PauseMenuButtonContext`
+
+| 属性 | 类型 | 说明 |
+|---|---|---|
+| `Mod` | `ModContext` | 所属 MOD 上下文 |
+| `Assembly` | `Assembly` | 所属 Assembly |
+| `RunState` | `IRunState?` | 当前运行状态，可能为空 |
+| `Menu` | `NPauseMenu` | 原生暂停菜单节点；普通 MOD 不建议随意改动 |
+| `Button` | `NButton` | 当前 JML 按钮节点；普通 MOD 不建议随意改动 |
+| `IsMultiplayerClient` | `bool` | 当前是否多人客户端 |
+| `IsRunInProgress` | `bool` | 是否处于运行中 |
+| `IsGameOver` | `bool` | 是否已游戏结束 |
+
+### 13.8 `PauseMenuRegistry`
+
+| 成员 | 说明 |
+|---|---|
+| `RegisterButton(...)` | 手动注册暂停菜单按钮，按 `(Assembly, Key)` 建立唯一身份 |
+| `UnregisterButton(string key, Assembly? assembly = null)` | 注销指定 Assembly 下的按钮 |
+| `GetEntries(Assembly? assembly = null)` | 获取指定 Assembly 的已注册条目快照 |
+
+`PauseMenuRegistry` 应随 `ModRegistry.OnUnregistered` 清理对应 Assembly 条目。刷新暂停菜单时，JML 只移动或更新自己创建的节点，保留未知节点以兼容其他 MOD。
+
+### 13.9 本地化约定
+
+按钮文本默认使用 `settings_ui` 表。推荐显式写 `TextKey`，例如：
+
+```json
+{
+  "EXTENSION.JMCMODLIB.PAUSE_MENU.MyMod.open_debug_panel.TEXT": "调试面板"
+}
+```
+
+如果未指定 `TextKey`，实现可按 `ModId + Key` 推导约定 key；文档和 Demo 建议显式 key，方便多语言文件和后续重命名。
+
+---
+
+## 14. Build / Deploy 与子 MOD props
+
+### 14.1 生命周期流程图
 
 ```mermaid
 flowchart TD
@@ -990,7 +1150,7 @@ flowchart TD
     K -- false --> M[结束]
 ```
 
-### 13.2 当前 MSBuild 关键点
+### 14.2 当前 MSBuild 关键点
 
 JML 主项目：
 
@@ -1021,7 +1181,7 @@ JML 主项目：
 
 ---
 
-## 14. 默认参数语义索引
+## 15. 默认参数语义索引
 
 | 默认参数 | 所在 API | 语义 | 文档建议 |
 |---|---|---|---|
@@ -1039,12 +1199,14 @@ JML 主项目：
 | `ExactModifiers = true` | Hotkey | 禁止额外修饰键 | 避免 `Ctrl + F8` 误触发 `F8` |
 | `AllowEcho = false` | Hotkey | 不响应长按重复输入 | 普通动作热键合理；连发类操作可设 true |
 | `DebounceMs = 150` | Hotkey | 防抖 150ms | 合理 |
+| `Anchor = BeforeExitActions` | PauseMenuButton | 插在离开/危险操作之前 | 普通工具按钮的推荐默认位置 |
+| `CloseMenuOnClick = false` | PauseMenuButton | 点击后默认不关闭暂停菜单 | 避免工具按钮、弹窗按钮或状态切换动作产生意外导航 |
 | `FallbackLanguage = eng` | L10n | 英文回退 | 合理 |
 | `DefaultTable = settings_ui` | L10n | 默认设置表 | 合理 |
 
 ---
 
-## 15. 模块间依赖概览
+## 16. 模块间依赖概览
 
 ```mermaid
 flowchart LR
@@ -1058,6 +1220,7 @@ flowchart LR
     Input --> Steam[Steam Input]
     UI --> L10n[L10n]
     UI --> Prefabs[Prefabs]
+    UI --> PauseMenu[Pause Menu Buttons]
     Logger --> Core
     Reflection --> Logger
 ```

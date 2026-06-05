@@ -2,6 +2,7 @@
 using JmcModLib.Config;
 using JmcModLib.Config.Storage;
 using JmcModLib.Config.UI;
+using JmcModLib.UI.PauseMenu;
 using System.Reflection;
 
 namespace JmcModLib.Core;
@@ -191,6 +192,146 @@ public sealed class RegistryBuilder
     }
 
     /// <summary>
+    /// 手动向运行中暂停菜单注册一个无上下文参数的同步按钮条目。
+    /// </summary>
+    /// <param name="key">按钮在当前 MOD 程序集内的稳定键。</param>
+    /// <param name="text">按钮显示文本的回退值。</param>
+    /// <param name="action">点击按钮时执行的动作。</param>
+    /// <param name="order">同一锚点内的排序值，数值越小越靠前。</param>
+    /// <param name="anchor">按钮插入锚点。</param>
+    /// <param name="locTable">本地化表名；留空时使用 JML 默认设置界面表。</param>
+    /// <param name="textKey">按钮文本的显式本地化键。</param>
+    /// <param name="visibleWhen">运行时可见性判断；返回 <see langword="false"/> 时隐藏按钮。</param>
+    /// <param name="enabledWhen">运行时启用状态判断；返回 <see langword="false"/> 时禁用按钮。</param>
+    /// <param name="closeMenuOnClick">点击回调触发后是否关闭暂停菜单。</param>
+    /// <param name="color">按钮颜色风格。</param>
+    /// <returns>当前构建器，用于继续链式调用。</returns>
+    public RegistryBuilder RegisterPauseMenuButton(
+        string key,
+        string text,
+        Action action,
+        int order = 0,
+        PauseMenuButtonAnchor anchor = PauseMenuButtonAnchor.BeforeExitActions,
+        string? locTable = null,
+        string? textKey = null,
+        Func<PauseMenuButtonContext, bool>? visibleWhen = null,
+        Func<PauseMenuButtonContext, bool>? enabledWhen = null,
+        bool closeMenuOnClick = false,
+        UIButtonColor color = UIButtonColor.Default)
+    {
+        PauseMenuRegistry.RegisterButton(
+            CreatePauseMenuOptions(key, text, order, anchor, locTable, textKey, visibleWhen, enabledWhen, closeMenuOnClick, color),
+            action,
+            assembly);
+        return this;
+    }
+
+    /// <summary>
+    /// 手动向运行中暂停菜单注册一个带上下文参数的同步按钮条目。
+    /// </summary>
+    /// <param name="key">按钮在当前 MOD 程序集内的稳定键。</param>
+    /// <param name="text">按钮显示文本的回退值。</param>
+    /// <param name="action">点击按钮时执行的动作。</param>
+    /// <param name="order">同一锚点内的排序值，数值越小越靠前。</param>
+    /// <param name="anchor">按钮插入锚点。</param>
+    /// <param name="locTable">本地化表名；留空时使用 JML 默认设置界面表。</param>
+    /// <param name="textKey">按钮文本的显式本地化键。</param>
+    /// <param name="visibleWhen">运行时可见性判断；返回 <see langword="false"/> 时隐藏按钮。</param>
+    /// <param name="enabledWhen">运行时启用状态判断；返回 <see langword="false"/> 时禁用按钮。</param>
+    /// <param name="closeMenuOnClick">点击回调触发后是否关闭暂停菜单。</param>
+    /// <param name="color">按钮颜色风格。</param>
+    /// <returns>当前构建器，用于继续链式调用。</returns>
+    public RegistryBuilder RegisterPauseMenuButton(
+        string key,
+        string text,
+        Action<PauseMenuButtonContext> action,
+        int order = 0,
+        PauseMenuButtonAnchor anchor = PauseMenuButtonAnchor.BeforeExitActions,
+        string? locTable = null,
+        string? textKey = null,
+        Func<PauseMenuButtonContext, bool>? visibleWhen = null,
+        Func<PauseMenuButtonContext, bool>? enabledWhen = null,
+        bool closeMenuOnClick = false,
+        UIButtonColor color = UIButtonColor.Default)
+    {
+        PauseMenuRegistry.RegisterButton(
+            CreatePauseMenuOptions(key, text, order, anchor, locTable, textKey, visibleWhen, enabledWhen, closeMenuOnClick, color),
+            action,
+            assembly);
+        return this;
+    }
+
+    /// <summary>
+    /// 手动向运行中暂停菜单注册一个无上下文参数的异步按钮条目。
+    /// </summary>
+    /// <param name="key">按钮在当前 MOD 程序集内的稳定键。</param>
+    /// <param name="text">按钮显示文本的回退值。</param>
+    /// <param name="action">点击按钮时执行的异步动作。</param>
+    /// <param name="order">同一锚点内的排序值，数值越小越靠前。</param>
+    /// <param name="anchor">按钮插入锚点。</param>
+    /// <param name="locTable">本地化表名；留空时使用 JML 默认设置界面表。</param>
+    /// <param name="textKey">按钮文本的显式本地化键。</param>
+    /// <param name="visibleWhen">运行时可见性判断；返回 <see langword="false"/> 时隐藏按钮。</param>
+    /// <param name="enabledWhen">运行时启用状态判断；返回 <see langword="false"/> 时禁用按钮。</param>
+    /// <param name="closeMenuOnClick">点击回调触发后是否关闭暂停菜单。</param>
+    /// <param name="color">按钮颜色风格。</param>
+    /// <returns>当前构建器，用于继续链式调用。</returns>
+    public RegistryBuilder RegisterPauseMenuButton(
+        string key,
+        string text,
+        Func<Task> action,
+        int order = 0,
+        PauseMenuButtonAnchor anchor = PauseMenuButtonAnchor.BeforeExitActions,
+        string? locTable = null,
+        string? textKey = null,
+        Func<PauseMenuButtonContext, bool>? visibleWhen = null,
+        Func<PauseMenuButtonContext, bool>? enabledWhen = null,
+        bool closeMenuOnClick = false,
+        UIButtonColor color = UIButtonColor.Default)
+    {
+        PauseMenuRegistry.RegisterButton(
+            CreatePauseMenuOptions(key, text, order, anchor, locTable, textKey, visibleWhen, enabledWhen, closeMenuOnClick, color),
+            action,
+            assembly);
+        return this;
+    }
+
+    /// <summary>
+    /// 手动向运行中暂停菜单注册一个带上下文参数的异步按钮条目。
+    /// </summary>
+    /// <param name="key">按钮在当前 MOD 程序集内的稳定键。</param>
+    /// <param name="text">按钮显示文本的回退值。</param>
+    /// <param name="action">点击按钮时执行的异步动作。</param>
+    /// <param name="order">同一锚点内的排序值，数值越小越靠前。</param>
+    /// <param name="anchor">按钮插入锚点。</param>
+    /// <param name="locTable">本地化表名；留空时使用 JML 默认设置界面表。</param>
+    /// <param name="textKey">按钮文本的显式本地化键。</param>
+    /// <param name="visibleWhen">运行时可见性判断；返回 <see langword="false"/> 时隐藏按钮。</param>
+    /// <param name="enabledWhen">运行时启用状态判断；返回 <see langword="false"/> 时禁用按钮。</param>
+    /// <param name="closeMenuOnClick">点击回调触发后是否关闭暂停菜单。</param>
+    /// <param name="color">按钮颜色风格。</param>
+    /// <returns>当前构建器，用于继续链式调用。</returns>
+    public RegistryBuilder RegisterPauseMenuButton(
+        string key,
+        string text,
+        Func<PauseMenuButtonContext, Task> action,
+        int order = 0,
+        PauseMenuButtonAnchor anchor = PauseMenuButtonAnchor.BeforeExitActions,
+        string? locTable = null,
+        string? textKey = null,
+        Func<PauseMenuButtonContext, bool>? visibleWhen = null,
+        Func<PauseMenuButtonContext, bool>? enabledWhen = null,
+        bool closeMenuOnClick = false,
+        UIButtonColor color = UIButtonColor.Default)
+    {
+        PauseMenuRegistry.RegisterButton(
+            CreatePauseMenuOptions(key, text, order, anchor, locTable, textKey, visibleWhen, enabledWhen, closeMenuOnClick, color),
+            action,
+            assembly);
+        return this;
+    }
+
+    /// <summary>
     /// 完成当前 MOD 的注册，并触发 Attribute 扫描。
     /// </summary>
     /// <returns>当前 MOD 的注册上下文。</returns>
@@ -210,5 +351,30 @@ public sealed class RegistryBuilder
         ModRegistry.Complete(assembly);
         completed = true;
         return context;
+    }
+
+    private static PauseMenuButtonOptions CreatePauseMenuOptions(
+        string key,
+        string text,
+        int order,
+        PauseMenuButtonAnchor anchor,
+        string? locTable,
+        string? textKey,
+        Func<PauseMenuButtonContext, bool>? visibleWhen,
+        Func<PauseMenuButtonContext, bool>? enabledWhen,
+        bool closeMenuOnClick,
+        UIButtonColor color)
+    {
+        return new PauseMenuButtonOptions(key, text)
+        {
+            Order = order,
+            Anchor = anchor,
+            LocTable = locTable,
+            TextKey = textKey,
+            VisibleWhen = visibleWhen,
+            EnabledWhen = enabledWhen,
+            CloseMenuOnClick = closeMenuOnClick,
+            Color = color
+        };
     }
 }

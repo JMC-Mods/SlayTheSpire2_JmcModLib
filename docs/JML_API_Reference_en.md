@@ -9,6 +9,7 @@ using JmcModLib.Core;
 using JmcModLib.Config;
 using JmcModLib.Config.UI;
 using JmcModLib.Config.Storage;
+using JmcModLib.UI.PauseMenu;
 using JmcModLib.Reflection;
 using JmcModLib.Utils;
 using JmcModLib.Prefabs;
@@ -36,14 +37,17 @@ flowchart TD
     L --> M[AttributeRouter.ScanAssembly]
     M --> N1[Config / UI / Button entries]
     M --> N2[Hotkey registrations]
+    M --> N3[PauseMenuButton entries]
     N1 --> O[Storage sync and settings UI generation]
     N2 --> P[Input Relay / Steam Backend]
+    N3 --> V[Inject/refresh when pause menu opens]
     O --> Q[User changes settings]
     P --> R[User triggers hotkey]
     Q --> S[Write back field/property + persist + callback]
     R --> T[Execute MOD action]
     S --> U[Unregister/exit Flush and cleanup]
     T --> U
+    V --> U
 ```
 
 ---
@@ -62,7 +66,7 @@ flowchart TD
     E --> G[ConfigManager.Init]
     G --> H{deferred?}
     H -- no --> I[Builder.Done]
-    H -- yes --> J[WithDisplayName / WithVersion / WithConfigStorage / RegisterButton]
+    H -- yes --> J[WithDisplayName / WithVersion / WithConfigStorage / RegisterButton / RegisterPauseMenuButton]
     J --> I
     I --> K[context.IsCompleted = true]
     K --> L[OnRegistered]
@@ -77,7 +81,7 @@ Namespace: `JmcModLib.Core`
 | Member | Description |
 |---|---|
 | `const string Name = "JmcModLib"` | JML name |
-| `const string Version = "1.1.0"` | JML version |
+| `const string Version = "1.2.1"` | JML version |
 | `string Tag` | `"[JmcModLib v1.1.0]"` |
 | `GetName(Assembly? assembly = null)` | Gets the specified assembly name; JML itself returns the fixed name |
 | `GetVersion(Assembly? assembly = null)` | Gets the specified assembly version; JML itself returns the fixed version |
@@ -134,6 +138,7 @@ Namespace: `JmcModLib.Core`
 | `WithConfigStorage(IConfigStorage storage)` | None | Sets custom storage before scanning |
 | `RegisterButton(out string key, string description, Action action, string buttonText = "按钮", string group = ConfigAttribute.DefaultGroup, string? storageKey = null, string? helpText = null, string? locTable = null, string? displayNameKey = null, string? helpTextKey = null, string? buttonTextKey = null, string? groupKey = null, int order = 0, UIButtonColor color = UIButtonColor.Default)` | See signature | Registers a manual button and returns the key |
 | `RegisterButton(string description, Action action, ...)` | Same as above | Registers a manual button without retrieving the key |
+| `RegisterPauseMenuButton(string key, string text, Action<PauseMenuButtonContext> action, int order = 0, PauseMenuButtonAnchor anchor = PauseMenuButtonAnchor.BeforeExitActions, string? locTable = null, string? textKey = null, Func<PauseMenuButtonContext, bool>? visibleWhen = null, Func<PauseMenuButtonContext, bool>? enabledWhen = null, bool closeMenuOnClick = false, UIButtonColor color = UIButtonColor.Default)` | Also has no-context and async overloads; see the pause menu section | Declares an in-run pause menu button in the current registration chain |
 | `Done()` | None | Completes registration and triggers Attribute scanning |
 
 `Done()` may be called repeatedly. The first call triggers the lifecycle; later calls only return the existing context.
@@ -970,9 +975,164 @@ Namespace: `JmcModLib.Prefabs`. Source files are under `Prefabs/`.
 
 ---
 
-## 13. Build / Deploy and Child MOD Props
+## 13. UI: Pause Menu Button Extension
+
+Namespace: `JmcModLib.UI.PauseMenu`
+
+The pause menu button extension adds ordinary buttons to the in-run pause menu opened from the top-right pause button. It is not a config entry and does not persist values. If the same action should also have a hotkey, register a separate `JmcHotkey` or `UIHotkey` and call the same business method from both entry points.
 
 ### 13.1 Lifecycle Diagram
+
+```mermaid
+flowchart TD
+    A[Child MOD registers with deferred=true] --> B[RegistryBuilder.RegisterPauseMenuButton]
+    A --> C[Static method has PauseMenuButtonAttribute]
+    B --> D[Builder.Done]
+    C --> D
+    D --> E[ModRegistry.OnRegistered]
+    E --> F[AttributeRouter scans]
+    F --> G[PauseMenuRegistry stores entries]
+    G --> H[NPauseMenu Ready / Initialize / OnSubmenuOpened]
+    H --> I[Clone native button template]
+    I --> J[Resolve settings_ui localized text]
+    J --> K[Evaluate VisibleWhen / EnabledWhen]
+    K --> L[Sort by Anchor + Order + ModId + Assembly + Key]
+    L --> M[Refresh visibility, enabled state, and focus chain]
+```
+
+### 13.2 Attribute Usage
+
+```csharp
+using JmcModLib.UI.PauseMenu;
+using JmcModLib.Utils;
+
+[PauseMenuButton(
+    "Debug Panel",
+    Key = "open.debug.panel",
+    LocTable = "settings_ui",
+    TextKey = "EXTENSION.JMCMODLIB.PAUSE_MENU.MyMod.open_debug_panel.TEXT",
+    Anchor = PauseMenuButtonAnchor.BeforeExitActions,
+    Order = 10)]
+internal static void OpenDebugPanel(PauseMenuButtonContext context)
+{
+    ModLogger.Info($"Opening debug panel from the pause menu, run in progress={context.IsRunInProgress}");
+}
+```
+
+The Attribute entry point is for static methods and supports these signatures:
+
+| Signature | Description |
+|---|---|
+| `static void Method()` | Synchronous action that does not need context |
+| `static void Method(PauseMenuButtonContext context)` | Synchronous action that reads the current pause menu state |
+| `static Task Method()` | Async action that does not need context |
+| `static Task Method(PauseMenuButtonContext context)` | Async action that reads the current pause menu state |
+
+### 13.3 Manual Registration Usage
+
+```csharp
+ModRegistry.Register<MainFile>(true)?
+    .RegisterPauseMenuButton(
+        key: "open.debug.panel",
+        text: "Debug Panel",
+        action: OpenDebugPanel,
+        anchor: PauseMenuButtonAnchor.BeforeExitActions,
+        order: 10,
+        locTable: "settings_ui",
+        textKey: "EXTENSION.JMCMODLIB.PAUSE_MENU.MyMod.open_debug_panel.TEXT",
+        enabledWhen: static context => context.IsRunInProgress && !context.IsGameOver)
+    .Done();
+
+static void OpenDebugPanel(PauseMenuButtonContext context)
+{
+    ModLogger.Info($"Manual pause menu button clicked, run state={context.RunState?.GetType().Name}");
+}
+```
+
+Manual registration is useful for dynamic conditions, cross-file composition, or explicit registration chains. Production MODs should pass both `key` and `textKey` explicitly so later method-name or fallback-text changes do not shift localization or unregister semantics.
+
+### 13.4 `PauseMenuButtonAttribute`
+
+| Property | Default | Description |
+|---|---:|---|
+| `Text` | Constructor parameter | Fallback button text |
+| `Key` | `null` | Stable key; inferred from the declaring method when omitted |
+| `Order` | `0` | Sort order within the same anchor; smaller values come first |
+| `Anchor` | `BeforeExitActions` | Insertion anchor |
+| `LocTable` | `"settings_ui"` | Text localization table |
+| `TextKey` | `null` | Explicit button text key |
+| `CloseMenuOnClick` | `false` | Whether to close the pause menu after click |
+| `Color` | `UIButtonColor.Default` | Reuses settings-button color semantics or an equivalent abstraction |
+
+### 13.5 `PauseMenuButtonOptions`
+
+Metadata shared by manual registration and the lower-level registry.
+
+| Property | Default | Description |
+|---|---:|---|
+| `Key` | Required | Stable key unique within the Assembly, used for node naming, localization convention keys, and unregistering |
+| `Text` | Required | Fallback display text |
+| `Order` | `0` | Sort order within the same anchor |
+| `Anchor` | `BeforeExitActions` | Insertion anchor |
+| `LocTable` | `"settings_ui"` | Localization table |
+| `TextKey` | `null` | Explicit button text key |
+| `VisibleWhen` | `null` | Runtime visibility predicate; exceptions hide the entry |
+| `EnabledWhen` | `null` | Runtime enabled-state predicate; exceptions disable the entry |
+| `CloseMenuOnClick` | `false` | Whether to close the pause menu after the callback is triggered successfully |
+| `Color` | `UIButtonColor.Default` | Button color style |
+
+### 13.6 `PauseMenuButtonAnchor`
+
+| Value | Description |
+|---|---|
+| `AfterResume` | Insert after the Resume button |
+| `AfterSettings` | Insert after the Settings button |
+| `AfterCompendium` | Insert after the Compendium button |
+| `BeforeExitActions` | Insert before Give Up, Disconnect, and Save and Quit; recommended default |
+| `End` | Insert at the end of the pause menu |
+
+Sorting is fixed as `Anchor`, `Order`, `ModId`, `AssemblyName`, `Key`. The same `Key` may coexist across different MODs; within one Assembly, a later registration with the same `Key` replaces the earlier one and logs a warning.
+
+### 13.7 `PauseMenuButtonContext`
+
+| Property | Type | Description |
+|---|---|---|
+| `Mod` | `ModContext` | Owning MOD context |
+| `Assembly` | `Assembly` | Owning Assembly |
+| `RunState` | `IRunState?` | Current run state, possibly null |
+| `Menu` | `NPauseMenu` | Native pause menu node; ordinary MODs should avoid arbitrary mutation |
+| `Button` | `NButton` | Current JML button node; ordinary MODs should avoid arbitrary mutation |
+| `IsMultiplayerClient` | `bool` | Whether the current run is a multiplayer client |
+| `IsRunInProgress` | `bool` | Whether a run is in progress |
+| `IsGameOver` | `bool` | Whether the run is already over |
+
+### 13.8 `PauseMenuRegistry`
+
+| Member | Description |
+|---|---|
+| `RegisterButton(...)` | Manually registers a pause menu button, using `(Assembly, Key)` as identity |
+| `UnregisterButton(string key, Assembly? assembly = null)` | Unregisters a button under the specified Assembly |
+| `GetEntries(Assembly? assembly = null)` | Gets a snapshot of registered entries for the specified Assembly |
+
+`PauseMenuRegistry` should clean up entries for an Assembly when `ModRegistry.OnUnregistered` fires. When refreshing the pause menu, JML should only move or update nodes it created and preserve unknown nodes for compatibility with other MODs.
+
+### 13.9 Localization Convention
+
+Button text defaults to the `settings_ui` table. Prefer explicit `TextKey`, for example:
+
+```json
+{
+  "EXTENSION.JMCMODLIB.PAUSE_MENU.MyMod.open_debug_panel.TEXT": "Debug Panel"
+}
+```
+
+If `TextKey` is omitted, the implementation may infer a convention key from `ModId + Key`; the docs and Demo use explicit keys to make multi-language files and later renames easier to maintain.
+
+---
+
+## 14. Build / Deploy and Child MOD Props
+
+### 14.1 Lifecycle Diagram
 
 ```mermaid
 flowchart TD
@@ -990,7 +1150,7 @@ flowchart TD
     K -- false --> M[End]
 ```
 
-### 13.2 Current MSBuild Key Points
+### 14.2 Current MSBuild Key Points
 
 JML main project:
 
@@ -1021,7 +1181,7 @@ Child MOD props:
 
 ---
 
-## 14. Default Parameter Semantics Index
+## 15. Default Parameter Semantics Index
 
 | Default Parameter | API | Semantics | Documentation Guidance |
 |---|---|---|---|
@@ -1039,12 +1199,14 @@ Child MOD props:
 | `ExactModifiers = true` | Hotkey | Disallows extra modifiers | Avoids `Ctrl + F8` accidentally triggering `F8` |
 | `AllowEcho = false` | Hotkey | Does not react to repeated hold input | Reasonable for ordinary action hotkeys; repeated actions may set true |
 | `DebounceMs = 150` | Hotkey | 150ms debounce | Reasonable |
+| `Anchor = BeforeExitActions` | PauseMenuButton | Inserts before exit/danger actions | Recommended default location for ordinary tool buttons |
+| `CloseMenuOnClick = false` | PauseMenuButton | Does not close the pause menu by default after clicking | Avoids surprising navigation for tool buttons, popup buttons, and state toggles |
 | `FallbackLanguage = eng` | L10n | English fallback | Reasonable |
 | `DefaultTable = settings_ui` | L10n | Default settings table | Reasonable |
 
 ---
 
-## 15. Inter-Module Dependency Overview
+## 16. Inter-Module Dependency Overview
 
 ```mermaid
 flowchart LR
@@ -1058,6 +1220,7 @@ flowchart LR
     Input --> Steam[Steam Input]
     UI --> L10n[L10n]
     UI --> Prefabs[Prefabs]
+    UI --> PauseMenu[Pause Menu Buttons]
     Logger --> Core
     Reflection --> Logger
 ```

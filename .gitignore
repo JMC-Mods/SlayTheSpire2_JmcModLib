@@ -371,3 +371,6 @@ FodyWeavers.xsd
 # Godot generated editor/import cache
 **/.godot/
 *.import
+
+
+设计文档

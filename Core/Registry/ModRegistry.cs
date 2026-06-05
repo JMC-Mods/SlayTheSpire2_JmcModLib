@@ -364,6 +364,7 @@ public static class ModRegistry
     {
         ModLogger.RegisterAssembly(assembly);
         ConfigManager.Init();
+        UI.PauseMenu.PauseMenuRegistry.Init();
     }
 
     private static ModContext CreateContext(Assembly assembly, string modId, string? displayName, string? version)

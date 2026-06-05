@@ -78,6 +78,41 @@
             是否允许手柄绑定；Steam Input 可用时，实际手柄按键建议在 Steam 输入中绑定。
             </summary>
         </member>
+        <member name="T:JmcModLib.Config.UI.UIButtonColor">
+            <summary>
+            JML 按钮控件可复用的颜色风格。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Config.UI.UIButtonColor.Default">
+            <summary>
+            使用原生默认颜色。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Config.UI.UIButtonColor.Green">
+            <summary>
+            绿色按钮风格。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Config.UI.UIButtonColor.Red">
+            <summary>
+            红色按钮风格。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Config.UI.UIButtonColor.Gold">
+            <summary>
+            金色按钮风格。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Config.UI.UIButtonColor.Blue">
+            <summary>
+            蓝色按钮风格。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Config.UI.UIButtonColor.Reset">
+            <summary>
+            重置类按钮风格。
+            </summary>
+        </member>
         <member name="T:JmcModLib.Config.UI.JmcHotkeyAttribute">
             <summary>
             将一个静态无参方法绑定到已有的热键配置成员。
@@ -877,6 +912,74 @@
             <param name="color">按钮颜色风格。</param>
             <returns>当前构建器，用于继续链式调用。</returns>
         </member>
+        <member name="M:JmcModLib.Core.RegistryBuilder.RegisterPauseMenuButton(System.String,System.String,System.Action,System.Int32,JmcModLib.UI.PauseMenu.PauseMenuButtonAnchor,System.String,System.String,System.Func{JmcModLib.UI.PauseMenu.PauseMenuButtonContext,System.Boolean},System.Func{JmcModLib.UI.PauseMenu.PauseMenuButtonContext,System.Boolean},System.Boolean,JmcModLib.Config.UI.UIButtonColor)">
+            <summary>
+            手动向运行中暂停菜单注册一个无上下文参数的同步按钮条目。
+            </summary>
+            <param name="key">按钮在当前 MOD 程序集内的稳定键。</param>
+            <param name="text">按钮显示文本的回退值。</param>
+            <param name="action">点击按钮时执行的动作。</param>
+            <param name="order">同一锚点内的排序值，数值越小越靠前。</param>
+            <param name="anchor">按钮插入锚点。</param>
+            <param name="locTable">本地化表名；留空时使用 JML 默认设置界面表。</param>
+            <param name="textKey">按钮文本的显式本地化键。</param>
+            <param name="visibleWhen">运行时可见性判断；返回 <see langword="false"/> 时隐藏按钮。</param>
+            <param name="enabledWhen">运行时启用状态判断；返回 <see langword="false"/> 时禁用按钮。</param>
+            <param name="closeMenuOnClick">点击回调触发后是否关闭暂停菜单。</param>
+            <param name="color">按钮颜色风格。</param>
+            <returns>当前构建器，用于继续链式调用。</returns>
+        </member>
+        <member name="M:JmcModLib.Core.RegistryBuilder.RegisterPauseMenuButton(System.String,System.String,System.Action{JmcModLib.UI.PauseMenu.PauseMenuButtonContext},System.Int32,JmcModLib.UI.PauseMenu.PauseMenuButtonAnchor,System.String,System.String,System.Func{JmcModLib.UI.PauseMenu.PauseMenuButtonContext,System.Boolean},System.Func{JmcModLib.UI.PauseMenu.PauseMenuButtonContext,System.Boolean},System.Boolean,JmcModLib.Config.UI.UIButtonColor)">
+            <summary>
+            手动向运行中暂停菜单注册一个带上下文参数的同步按钮条目。
+            </summary>
+            <param name="key">按钮在当前 MOD 程序集内的稳定键。</param>
+            <param name="text">按钮显示文本的回退值。</param>
+            <param name="action">点击按钮时执行的动作。</param>
+            <param name="order">同一锚点内的排序值，数值越小越靠前。</param>
+            <param name="anchor">按钮插入锚点。</param>
+            <param name="locTable">本地化表名；留空时使用 JML 默认设置界面表。</param>
+            <param name="textKey">按钮文本的显式本地化键。</param>
+            <param name="visibleWhen">运行时可见性判断；返回 <see langword="false"/> 时隐藏按钮。</param>
+            <param name="enabledWhen">运行时启用状态判断；返回 <see langword="false"/> 时禁用按钮。</param>
+            <param name="closeMenuOnClick">点击回调触发后是否关闭暂停菜单。</param>
+            <param name="color">按钮颜色风格。</param>
+            <returns>当前构建器，用于继续链式调用。</returns>
+        </member>
+        <member name="M:JmcModLib.Core.RegistryBuilder.RegisterPauseMenuButton(System.String,System.String,System.Func{System.Threading.Tasks.Task},System.Int32,JmcModLib.UI.PauseMenu.PauseMenuButtonAnchor,System.String,System.String,System.Func{JmcModLib.UI.PauseMenu.PauseMenuButtonContext,System.Boolean},System.Func{JmcModLib.UI.PauseMenu.PauseMenuButtonContext,System.Boolean},System.Boolean,JmcModLib.Config.UI.UIButtonColor)">
+            <summary>
+            手动向运行中暂停菜单注册一个无上下文参数的异步按钮条目。
+            </summary>
+            <param name="key">按钮在当前 MOD 程序集内的稳定键。</param>
+            <param name="text">按钮显示文本的回退值。</param>
+            <param name="action">点击按钮时执行的异步动作。</param>
+            <param name="order">同一锚点内的排序值，数值越小越靠前。</param>
+            <param name="anchor">按钮插入锚点。</param>
+            <param name="locTable">本地化表名；留空时使用 JML 默认设置界面表。</param>
+            <param name="textKey">按钮文本的显式本地化键。</param>
+            <param name="visibleWhen">运行时可见性判断；返回 <see langword="false"/> 时隐藏按钮。</param>
+            <param name="enabledWhen">运行时启用状态判断；返回 <see langword="false"/> 时禁用按钮。</param>
+            <param name="closeMenuOnClick">点击回调触发后是否关闭暂停菜单。</param>
+            <param name="color">按钮颜色风格。</param>
+            <returns>当前构建器，用于继续链式调用。</returns>
+        </member>
+        <member name="M:JmcModLib.Core.RegistryBuilder.RegisterPauseMenuButton(System.String,System.String,System.Func{JmcModLib.UI.PauseMenu.PauseMenuButtonContext,System.Threading.Tasks.Task},System.Int32,JmcModLib.UI.PauseMenu.PauseMenuButtonAnchor,System.String,System.String,System.Func{JmcModLib.UI.PauseMenu.PauseMenuButtonContext,System.Boolean},System.Func{JmcModLib.UI.PauseMenu.PauseMenuButtonContext,System.Boolean},System.Boolean,JmcModLib.Config.UI.UIButtonColor)">
+            <summary>
+            手动向运行中暂停菜单注册一个带上下文参数的异步按钮条目。
+            </summary>
+            <param name="key">按钮在当前 MOD 程序集内的稳定键。</param>
+            <param name="text">按钮显示文本的回退值。</param>
+            <param name="action">点击按钮时执行的异步动作。</param>
+            <param name="order">同一锚点内的排序值，数值越小越靠前。</param>
+            <param name="anchor">按钮插入锚点。</param>
+            <param name="locTable">本地化表名；留空时使用 JML 默认设置界面表。</param>
+            <param name="textKey">按钮文本的显式本地化键。</param>
+            <param name="visibleWhen">运行时可见性判断；返回 <see langword="false"/> 时隐藏按钮。</param>
+            <param name="enabledWhen">运行时启用状态判断；返回 <see langword="false"/> 时禁用按钮。</param>
+            <param name="closeMenuOnClick">点击回调触发后是否关闭暂停菜单。</param>
+            <param name="color">按钮颜色风格。</param>
+            <returns>当前构建器，用于继续链式调用。</returns>
+        </member>
         <member name="M:JmcModLib.Core.RegistryBuilder.Done">
             <summary>
             完成当前 MOD 的注册，并触发 Attribute 扫描。
@@ -1535,6 +1638,290 @@
             <summary>
             泛型创建实例
             </summary>
+        </member>
+        <member name="T:JmcModLib.UI.PauseMenu.PauseMenuButtonAnchor">
+            <summary>
+            暂停菜单按钮相对于原生按钮的插入锚点。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.UI.PauseMenu.PauseMenuButtonAnchor.AfterResume">
+            <summary>
+            插入到“继续”按钮之后。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.UI.PauseMenu.PauseMenuButtonAnchor.AfterSettings">
+            <summary>
+            插入到“设置”按钮之后。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.UI.PauseMenu.PauseMenuButtonAnchor.AfterCompendium">
+            <summary>
+            插入到“百科大全”按钮之后。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.UI.PauseMenu.PauseMenuButtonAnchor.BeforeExitActions">
+            <summary>
+            插入到放弃、断开连接、保存并退出等离开运行的操作之前。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.UI.PauseMenu.PauseMenuButtonAnchor.End">
+            <summary>
+            插入到暂停菜单按钮列表末尾。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.UI.PauseMenu.PauseMenuButtonAttribute">
+            <summary>
+            将静态方法声明为运行中暂停菜单里的按钮条目。
+            </summary>
+            <param name="text">按钮显示文本的回退值；找不到本地化文本时使用。</param>
+            <remarks>
+            <para>
+            本 Attribute 支持标记以下静态方法签名：
+            <c>void Method()</c>、<c>void Method(PauseMenuButtonContext)</c>、
+            <c>Task Method()</c> 与 <c>Task Method(PauseMenuButtonContext)</c>。
+            </para>
+            <para>
+            同一 MOD 程序集内 <see cref="P:JmcModLib.UI.PauseMenu.PauseMenuButtonAttribute.Key"/> 相同的按钮会互相替换；不同程序集可以使用相同键。
+            </para>
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.UI.PauseMenu.PauseMenuButtonAttribute.#ctor(System.String)">
+            <summary>
+            将静态方法声明为运行中暂停菜单里的按钮条目。
+            </summary>
+            <param name="text">按钮显示文本的回退值；找不到本地化文本时使用。</param>
+            <remarks>
+            <para>
+            本 Attribute 支持标记以下静态方法签名：
+            <c>void Method()</c>、<c>void Method(PauseMenuButtonContext)</c>、
+            <c>Task Method()</c> 与 <c>Task Method(PauseMenuButtonContext)</c>。
+            </para>
+            <para>
+            同一 MOD 程序集内 <see cref="P:JmcModLib.UI.PauseMenu.PauseMenuButtonAttribute.Key"/> 相同的按钮会互相替换；不同程序集可以使用相同键。
+            </para>
+            </remarks>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonAttribute.Text">
+            <summary>
+            按钮显示文本的回退值。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonAttribute.Key">
+            <summary>
+            按钮在当前 MOD 程序集内的稳定键；留空时会根据声明方法生成。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonAttribute.Anchor">
+            <summary>
+            按钮插入锚点，默认插入到离开运行的危险操作之前。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonAttribute.Order">
+            <summary>
+            同一锚点内的排序值，数值越小越靠前。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonAttribute.LocTable">
+            <summary>
+            本地化表名；留空时使用 JML 默认设置界面表。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonAttribute.TextKey">
+            <summary>
+            按钮文本的显式本地化键；留空时使用 JML 约定键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonAttribute.CloseMenuOnClick">
+            <summary>
+            点击回调触发后是否关闭暂停菜单，默认不关闭。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonAttribute.Color">
+            <summary>
+            按钮颜色风格。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.UI.PauseMenu.PauseMenuButtonContext">
+            <summary>
+            暂停菜单按钮在可见性判断、启用判断和点击回调中使用的上下文。
+            </summary>
+            <remarks>
+            <para>
+            普通 MOD 通常只需要读取运行状态属性。<see cref="P:JmcModLib.UI.PauseMenu.PauseMenuButtonContext.Menu"/> 和 <see cref="P:JmcModLib.UI.PauseMenu.PauseMenuButtonContext.Button"/> 暴露的是原生节点，
+            修改它们可能影响暂停菜单行为，请仅在确有需要时使用。
+            </para>
+            </remarks>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonContext.Mod">
+            <summary>
+            按钮所属 MOD 的注册上下文。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonContext.Assembly">
+            <summary>
+            按钮所属 MOD 的托管程序集。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonContext.RunState">
+            <summary>
+            当前暂停菜单绑定的运行状态；某些生命周期刷新中可能为空。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonContext.Menu">
+            <summary>
+            当前原生暂停菜单节点。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonContext.Button">
+            <summary>
+            当前按钮节点。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonContext.IsMultiplayerClient">
+            <summary>
+            当前运行是否为多人客户端。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonContext.IsRunInProgress">
+            <summary>
+            当前是否处于运行中。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonContext.IsGameOver">
+            <summary>
+            当前运行是否已经进入游戏结束状态。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions">
+            <summary>
+            描述一个暂停菜单按钮的显示、排序、本地化与运行时状态选项。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.#ctor">
+            <summary>
+            创建一个空的暂停菜单按钮选项对象。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.#ctor(System.String,System.String)">
+            <summary>
+            使用必需的键和回退文本创建暂停菜单按钮选项。
+            </summary>
+            <param name="key">按钮在当前 MOD 程序集内的稳定键。</param>
+            <param name="text">按钮显示文本的回退值。</param>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.Key">
+            <summary>
+            按钮在当前 MOD 程序集内的稳定键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.Text">
+            <summary>
+            按钮显示文本的回退值。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.Anchor">
+            <summary>
+            按钮插入锚点，默认插入到离开运行的危险操作之前。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.Order">
+            <summary>
+            同一锚点内的排序值，数值越小越靠前。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.LocTable">
+            <summary>
+            本地化表名；留空时使用 JML 默认设置界面表。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.TextKey">
+            <summary>
+            按钮文本的显式本地化键；留空时使用 JML 约定键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.VisibleWhen">
+            <summary>
+            运行时可见性判断；返回 <see langword="false"/> 时隐藏按钮。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.EnabledWhen">
+            <summary>
+            运行时启用状态判断；返回 <see langword="false"/> 时禁用按钮。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.CloseMenuOnClick">
+            <summary>
+            点击回调触发后是否关闭暂停菜单，默认不关闭。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.Color">
+            <summary>
+            按钮颜色风格。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.UI.PauseMenu.PauseMenuRegistry">
+            <summary>
+            管理子 MOD 注册到运行中暂停菜单的按钮条目。
+            </summary>
+            <remarks>
+            <para>
+            注册身份为“所属程序集 + 按钮键”。同一程序集重复注册相同键时，新条目会替换旧条目；
+            不同程序集可以使用相同键并稳定共存。
+            </para>
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.UI.PauseMenu.PauseMenuRegistry.RegisterButton(JmcModLib.UI.PauseMenu.PauseMenuButtonOptions,System.Action,System.Reflection.Assembly)">
+            <summary>
+            注册一个无上下文参数的同步暂停菜单按钮。
+            </summary>
+            <param name="options">按钮选项，必须包含 <see cref="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.Key"/> 和 <see cref="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.Text"/>。</param>
+            <param name="action">点击按钮时执行的动作。</param>
+            <param name="assembly">所属程序集；留空时自动解析调用方程序集。</param>
+        </member>
+        <member name="M:JmcModLib.UI.PauseMenu.PauseMenuRegistry.RegisterButton(JmcModLib.UI.PauseMenu.PauseMenuButtonOptions,System.Action{JmcModLib.UI.PauseMenu.PauseMenuButtonContext},System.Reflection.Assembly)">
+            <summary>
+            注册一个带上下文参数的同步暂停菜单按钮。
+            </summary>
+            <param name="options">按钮选项，必须包含 <see cref="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.Key"/> 和 <see cref="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.Text"/>。</param>
+            <param name="action">点击按钮时执行的动作。</param>
+            <param name="assembly">所属程序集；留空时自动解析调用方程序集。</param>
+        </member>
+        <member name="M:JmcModLib.UI.PauseMenu.PauseMenuRegistry.RegisterButton(JmcModLib.UI.PauseMenu.PauseMenuButtonOptions,System.Func{System.Threading.Tasks.Task},System.Reflection.Assembly)">
+            <summary>
+            注册一个无上下文参数的异步暂停菜单按钮。
+            </summary>
+            <param name="options">按钮选项，必须包含 <see cref="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.Key"/> 和 <see cref="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.Text"/>。</param>
+            <param name="action">点击按钮时执行的异步动作。</param>
+            <param name="assembly">所属程序集；留空时自动解析调用方程序集。</param>
+        </member>
+        <member name="M:JmcModLib.UI.PauseMenu.PauseMenuRegistry.RegisterButton(JmcModLib.UI.PauseMenu.PauseMenuButtonOptions,System.Func{JmcModLib.UI.PauseMenu.PauseMenuButtonContext,System.Threading.Tasks.Task},System.Reflection.Assembly)">
+            <summary>
+            注册一个带上下文参数的异步暂停菜单按钮。
+            </summary>
+            <param name="options">按钮选项，必须包含 <see cref="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.Key"/> 和 <see cref="P:JmcModLib.UI.PauseMenu.PauseMenuButtonOptions.Text"/>。</param>
+            <param name="action">点击按钮时执行的异步动作。</param>
+            <param name="assembly">所属程序集；留空时自动解析调用方程序集。</param>
+        </member>
+        <member name="M:JmcModLib.UI.PauseMenu.PauseMenuRegistry.UnregisterButton(System.String,System.Reflection.Assembly)">
+            <summary>
+            注销当前 MOD 中指定键的暂停菜单按钮。
+            </summary>
+            <param name="key">按钮注册键。</param>
+            <param name="assembly">所属程序集；留空时自动解析调用方程序集。</param>
+            <returns>成功移除按钮时返回 <see langword="true"/>。</returns>
+        </member>
+        <member name="M:JmcModLib.UI.PauseMenu.PauseMenuRegistry.UnregisterAssembly(System.Reflection.Assembly)">
+            <summary>
+            注销指定程序集下的所有暂停菜单按钮。
+            </summary>
+            <param name="assembly">所属程序集；留空时自动解析调用方程序集。</param>
+        </member>
+        <member name="M:JmcModLib.UI.PauseMenu.PauseMenuRegistry.GetEntries(System.Reflection.Assembly)">
+            <summary>
+            获取指定程序集当前注册的暂停菜单按钮选项快照。
+            </summary>
+            <param name="assembly">所属程序集；留空时自动解析调用方程序集。</param>
+            <returns>按钮选项快照集合。</returns>
         </member>
         <member name="T:JmcModLib.Utils.ExprHelper">
             <summary>
