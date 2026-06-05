@@ -35,6 +35,7 @@ internal static class PauseMenuBridge
         if (runState != null)
         {
             state.RunState = runState;
+            state.IsClosingToMenu = false;
         }
 
         try
@@ -97,7 +98,7 @@ internal static class PauseMenuBridge
                 continue;
             }
 
-            RefreshButton(menu, button, entry, state.RunState);
+            RefreshButton(menu, button, entry, state.RunState, state.IsClosingToMenu);
         }
 
         ReorderJmlNodes(container, entries);
@@ -215,17 +216,45 @@ internal static class PauseMenuBridge
         NPauseMenu menu,
         NPauseMenuButton button,
         PauseMenuButtonEntry entry,
-        IRunState? runState)
+        IRunState? runState,
+        bool forceDisabled)
     {
         ApplyText(button, PauseMenuLocalization.GetText(entry));
         ApplyColor(button, entry.Color);
 
         PauseMenuButtonContext context = entry.CreateContext(menu, button, runState);
         bool visible = entry.EvaluateVisible(context);
-        bool enabled = visible && entry.EvaluateEnabled(context);
+        bool enabled = visible && !forceDisabled && entry.EvaluateEnabled(context);
 
         button.Visible = visible;
         button.SetEnabled(enabled);
+    }
+
+    public static void BeginNativeSaveAndQuit(NPauseMenu menu)
+    {
+        if (menu == null)
+        {
+            return;
+        }
+
+        MenuState state = MenuStates.GetOrCreateValue(menu);
+        state.IsClosingToMenu = true;
+
+        Control? container = GetButtonContainer(menu);
+        if (container == null)
+        {
+            return;
+        }
+
+        foreach (Node child in container.GetChildren())
+        {
+            if (child is NPauseMenuButton button && TryReadIdentity(button, out _, out _))
+            {
+                button.Disable();
+            }
+        }
+
+        RebuildFocusNeighbors(container, state);
     }
 
     private static void ApplyText(NPauseMenuButton button, string text)
@@ -505,6 +534,8 @@ internal static class PauseMenuBridge
 
         public bool DeferredRefreshScheduled { get; set; }
 
+        public bool IsClosingToMenu { get; set; }
+
         public bool LayoutWarningLogged { get; set; }
 
         public bool TemplateWarningLogged { get; set; }
@@ -538,5 +569,15 @@ internal static class PauseMenuOpenedPatch
     public static void Postfix(NPauseMenu __instance)
     {
         PauseMenuBridge.Refresh(__instance, scheduleDeferred: true);
+    }
+}
+
+[HarmonyPatch(typeof(NPauseMenu), "OnSaveAndQuitButtonPressed")]
+internal static class PauseMenuSaveAndQuitPatch
+{
+    [HarmonyPrefix]
+    public static void Prefix(NPauseMenu __instance)
+    {
+        PauseMenuBridge.BeginNativeSaveAndQuit(__instance);
     }
 }

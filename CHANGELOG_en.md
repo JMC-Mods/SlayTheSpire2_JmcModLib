@@ -6,6 +6,11 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.3.0] - 2026-6-5
+### Added
+- Added pause menu entry extension APIs, allowing child mods to add button entries to the in-run pause menu through `[PauseMenuButton]` or manual registration.
+- Pause menu entries support stable ordering, localization fallback, click context, exception isolation, and keyboard/controller focus-chain integration.
+
 ## [1.2.0] - 2026-5-26
 ### Fixed
 - Fixed Attribute scanning being interrupted on Android and other restricted runtimes when dynamic reflection accessors fail to initialize, which could prevent `[Config]`, `[UIButton]`, `[JmcHotkey]`, and `[UIHotkey]` from registering.

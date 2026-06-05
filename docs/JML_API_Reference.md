@@ -81,7 +81,7 @@ flowchart TD
 | 成员 | 说明 |
 |---|---|
 | `const string Name = "JmcModLib"` | JML 名称 |
-| `const string Version = "1.2.1"` | JML 版本 |
+| `const string Version = "1.3.0"` | JML 版本 |
 | `string Tag` | `"[JmcModLib v1.1.0]"` |
 | `GetName(Assembly? assembly = null)` | 获取指定程序集名称，JML 自身返回固定名称 |
 | `GetVersion(Assembly? assembly = null)` | 获取指定程序集版本，JML 自身返回固定版本 |
