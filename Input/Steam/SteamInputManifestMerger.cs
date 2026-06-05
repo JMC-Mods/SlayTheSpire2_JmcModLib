@@ -7,7 +7,37 @@ namespace JmcModLib.Input;
 /// </summary>
 internal static class SteamInputManifestMerger
 {
+    public static bool HasConfigurations(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+
+        string normalizedText = text.ReplaceLineEndings("\n");
+        return TryFindBlock(normalizedText, "configurations", 0, normalizedText.Length, out _);
+    }
+
     public static string Merge(
+        string originalText,
+        IReadOnlyList<JmcInputActionDescriptor> actions,
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> localization,
+        IReadOnlyList<SteamInputConfigurationEntry> configurations)
+    {
+        ArgumentNullException.ThrowIfNull(originalText);
+        ArgumentNullException.ThrowIfNull(actions);
+        ArgumentNullException.ThrowIfNull(localization);
+        ArgumentNullException.ThrowIfNull(configurations);
+
+        if (actions.Count == 0)
+        {
+            return originalText;
+        }
+
+        string result = originalText.ReplaceLineEndings("\n");
+        result = MergeButtonActions(result, actions);
+        result = MergeLocalization(result, localization);
+        return BuildActionManifest(result, configurations);
+    }
+
+    public static string MergeControllerConfiguration(
         string originalText,
         IReadOnlyList<JmcInputActionDescriptor> actions,
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> localization)
@@ -24,7 +54,7 @@ internal static class SteamInputManifestMerger
         string result = originalText.ReplaceLineEndings("\n");
         result = MergeButtonActions(result, actions);
         result = MergeLocalization(result, localization);
-        return BuildActionManifest(result);
+        return result;
     }
 
     private static string MergeButtonActions(string text, IReadOnlyList<JmcInputActionDescriptor> actions)
@@ -122,21 +152,29 @@ internal static class SteamInputManifestMerger
         return text.Insert(FindLineStart(text, localizationBlock.CloseBrace), block.ToString());
     }
 
-    private static string BuildActionManifest(string mergedIgaText)
+    private static string BuildActionManifest(
+        string mergedIgaText,
+        IReadOnlyList<SteamInputConfigurationEntry> configurations)
     {
         if (!TryFindBlock(mergedIgaText, "actions", 0, mergedIgaText.Length, out VdfBlock actionsBlock)
             || !TryFindBlock(mergedIgaText, "localization", 0, mergedIgaText.Length, out VdfBlock localizationBlock))
         {
-            ModLogger.Warn("Steam Input manifest 结构不符合预期，无法包装为 Action Manifest，保留原始 IGA 结构。");
+            ModLogger.Warn("Steam Input manifest 结构不符合预期，无法包装为完整 Action Manifest，保留原始 IGA 结构。");
             return mergedIgaText;
         }
 
         StringBuilder builder = new();
         builder.AppendLine("\"Action Manifest\"");
         builder.AppendLine("{");
-        builder.AppendLine("\t\"configurations\"");
-        builder.AppendLine("\t{");
-        builder.AppendLine("\t}");
+        if (TryFindBlock(mergedIgaText, "configurations", 0, mergedIgaText.Length, out VdfBlock configurationsBlock))
+        {
+            AppendIndentedBlock(builder, mergedIgaText[configurationsBlock.KeyIndex..(configurationsBlock.CloseBrace + 1)], "\t");
+        }
+        else
+        {
+            AppendConfigurationsBlock(builder, configurations);
+        }
+
         AppendIndentedBlock(builder, mergedIgaText[actionsBlock.KeyIndex..(actionsBlock.CloseBrace + 1)], "\t");
         if (TryFindBlock(mergedIgaText, "action_layers", 0, mergedIgaText.Length, out VdfBlock actionLayersBlock))
         {
@@ -146,6 +184,30 @@ internal static class SteamInputManifestMerger
         AppendIndentedBlock(builder, mergedIgaText[localizationBlock.KeyIndex..(localizationBlock.CloseBrace + 1)], "\t");
         builder.AppendLine("}");
         return builder.ToString();
+    }
+
+    private static void AppendConfigurationsBlock(
+        StringBuilder builder,
+        IReadOnlyList<SteamInputConfigurationEntry> configurations)
+    {
+        builder.AppendLine("\t\"configurations\"");
+        builder.AppendLine("\t{");
+        foreach (SteamInputConfigurationEntry configuration in configurations)
+        {
+            builder.Append("\t\t\"")
+                .Append(EscapeVdf(configuration.ControllerType))
+                .AppendLine("\"");
+            builder.AppendLine("\t\t{");
+            builder.AppendLine("\t\t\t\"0\"");
+            builder.AppendLine("\t\t\t{");
+            builder.Append("\t\t\t\t\"path\"\t\t\"")
+                .Append(EscapeVdf(configuration.Path))
+                .AppendLine("\"");
+            builder.AppendLine("\t\t\t}");
+            builder.AppendLine("\t\t}");
+        }
+
+        builder.AppendLine("\t}");
     }
 
     private static void AppendIndentedBlock(StringBuilder builder, string blockText, string indentation)

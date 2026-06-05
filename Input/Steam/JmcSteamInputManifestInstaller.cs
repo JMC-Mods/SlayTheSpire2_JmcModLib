@@ -91,14 +91,27 @@ internal static class JmcSteamInputManifestInstaller
                 return;
             }
 
+            ModLogger.Debug($"找到游戏原始 Steam Input manifest：{originalPath}");
+
             string generatedPath = ResolveGeneratedManifestPath();
-            Directory.CreateDirectory(Path.GetDirectoryName(generatedPath)!);
+            string generatedDirectory = Path.GetDirectoryName(generatedPath)!;
+            Directory.CreateDirectory(generatedDirectory);
 
             string originalText = File.ReadAllText(originalPath, Encoding.UTF8);
+            IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> localization = BuildLocalization(actions);
+            IReadOnlyList<SteamInputConfigurationEntry> configurations =
+                SteamInputConfigurationProvider.PrepareConfigurations(generatedDirectory, actions, localization);
+            if (!SteamInputManifestMerger.HasConfigurations(originalText) && configurations.Count == 0)
+            {
+                ModLogger.Warn("游戏原始 Steam Input manifest 不包含完整 configurations，且未找到当前 Steam autosave 手柄布局；为避免覆盖原版手柄布局，已跳过 JML Steam Input manifest 安装。JML 手柄专用 Steam 动作将在本次启动中停用。");
+                return;
+            }
+
             string mergedText = SteamInputManifestMerger.Merge(
                 originalText,
                 actions,
-                BuildLocalization(actions));
+                localization,
+                configurations);
 
             File.WriteAllText(
                 generatedPath,
@@ -114,7 +127,7 @@ internal static class JmcSteamInputManifestInstaller
 
             GeneratedManifestPath = generatedPath;
             IsManifestInstalled = true;
-            ModLogger.Info($"JML Steam Input Action Manifest 已生成并安装：{generatedPath}，动作数：{actions.Count}");
+            ModLogger.Info($"JML Steam Input Action Manifest 已生成并安装：{generatedPath}，动作数：{actions.Count}，配置数：{configurations.Count}");
             foreach (JmcInputActionDescriptor action in actions)
             {
                 ModLogger.Debug($"JML Steam Input 动作：{action.ActionId} => {action.Entry.DisplayName}", action.Assembly);

@@ -81,8 +81,8 @@ Namespace: `JmcModLib.Core`
 | Member | Description |
 |---|---|
 | `const string Name = "JmcModLib"` | JML name |
-| `const string Version = "1.3.0"` | JML version |
-| `string Tag` | `"[JmcModLib v1.1.0]"` |
+| `const string Version = "1.3.2"` | JML version |
+| `string Tag` | `"[JmcModLib v1.3.2]"` |
 | `GetName(Assembly? assembly = null)` | Gets the specified assembly name; JML itself returns the fixed name |
 | `GetVersion(Assembly? assembly = null)` | Gets the specified assembly version; JML itself returns the fixed version |
 | `GetTag(Assembly? assembly = null)` | Builds a log tag |
