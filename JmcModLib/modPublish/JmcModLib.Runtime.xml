@@ -1090,7 +1090,7 @@
         </member>
         <member name="T:JmcModLib.Input.SteamInputPatches">
             <summary>
-            Steam Input 初始化补丁：在游戏调用 SteamInput.Init 前准备 manifest，并恢复旧版原生手柄映射重置逻辑。
+            Steam Input 初始化补丁：在游戏调用 SteamInput.Init 前准备 manifest，并补全缺失的原生手柄映射。
             </summary>
         </member>
         <member name="T:JmcModLib.Prefabs.JmcConfirmationPopup">
