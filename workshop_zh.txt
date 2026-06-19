@@ -2,36 +2,51 @@
 [h2] 1. 简介 [/h2]
 这是一个前置Mod，本身不具备任何功能，可以帮助其他模组便捷地设置配置信息、日志库封装、本地化与带缓存的反射。
 
-[url=https://github.com/JMC2002/SlayTheSpire2_SpireGuard] Github仓库 [/url]
+[url=https://github.com/JMC2002/SlayTheSpire2_JmcModLib] Github仓库 [/url]
 
 [h2] 2. 功能 [/h2]
 [list]
-    [*] 主机打开功能后，当客机使用控制台命令或者基于控制台命令的MOD时，主机会进行拦截，并给主机弹窗提醒，哪位玩家使用了什么命令。
-    [img]https://images.steamusercontent.com/ugc/11871054468909674251/D1E338B443217A4BF9774CAF510914A8ABEACF00/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false[/img]
-    [*] 作为客机对拦截无能为力，但是可以监测谁发出了什么命令
-    [img]https://images.steamusercontent.com/ugc/16399244011958331106/B571D821779F4AA871919ABFD959F17086FE885A/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false[/img]
-    [*] 可以设置功能的开启与关闭
-    [img]https://images.steamusercontent.com/ugc/12196734696829028346/5BF894441CB1F71309D8AC3ADEFF4030C5F2FA38/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false[/img]
+    [*] 提供融入游戏本身风格的设置界面与配置项（包括支持富文本的悬浮提示框），原生支持手柄操作
+    [img]https://images.steamusercontent.com/ugc/15109940752744817156/70CBEFCB61FFBA0848DCC2DD39EB2DC706FF567A/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false[/img]
+    [img]https://images.steamusercontent.com/ugc/9668772965325563167/B9E9F375F57885DF3F5AF8625287C06DC7460D54/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false[/img]
+    [*] 只需要提供 setting_ui.json 文件，即可自动扫描构建本地化配置项
+    [img]https://images.steamusercontent.com/ugc/9688811441831871705/FAC0BCDE508DA178B3C1BC3B7B8044F03E448845/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false[/img]
+    [*] 仅需要在配置变量上标记一下想用的控件类型即可完成所有注册，不需要传递回调、维护持久化配置、维护本地化等操作
+    [*] 将按键标记为支持手柄后，会自动注册一个 Steam 输入事件（第一次打开需要重启），相关本地化文本与配置项规则相同
+    [img]https://images.steamusercontent.com/ugc/12821521369812469438/A13109B265C1CBF7A1BF203BE37388016268136C/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false[/img]
+    [img]https://images.steamusercontent.com/ugc/16837084861737203949/A2426DF29ECF826F1B40CC28791C923613A44214/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false[/img]
+    [*] 提供一些游戏原生的预制件
+    [img]https://images.steamusercontent.com/ugc/11103480676072558661/6C3B44A0F2D0176555B87819378A342349AED6E4/?imw=5000&imh=5000&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=false[/img]
+    [*] 一个自带缓存的反射库
+    [*] 日志库封装
+    [*] 本地化库封装
 [/list]
 
 [h2] 3. 提醒 [/h2]
 [list]
     [*] 由于游戏机制，首次打任何一个 MOD 都会导致存档不同步，可以使用 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747533700] BetterSaveSlots [/url] 解决
-    [*] 本 MOD 需要前置：  
-• [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747526103] JmcModLib [/url]  
     [*] 本 MOD 的本地化内容（包括主页与更新日志）除了中文外均为ChatGPT生成，目前支持游戏官方支持的所有语种，如果你认为哪个词翻译不妥或者希望贡献你的翻译，欢迎去Github提issue / PR，或者联系我本人
 [/list]
 
-[h2] 4. 兼容性 [/h2]
+[h2] 4. 兼容性与依赖 [/h2]
 [list]
-    [*] 本MOD大面积使用反射，可能会随着游戏版本更新而失效，当你发现MOD不可用，请及时反馈
+    [*] 本 MOD 依赖 Newtonsoft.Json 13.0.4 与 Harmony，前者已发布在发布菜单
+    [*] 由于游戏处于 EA 阶段，可能会随着游戏版本更新而失效
 [/list]
 
 [h2] 5. TODO [/h2]
-- 
+[list]
+    [*] 文档建设中
+[/list]
 
 [h2] 6. 其他 [/h2]
-有意见和建议欢迎大家在讨论区留言或者github提issue，更新日志可以点击右上角“[url=https://steamcommunity.com/sharedfiles/filedetails/changelog/3747539605] 改动说明 [/url]”查看。
+[list]
+    [*] 如果有人想使用这个 MOD，可以先查看 [url=https://github.com/JMC2002/SlayTheSpire2_JmcModLib/blob/master/docs/JML_QuickStart.md] 快速上手 [/url] 与 [url=https://github.com/JMC2002/SlayTheSpire2_JmcModLib/blob/master/docs/JML_API_Reference.md] API参考文档 [/url]，配合 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747539321] Demo [/url] 使用
+    [*] MOD 目前还处于建设阶段，建议如果想要使用这个 MOD，加入 Discord 服务器或 QQ 群（617674584）
+    [*] 本 MOD 文档、本地化文本依赖 AI 生成，如果你觉得哪些翻译得不好，欢迎提出建议
+[/list]
+
+有意见和建议欢迎大家在讨论区留言或者github提issue，更新日志可以点击右上角“[url=https://steamcommunity.com/sharedfiles/filedetails/changelog/3747526103] 改动说明 [/url]”查看。
 
 [b] 如果你喜欢这个 Mod 的话，希望可以点一下好评~[/b]
 
