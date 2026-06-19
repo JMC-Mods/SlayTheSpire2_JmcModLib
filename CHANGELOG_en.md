@@ -6,6 +6,13 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.4.0] - 2026-6-19
+### Fixed
+0.99.1 compact
+
+### Changed
+- Adapted the manifest format migration for official MOD publishing.
+
 ## [1.3.3] - 2026-6-6
 ### Fixed
 - Minor fixes for the previous update.

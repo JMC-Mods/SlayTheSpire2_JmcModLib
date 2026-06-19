@@ -24,7 +24,7 @@ internal sealed partial class ModSettingsPanel
         listeningKeybind = null;
         _firstControl = null;
 
-        List<Mod> modsWithConfig = [.. ModManager.Mods
+        List<Mod> modsWithConfig = [.. ModManagerCompat.GetSettingsMods()
             .Where(ModConfigUiBridge.HasConfig)
             .OrderBy(static mod => mod.manifest?.name ?? mod.manifest?.id ?? string.Empty, StringComparer.OrdinalIgnoreCase)];
 

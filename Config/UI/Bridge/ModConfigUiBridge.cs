@@ -54,7 +54,7 @@ internal static class ModConfigUiBridge
             return;
         }
 
-        Mod? mod = ModManager.Mods.FirstOrDefault(m =>
+        Mod? mod = ModManagerCompat.GetSettingsMods().FirstOrDefault(m =>
             string.Equals(m.manifest?.id, modId, StringComparison.OrdinalIgnoreCase));
         if (mod == null || !HasConfig(mod))
         {
