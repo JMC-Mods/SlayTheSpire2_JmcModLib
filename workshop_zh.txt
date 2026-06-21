@@ -1,3 +1,7 @@
+[h1] 特别提醒 [/h1]
+[b] 如果你打MOD后发现存档消失，订阅 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747533700] BetterSaveSlots [/url] 后在存档槽点击导入按钮解决，使用前请禁用存档路径合并MOD [/b]
+
+
 [h1] JmcModLib [/h1]
 [h2] 1. 简介 [/h2]
 这是一个前置Mod，本身不具备任何功能，可以帮助其他模组便捷地设置配置信息、日志库封装、本地化与带缓存的反射。
