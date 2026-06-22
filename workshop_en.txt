@@ -23,6 +23,7 @@ The main part of this MOD comes from my [url=https://github.com/JMC2002/JmcModLi
     [*] A reflection library with built-in caching
     [*] Logging library wrappers
     [*] Localization library wrappers
+    [*] Provides the zero-runtime-dependency JML Dispatch multi-version DLL dispatch toolchain, allowing child mods to load different Runtime DLLs based on the STS2 version
 [/list]
 
 [h2] 3. Notes [/h2]
@@ -44,7 +45,7 @@ The main part of this MOD comes from my [url=https://github.com/JMC2002/JmcModLi
 
 [h2] 6. Other [/h2]
 [list]
-    [*] If anyone wants to use this MOD, they can first view the [url=https://github.com/JMC2002/SlayTheSpire2_JmcModLib/blob/master/docs/JML_QuickStart_en.md] Quick Start [/url] and [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747539321] API Reference [/url], and use them together with the [url=https://github.com/JMC2002/SlayTheSpire2_JmcModLibDemo] Demo [/url]
+    [*] If anyone wants to use this MOD, they can first view the [url=https://github.com/JMC2002/SlayTheSpire2_JmcModLib/blob/master/docs/JML_QuickStart_en.md] Quick Start [/url], [url=https://github.com/JMC2002/SlayTheSpire2_JmcModLib/blob/master/docs/JML_API_Reference_en.md] API Reference [/url], and [url=https://github.com/JMC2002/SlayTheSpire2_JmcModLib/blob/master/docs/JML_Dispatch.md] Multi-version DLL Dispatch [/url], and use them together with the [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747539321] Demo [/url]
     [*] This MOD is still under construction. If you want to use it, joining the Discord server or QQ group (617674584) is recommended
     [*] This MOD's documentation and localization text rely on AI-generated content. If you find any translation that feels off, suggestions are welcome
 [/list]

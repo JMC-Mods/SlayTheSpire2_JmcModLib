@@ -24,6 +24,7 @@
     [*] 一个自带缓存的反射库
     [*] 日志库封装
     [*] 本地化库封装
+    [*] 提供零运行时依赖的 JML Dispatch 多版本 DLL 分派工具链，方便子 MOD 按 STS2 版本加载不同 Runtime DLL
 [/list]
 
 [h2] 3. 提醒 [/h2]
@@ -45,7 +46,7 @@
 
 [h2] 6. 其他 [/h2]
 [list]
-    [*] 如果有人想使用这个 MOD，可以先查看 [url=https://github.com/JMC2002/SlayTheSpire2_JmcModLib/blob/master/docs/JML_QuickStart.md] 快速上手 [/url] 与 [url=https://github.com/JMC2002/SlayTheSpire2_JmcModLib/blob/master/docs/JML_API_Reference.md] API参考文档 [/url]，配合 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747539321] Demo [/url] 使用
+    [*] 如果有人想使用这个 MOD，可以先查看 [url=https://github.com/JMC2002/SlayTheSpire2_JmcModLib/blob/master/docs/JML_QuickStart.md] 快速上手 [/url]、[url=https://github.com/JMC2002/SlayTheSpire2_JmcModLib/blob/master/docs/JML_API_Reference.md] API参考文档 [/url] 与 [url=https://github.com/JMC2002/SlayTheSpire2_JmcModLib/blob/master/docs/JML_Dispatch.md] 多版本 DLL 分派 [/url]，配合 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747539321] Demo [/url] 使用
     [*] MOD 目前还处于建设阶段，建议如果想要使用这个 MOD，加入 Discord 服务器或 QQ 群（617674584）
     [*] 本 MOD 文档、本地化文本依赖 AI 生成，如果你觉得哪些翻译得不好，欢迎提出建议
 [/list]
