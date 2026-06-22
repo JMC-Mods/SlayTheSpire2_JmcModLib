@@ -1,3 +1,6 @@
+[h1] Special Notice [/h1]
+[b] If your saves disappear after installing mods, subscribe to [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3747533700] BetterSaveSlots [/url], then click the Import button on the save slot to fix it. Please disable any save-path merging mods before using it. [/b]
+
 [h1] JmcModLib [/h1]
 [h2] 1. Overview [/h2]
 The main part of this MOD comes from my [url=https://github.com/JMC2002/JmcModLib] prerequisite library of the same name [/url] for Escape from Duckov. It mainly consists of a configuration library, a reflection library, logging library wrappers, and localization library wrappers.
