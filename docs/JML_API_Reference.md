@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 API 文档
 
-源码基准：JML `1.1.0`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
+源码基准：JML `1.4.1`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
 
 ```csharp
 using JmcModLib.Core;
@@ -81,8 +81,8 @@ flowchart TD
 | 成员 | 说明 |
 |---|---|
 | `const string Name = "JmcModLib"` | JML 名称 |
-| `const string Version = "1.3.2"` | JML 版本 |
-| `string Tag` | `"[JmcModLib v1.3.2]"` |
+| `const string Version = "1.4.1"` | JML 版本 |
+| `string Tag` | `"[JmcModLib v1.4.1]"` |
 | `GetName(Assembly? assembly = null)` | 获取指定程序集名称，JML 自身返回固定名称 |
 | `GetVersion(Assembly? assembly = null)` | 获取指定程序集版本，JML 自身返回固定版本 |
 | `GetTag(Assembly? assembly = null)` | 生成日志标签 |
@@ -210,6 +210,12 @@ JmcModLib.json                # JML manifest
   "probeAllDlls": true
 }
 ```
+
+### 3.3 JML Dispatch 多版本 DLL 分派
+
+JML 发布目录提供 `JmcModLib.Dispatch.targets`。子 MOD 导入后，可以生成零 JML 运行时依赖的同名 Bootstrap DLL，并根据当前 STS2 版本加载 `runtimes/<version>/` 下的 Runtime DLL。
+
+完整使用方式见[多版本 DLL 分派](JML_Dispatch.md)。
 
 ---
 

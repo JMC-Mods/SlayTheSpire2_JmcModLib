@@ -1,0 +1,105 @@
+<Project>
+  <PropertyGroup>
+    <JmcDispatchEnabled Condition="'$(JmcDispatchEnabled)' == ''">true</JmcDispatchEnabled>
+    <JmcDispatchModName Condition="'$(JmcDispatchModName)' == '' and '$(ModName)' != ''">$(ModName)</JmcDispatchModName>
+    <JmcDispatchModName Condition="'$(JmcDispatchModName)' == ''">$(MSBuildProjectName)</JmcDispatchModName>
+    <JmcDispatchPublishDir Condition="'$(JmcDispatchPublishDir)' == '' and '$(PublishDir)' != ''">$(PublishDir)</JmcDispatchPublishDir>
+    <JmcDispatchPublishDir Condition="'$(JmcDispatchPublishDir)' == ''">$(MSBuildProjectDirectory)\$(JmcDispatchModName)\modPublish</JmcDispatchPublishDir>
+    <JmcDispatchRuntimeAssemblyName Condition="'$(JmcDispatchRuntimeAssemblyName)' == ''">$(JmcDispatchModName).Runtime</JmcDispatchRuntimeAssemblyName>
+    <JmcDispatchRuntimeFileName Condition="'$(JmcDispatchRuntimeFileName)' == ''">$(JmcDispatchRuntimeAssemblyName).dll</JmcDispatchRuntimeFileName>
+    <JmcDispatchInitializerType Condition="'$(JmcDispatchInitializerType)' == ''">$(JmcDispatchModName).MainFile</JmcDispatchInitializerType>
+    <JmcDispatchInitializerMethod Condition="'$(JmcDispatchInitializerMethod)' == ''">Initialize</JmcDispatchInitializerMethod>
+    <JmcDispatchDescriptorFileName Condition="'$(JmcDispatchDescriptorFileName)' == ''">$(JmcDispatchModName).dispatch.json</JmcDispatchDescriptorFileName>
+    <JmcDispatchDescriptorPath Condition="'$(JmcDispatchDescriptorPath)' == ''">$(JmcDispatchPublishDir)\$(JmcDispatchDescriptorFileName)</JmcDispatchDescriptorPath>
+    <JmcDispatchBootstrapProject Condition="'$(JmcDispatchBootstrapProject)' == '' and Exists('$(MSBuildThisFileDirectory)dispatch\JmcModLib.Dispatch.Bootstrap.csproj')">$(MSBuildThisFileDirectory)dispatch\JmcModLib.Dispatch.Bootstrap.csproj</JmcDispatchBootstrapProject>
+    <JmcDispatchBootstrapProject Condition="'$(JmcDispatchBootstrapProject)' == ''">$(MSBuildThisFileDirectory)JmcModLib.Dispatch.Bootstrap.csproj</JmcDispatchBootstrapProject>
+    <JmcDispatchBootstrapOutputDir Condition="'$(JmcDispatchBootstrapOutputDir)' == ''">$(MSBuildProjectDirectory)\obj\JmcDispatch\bootstrap\</JmcDispatchBootstrapOutputDir>
+    <JmcDispatchSetRuntimeAssemblyName Condition="'$(JmcDispatchSetRuntimeAssemblyName)' == ''">true</JmcDispatchSetRuntimeAssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(JmcDispatchEnabled)' == 'true' and '$(JmcDispatchSetRuntimeAssemblyName)' == 'true'">
+    <AssemblyName>$(JmcDispatchRuntimeAssemblyName)</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(JmcDispatchEnabled)' == 'true' and '@(JmcDispatchRuntime)' == ''">
+    <JmcDispatchRuntime Include="default">
+      <RuntimeAssembly>runtimes/default/$(JmcDispatchRuntimeFileName)</RuntimeAssembly>
+      <ProbeDirectories>runtimes/default</ProbeDirectories>
+      <ProbeAllDlls>false</ProbeAllDlls>
+    </JmcDispatchRuntime>
+  </ItemGroup>
+
+  <Target Name="JmcDispatchNormalize" Condition="'$(JmcDispatchEnabled)' == 'true'">
+    <ItemGroup>
+      <JmcDispatchRuntime Update="@(JmcDispatchRuntime)" Condition="'%(JmcDispatchRuntime.RuntimeAssembly)' == ''">
+        <RuntimeAssembly>runtimes/%(JmcDispatchRuntime.Identity)/$(JmcDispatchRuntimeFileName)</RuntimeAssembly>
+      </JmcDispatchRuntime>
+      <JmcDispatchRuntime Update="@(JmcDispatchRuntime)" Condition="'%(JmcDispatchRuntime.ProbeDirectories)' == ''">
+        <ProbeDirectories>runtimes/%(JmcDispatchRuntime.Identity)</ProbeDirectories>
+      </JmcDispatchRuntime>
+      <JmcDispatchRuntime Update="@(JmcDispatchRuntime)" Condition="'%(JmcDispatchRuntime.ProbeAllDlls)' == ''">
+        <ProbeAllDlls>false</ProbeAllDlls>
+      </JmcDispatchRuntime>
+      <JmcDispatchRuntime Update="@(JmcDispatchRuntime)" Condition="'%(JmcDispatchRuntime.SourcePath)' == ''">
+        <SourcePath>$(TargetPath)</SourcePath>
+      </JmcDispatchRuntime>
+      <JmcDispatchRuntime Update="@(JmcDispatchRuntime)" Condition="'%(JmcDispatchRuntime.SourceDirectory)' == '' and '%(JmcDispatchRuntime.SourcePath)' != ''">
+        <SourceDirectory>$([System.IO.Path]::GetDirectoryName('%(JmcDispatchRuntime.SourcePath)'))\</SourceDirectory>
+      </JmcDispatchRuntime>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="JmcDispatchWriteDescriptor" DependsOnTargets="JmcDispatchNormalize" Condition="'$(JmcDispatchEnabled)' == 'true'">
+    <MakeDir Directories="$(JmcDispatchPublishDir)" />
+    <ItemGroup>
+      <_JmcDispatchDescriptorLines Include="{" />
+      <_JmcDispatchDescriptorLines Include="  &quot;initializerType&quot;: &quot;$(JmcDispatchInitializerType)&quot;," />
+      <_JmcDispatchDescriptorLines Include="  &quot;initializerMethod&quot;: &quot;$(JmcDispatchInitializerMethod)&quot;," />
+      <_JmcDispatchDescriptorLines Include="  &quot;entries&quot;: [" />
+      <_JmcDispatchDescriptorLines Include="@(JmcDispatchRuntime -> '    { &quot;id&quot;: &quot;%(Identity)&quot;, &quot;minGameVersion&quot;: &quot;%(MinGameVersion)&quot;, &quot;maxGameVersionExclusive&quot;: &quot;%(MaxGameVersionExclusive)&quot;, &quot;runtimeAssembly&quot;: &quot;%(RuntimeAssembly)&quot;, &quot;probeDirectories&quot;: [&quot;%(ProbeDirectories)&quot;], &quot;dependencies&quot;: [&quot;%(Dependencies)&quot;], &quot;probeAllDlls&quot;: %(ProbeAllDlls) }', ',')" />
+      <_JmcDispatchDescriptorLines Include="  ]" />
+      <_JmcDispatchDescriptorLines Include="}" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(JmcDispatchDescriptorPath)" Lines="@(_JmcDispatchDescriptorLines)" Overwrite="true" Encoding="utf-8" />
+    <Message Text="JML Dispatch 分派配置已生成：$(JmcDispatchDescriptorPath)" Importance="High" />
+  </Target>
+
+  <Target Name="JmcDispatchBuildBootstrap" Condition="'$(JmcDispatchEnabled)' == 'true'">
+    <MSBuild Projects="$(JmcDispatchBootstrapProject)"
+             Targets="Restore;Build"
+             Properties="Configuration=$(Configuration);Platform=$(Platform);TargetFramework=$(TargetFramework);AssemblyName=$(JmcDispatchModName);Sts2DataDir=$(Sts2DataDir);OutputPath=$(JmcDispatchBootstrapOutputDir);AppendTargetFrameworkToOutputPath=false" />
+    <Copy SourceFiles="$(JmcDispatchBootstrapOutputDir)$(JmcDispatchModName).dll"
+          DestinationFiles="$(JmcDispatchPublishDir)\$(JmcDispatchModName).dll"
+          SkipUnchangedFiles="true" />
+    <Message Text="JML Dispatch Bootstrap 已生成：$(JmcDispatchPublishDir)\$(JmcDispatchModName).dll" Importance="High" />
+  </Target>
+
+  <Target Name="JmcDispatchCopyRuntimes" DependsOnTargets="JmcDispatchNormalize" Condition="'$(JmcDispatchEnabled)' == 'true'">
+    <Error Condition="'%(JmcDispatchRuntime.SourcePath)' == '' or !Exists('%(JmcDispatchRuntime.SourcePath)')"
+           Text="JML Dispatch 找不到 Runtime 输出：%(JmcDispatchRuntime.SourcePath)。请先构建 Runtime，或在 JmcDispatchRuntime 上设置 SourcePath。" />
+    <MakeDir Directories="@(JmcDispatchRuntime -> '$(JmcDispatchPublishDir)\runtimes\%(Identity)')" />
+    <ItemGroup>
+      <_JmcDispatchRuntimeFiles Include="%(JmcDispatchRuntime.SourceDirectory)*.dll">
+        <DispatchId>%(JmcDispatchRuntime.Identity)</DispatchId>
+      </_JmcDispatchRuntimeFiles>
+      <_JmcDispatchRuntimeFiles Include="%(JmcDispatchRuntime.SourceDirectory)*.pdb">
+        <DispatchId>%(JmcDispatchRuntime.Identity)</DispatchId>
+      </_JmcDispatchRuntimeFiles>
+      <_JmcDispatchRuntimeFiles Include="%(JmcDispatchRuntime.SourceDirectory)*.xml">
+        <DispatchId>%(JmcDispatchRuntime.Identity)</DispatchId>
+      </_JmcDispatchRuntimeFiles>
+      <_JmcDispatchRuntimeFiles Include="%(JmcDispatchRuntime.SourceDirectory)*.json">
+        <DispatchId>%(JmcDispatchRuntime.Identity)</DispatchId>
+      </_JmcDispatchRuntimeFiles>
+    </ItemGroup>
+    <Copy SourceFiles="@(_JmcDispatchRuntimeFiles)"
+          DestinationFiles="@(_JmcDispatchRuntimeFiles -> '$(JmcDispatchPublishDir)\runtimes\%(DispatchId)\%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <Message Text="JML Dispatch Runtime 已复制到 $(JmcDispatchPublishDir)\runtimes" Importance="High" />
+  </Target>
+
+  <Target Name="JmcDispatchPublish"
+          AfterTargets="Build"
+          DependsOnTargets="JmcDispatchWriteDescriptor;JmcDispatchBuildBootstrap;JmcDispatchCopyRuntimes"
+          Condition="'$(JmcDispatchEnabled)' == 'true'" />
+</Project>

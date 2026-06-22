@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFramework)' == ''">net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <AssemblyName Condition="'$(AssemblyName)' == ''">JmcModLib.Dispatch.Bootstrap</AssemblyName>
+    <RootNamespace>JmcModLib.Dispatch.Bootstrap</RootNamespace>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <Sts2DataDir Condition="'$(Sts2DataDir)' == ''">D:\SteamLibrary\steamapps\common\Slay the Spire 2\data_sts2_windows_x86_64</Sts2DataDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="DispatchBootstrap.cs" />
+    <Compile Include="DispatchDescriptor.cs" />
+    <Compile Include="BootstrapDependencyResolver.cs" />
+    <Compile Include="BootstrapLog.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="sts2">
+      <HintPath>$(Sts2DataDir)\sts2.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

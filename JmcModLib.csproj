@@ -36,6 +36,7 @@
   <ItemGroup>
     <Content Remove="JmcModLib\modPublish\JmcModLib.json" />
     <Compile Remove="Bootstrap\**\*.cs" />
+    <Compile Remove="Dispatch\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -170,7 +171,18 @@ texture_format/etc2=false
 
     <!-- [3/4] 调用 Godot 打包 PCK -->
     <Message Text="[2/4] 调用 Godot 打包 PCK (工作目录: $(ModLocalDir))..." Importance="High" />
+    <RemoveDir Directories="$(PublishDir)\dispatch" Condition="Exists('$(PublishDir)\dispatch')" />
+    <Delete Files="$(PublishDir)\JmcModLib.Dispatch.targets" Condition="Exists('$(PublishDir)\JmcModLib.Dispatch.targets')" />
     <Exec Command="&quot;$(GodotExe)&quot; --headless --export-pack &quot;Windows Desktop&quot; &quot;modPublish\$(ModName).pck&quot;" WorkingDirectory="$(ModLocalDir)" StdOutEncoding="utf-8" StdErrEncoding="utf-8" EnvironmentVariables="NO_COLOR=1" Condition="Exists('$(GodotExe)') And Exists('$(ModLocalDir)\export_presets.cfg')" />
+
+    <Message Text="[2.5/4] 准备 Dispatch 工具链..." Importance="High" />
+    <MakeDir Directories="$(PublishDir)\dispatch" />
+    <ItemGroup>
+      <DispatchBootstrapFiles Include="$(ProjectDir)Dispatch\JmcModLib.Dispatch.Bootstrap.csproj" />
+      <DispatchBootstrapFiles Include="$(ProjectDir)Dispatch\*.cs" />
+    </ItemGroup>
+    <Copy SourceFiles="$(ProjectDir)Dispatch\JmcModLib.Dispatch.targets" DestinationFiles="$(PublishDir)\JmcModLib.Dispatch.targets" />
+    <Copy SourceFiles="@(DispatchBootstrapFiles)" DestinationFolder="$(PublishDir)\dispatch" />
 
     <!-- 将发布内容同步到游戏目录 -->
     <Message Text="[3/4] 同步所有文件到游戏目录..." Importance="High" />

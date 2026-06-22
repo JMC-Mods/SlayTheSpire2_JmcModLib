@@ -3,6 +3,8 @@
 # JmcModLib STS2 快速入门
 
 推荐配合[Demo](https://github.com/JMC2002/SlayTheSpire2_JmcModLibDemo)使用
+
+如果你的 MOD 需要按 STS2 版本加载不同 DLL，请查看[多版本 DLL 分派](JML_Dispatch.md)。
 ---
 
 ## 0. 先理解 JML 的默认工作方式
