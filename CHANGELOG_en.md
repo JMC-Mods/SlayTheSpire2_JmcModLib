@@ -6,6 +6,11 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.4.4] - 2026-6-26
+### Fixed
+- Worked around Harmony's native helper library failing to load on some Linux distributions, which could prevent patches from being applied.
+- Fixed incorrect highlight state handling for pause menu buttons.
+
 ## [1.4.1] - 2026-6-22
 ### Added
 - Added the JML Dispatch multi-version DLL dispatch toolchain. Child mods can generate a zero-JML-runtime bootstrap and load the matching Runtime DLL for the current STS2 version.

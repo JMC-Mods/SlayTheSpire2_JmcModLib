@@ -3,6 +3,7 @@ using MegaCrit.Sts2.Core.Modding;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Text.Json;
 
@@ -15,6 +16,8 @@ public static class BootstrapMain
 
     public static void Initialize()
     {
+        BootstrapLinuxHarmonySupport.Prepare();
+
         string modDirectory = ResolveModDirectory();
         RuntimeDescriptor descriptor = RuntimeDescriptor.Load(Path.Combine(modDirectory, DescriptorFileName));
 
@@ -60,6 +63,116 @@ public static class BootstrapMain
 
         return AppContext.BaseDirectory;
     }
+}
+
+internal static class BootstrapLinuxHarmonySupport
+{
+    private const int DlopenNow = 2;
+    private const int DlopenGlobal = 0x100;
+    private const int GlobalResolveFlags = DlopenNow | DlopenGlobal;
+
+    private static int prepared;
+
+    private static readonly string[] UnwindSymbolProviders =
+    [
+        "libgcc_s.so.1",
+        "libunwind.so.8",
+        "libunwind.so"
+    ];
+
+    public static void Prepare()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return;
+        }
+
+        if (Interlocked.Exchange(ref prepared, 1) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            LoadUnwindProviders();
+        }
+        catch (DllNotFoundException ex)
+        {
+            BootstrapLog.Warn($"Linux Harmony 兼容启动已跳过：当前环境不可用 libdl.so.2（{ex.Message}）。");
+        }
+        catch (EntryPointNotFoundException ex)
+        {
+            BootstrapLog.Warn($"Linux Harmony 兼容启动已跳过：当前 libdl 缺少必要入口（{ex.Message}）。");
+        }
+        catch (Exception ex)
+        {
+            BootstrapLog.Warn($"Linux Harmony 兼容启动失败：{ex.Message}");
+        }
+    }
+
+    private static void LoadUnwindProviders()
+    {
+        List<string> resolvedLibraries = [];
+        List<string> loadErrors = [];
+
+        foreach (string library in UnwindSymbolProviders)
+        {
+            if (TryLoadGlobal(library, out string? error))
+            {
+                resolvedLibraries.Add(library);
+            }
+            else
+            {
+                loadErrors.Add($"{library} -> {error}");
+            }
+        }
+
+        if (resolvedLibraries.Count == 0)
+        {
+            WarnNoUnwindProvider(loadErrors);
+            return;
+        }
+
+        BootstrapLog.Info($"Linux Harmony 兼容启动完成：已全局加载 {string.Join(", ", resolvedLibraries)}。");
+    }
+
+    private static bool TryLoadGlobal(string libraryName, out string error)
+    {
+        error = string.Empty;
+        IntPtr handle = Dlopen(libraryName, GlobalResolveFlags);
+        if (handle != IntPtr.Zero)
+        {
+            return true;
+        }
+
+        error = ReadDlopenError();
+        return false;
+    }
+
+    private static void WarnNoUnwindProvider(IEnumerable<string> loadErrors)
+    {
+        BootstrapLog.Warn(
+            "Linux Harmony 兼容启动未能全局加载 unwind 符号提供库；Steam Deck/Linux 下的 Harmony 补丁可能无法应用。"
+            + $" 尝试结果：{string.Join("; ", loadErrors)}");
+    }
+
+    private static string ReadDlopenError()
+    {
+        IntPtr pointer = Dlerror();
+        return pointer == IntPtr.Zero
+            ? "未知 dlopen 错误"
+            : Marshal.PtrToStringAnsi(pointer) ?? "未知 dlopen 错误";
+    }
+
+#pragma warning disable CA2101
+#pragma warning disable SYSLIB1054
+    [DllImport("libdl.so.2", EntryPoint = "dlopen", CharSet = CharSet.Ansi)]
+    private static extern IntPtr Dlopen(string filename, int flags);
+
+    [DllImport("libdl.so.2", EntryPoint = "dlerror")]
+    private static extern IntPtr Dlerror();
+#pragma warning restore SYSLIB1054
+#pragma warning restore CA2101
 }
 
 internal sealed class RuntimeDescriptor
