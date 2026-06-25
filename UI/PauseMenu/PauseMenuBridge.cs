@@ -18,6 +18,7 @@ internal static class PauseMenuBridge
     private static readonly StringName AssemblyMetaKey = new("jmcmodlib_pause_menu_assembly");
     private static readonly StringName KeyMetaKey = new("jmcmodlib_pause_menu_key");
     private static readonly StringName ConnectedMetaKey = new("jmcmodlib_pause_menu_connected");
+    private static readonly StringName VisualResourcesLocalizedMetaKey = new("jmcmodlib_pause_menu_visual_resources_localized");
     private static readonly Variant CallableKey = Variant.CreateFrom("callable");
     private static readonly ConditionalWeakTable<NPauseMenu, MenuState> MenuStates = [];
     private static readonly string[] TemplateCandidates = ["Settings", "Resume", "SaveAndQuit"];
@@ -159,6 +160,7 @@ internal static class PauseMenuBridge
         NPauseMenuButton? existing = FindButton(container, entry);
         if (existing != null)
         {
+            LocalizeVisualResources(existing);
             return existing;
         }
 
@@ -168,6 +170,7 @@ internal static class PauseMenuBridge
             button.Name = BuildNodeName(entry);
             button.SetMeta(AssemblyMetaKey, entry.Assembly.FullName ?? string.Empty);
             button.SetMeta(KeyMetaKey, entry.Key);
+            LocalizeVisualResources(button);
             ClearReleasedConnections(button);
             button.Connect(NClickableControl.SignalName.Released, Callable.From<NButton>(pressed => OnButtonReleased(menu, pressed)));
             button.SetMeta(ConnectedMetaKey, true);
@@ -178,6 +181,31 @@ internal static class PauseMenuBridge
         {
             ModLogger.Warn($"创建暂停菜单按钮 {entry.Key} 失败。", ex, entry.Assembly);
             return null;
+        }
+    }
+
+    private static void LocalizeVisualResources(NPauseMenuButton button)
+    {
+        if (button.HasMeta(VisualResourcesLocalizedMetaKey) && button.GetMeta(VisualResourcesLocalizedMetaKey).AsBool())
+        {
+            return;
+        }
+
+        LocalizeVisualResourcesRecursive(button);
+        button.SetMeta(VisualResourcesLocalizedMetaKey, true);
+    }
+
+    private static void LocalizeVisualResourcesRecursive(Node node)
+    {
+        if (node is CanvasItem canvasItem && canvasItem.Material != null)
+        {
+            canvasItem.Material = (Material)canvasItem.Material.Duplicate(true);
+            canvasItem.Material.ResourceLocalToScene = true;
+        }
+
+        foreach (Node child in node.GetChildren())
+        {
+            LocalizeVisualResourcesRecursive(child);
         }
     }
 
