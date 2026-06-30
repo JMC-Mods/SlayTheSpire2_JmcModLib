@@ -652,6 +652,34 @@ if (JmcConfirmationPopup.IsAvailable)
 }
 ```
 
+### 可滚动报告弹窗
+
+日志摘要、诊断报告或调试输出较长时，使用 `JmcReportPopup`：
+
+```csharp
+using JmcModLib.Prefabs;
+
+string reportText = BuildReport();
+
+JmcReportPopupHandle? popup = JmcReportPopup.Open(new JmcReportPopupOptions
+{
+    Title = "诊断报告",
+    Subtitle = "最近 3 份日志",
+    Body = reportText,
+    BodyFormat = JmcReportPopupBodyFormat.Markdown,
+    Status = "分析完成",
+    Buttons =
+    [
+        new JmcReportPopupButton("copy", "复制", _ => DisplayServer.ClipboardSet(reportText)),
+        new JmcReportPopupButton("close", "关闭", closeOnClick: true)
+    ]
+});
+
+popup?.SetStatus("报告已显示");
+```
+
+`Body` 默认按纯文本显示，适合包含 `[INFO]`、堆栈行和文件路径的日志；如果正文是 LLM 生成的诊断报告，可设置 `BodyFormat = JmcReportPopupBodyFormat.Markdown`。第一版 Markdown 支持标题、加粗、斜体、列表、引用、分隔线、行内代码、代码块和普通链接展示，其中引用会显示为灰色缩进文本并带左侧竖线，普通段落和代码块里的 `[WARN]`/`WARNING:`、`[ERROR]`/`ERROR:` 等日志行会自动按警告黄和错误红高亮。需要直接传游戏富文本标签时，使用 `BodyFormat = JmcReportPopupBodyFormat.RichText`。
+
 ---
 
 ## 16. 配置存储

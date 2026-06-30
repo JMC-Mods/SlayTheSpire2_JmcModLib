@@ -81,8 +81,8 @@ flowchart TD
 | 成员 | 说明 |
 |---|---|
 | `const string Name = "JmcModLib"` | JML 名称 |
-| `const string Version = "1.4.4"` | JML 版本 |
-| `string Tag` | `"[JmcModLib v1.4.4]"` |
+| `const string Version = "1.4.14"` | JML 版本 |
+| `string Tag` | `"[JmcModLib v1.4.14]"` |
 | `GetName(Assembly? assembly = null)` | 获取指定程序集名称，JML 自身返回固定名称 |
 | `GetVersion(Assembly? assembly = null)` | 获取指定程序集版本，JML 自身返回固定版本 |
 | `GetTag(Assembly? assembly = null)` | 生成日志标签 |
@@ -978,6 +978,52 @@ flowchart TD
 | `ShowConfirmationAsync(string title, string body, string? confirmText = null, string? cancelText = null, bool showBackstop = true, Assembly? assembly = null)` | 确认/取消弹窗，返回 bool |
 | `ShowMessageAsync(string title, string body, string? okText = null, bool showBackstop = true, Assembly? assembly = null)` | OK 消息弹窗 |
 | `LocString` overloads | 支持本地化字符串参数 |
+
+### 12.3 `JmcReportPopup`
+
+命名空间：`JmcModLib.Prefabs`。源码文件在 `Prefabs/`。
+
+`JmcReportPopup` 用于显示较长的诊断报告、日志摘要或调试信息。它同样通过游戏 `NModalContainer` 打开，正文使用带裁剪边界的 `ScrollContainer` 承载游戏 `MegaRichTextLabel`，适合显示较长日志和诊断报告。正文可选择纯文本、游戏富文本或轻量 Markdown。
+
+轻量 Markdown 会把正文先转义为游戏富文本，再渲染标题、加粗、斜体、列表、引用、分隔线、行内代码、代码块和普通链接展示；引用会显示为灰色缩进文本，并在左侧加一条竖线。普通段落与代码块里的日志行会自动识别 `[WARN]`/`WARNING:`、`[ERROR]`/`ERROR:` 等前缀，并使用与 LogConsole 接近的警告黄和错误红展示。
+
+| 成员 | 说明 |
+|---|---|
+| `IsAvailable` | 当前是否可显示 modal |
+| `Open(JmcReportPopupOptions options, Assembly? assembly = null)` | 打开报告弹窗，成功时返回 `JmcReportPopupHandle` |
+| `JmcReportPopupOptions.Title` | 弹窗标题，必填 |
+| `JmcReportPopupOptions.Body` | 正文，默认按纯文本显示 |
+| `JmcReportPopupOptions.Subtitle` | 可选副标题 |
+| `JmcReportPopupOptions.Status` | 可选底部状态文本 |
+| `JmcReportPopupOptions.BodyFormat` | 正文解析格式：`PlainText`、`RichText` 或 `Markdown` |
+| `JmcReportPopupOptions.BodyUsesRichText` | 旧兼容写法；新代码建议使用 `BodyFormat` |
+| `JmcReportPopupOptions.Buttons` | 底部按钮列表；为空时自动添加关闭按钮 |
+| `JmcReportPopupOptions.ShowBackstop` | 是否显示原生深色模态遮罩 |
+| `JmcReportPopupOptions.CloseOnEscape` | 是否允许 Escape 关闭 |
+| `JmcReportPopupOptions.MinimumSize` | 弹窗最小尺寸 |
+| `JmcReportPopupBodyFormat` | 正文格式枚举 |
+| `JmcReportPopupButton` | 定义按钮 key、文本、回调、点击后是否关闭、初始是否启用 |
+| `JmcReportPopupHandle` | 可更新标题、副标题、状态、正文与正文格式，启停按钮或关闭弹窗 |
+
+示例：
+
+```csharp
+JmcReportPopupHandle? popup = JmcReportPopup.Open(new JmcReportPopupOptions
+{
+    Title = "SpireDoctor 诊断报告",
+    Subtitle = "最近 3 份日志",
+    Body = reportText,
+    BodyFormat = JmcReportPopupBodyFormat.Markdown,
+    Status = "分析完成",
+    Buttons =
+    [
+        new JmcReportPopupButton("copy", "复制", _ => DisplayServer.ClipboardSet(reportText)),
+        new JmcReportPopupButton("close", "关闭", closeOnClick: true)
+    ]
+});
+
+popup?.SetStatus("已复制到剪贴板");
+```
 
 ---
 

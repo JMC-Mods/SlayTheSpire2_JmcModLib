@@ -1144,6 +1144,199 @@
             <param name="assembly">可选所属程序集，用于日志上下文。</param>
             <returns>按下按钮返回 <see langword="true"/>；关闭或弹窗不可用时返回 <see langword="false"/>。</returns>
         </member>
+        <member name="T:JmcModLib.Prefabs.JmcReportPopup">
+            <summary>
+            通过游戏模态容器显示适合长文本、诊断报告和日志摘要的可滚动报告弹窗。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopup.IsAvailable">
+            <summary>
+            获取当前是否可以打开报告弹窗。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Prefabs.JmcReportPopup.Open(JmcModLib.Prefabs.JmcReportPopupOptions,System.Reflection.Assembly)">
+            <summary>
+            打开一个可滚动报告弹窗。
+            </summary>
+            <param name="options">弹窗标题、正文、按钮和显示选项。</param>
+            <param name="assembly">可选所属程序集，用于日志上下文。</param>
+            <returns>成功打开时返回可用于更新内容的句柄；模态容器不可用或已有弹窗时返回 <see langword="null"/>。</returns>
+        </member>
+        <member name="T:JmcModLib.Prefabs.JmcReportPopupBodyFormat">
+            <summary>
+            报告弹窗正文的解析格式。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Prefabs.JmcReportPopupBodyFormat.PlainText">
+            <summary>
+            按纯文本显示，正文中的游戏富文本标签会被转义。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Prefabs.JmcReportPopupBodyFormat.RichText">
+            <summary>
+            按游戏富文本标签解析正文。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Prefabs.JmcReportPopupBodyFormat.Markdown">
+            <summary>
+            按轻量 Markdown 解析，并转换为游戏富文本显示。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Prefabs.JmcReportPopupOptions">
+            <summary>
+            报告弹窗的显示选项。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupOptions.Title">
+            <summary>
+            弹窗标题。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupOptions.Body">
+            <summary>
+            弹窗正文。默认按纯文本处理，方括号不会被当成富文本标签。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupOptions.Subtitle">
+            <summary>
+            可选副标题，显示在标题下方。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupOptions.Status">
+            <summary>
+            可选状态文本，显示在底部按钮左侧。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupOptions.BodyFormat">
+            <summary>
+            正文显示格式。默认按纯文本处理；显示 LLM 诊断报告时可使用 <see cref="F:JmcModLib.Prefabs.JmcReportPopupBodyFormat.Markdown"/>。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupOptions.BodyUsesRichText">
+            <summary>
+            正文是否按游戏富文本解析。保留用于兼容旧写法；新代码建议改用 <see cref="P:JmcModLib.Prefabs.JmcReportPopupOptions.BodyFormat"/>。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupOptions.Buttons">
+            <summary>
+            底部按钮集合。为空时会自动添加一个关闭按钮。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupOptions.ShowBackstop">
+            <summary>
+            是否显示弹窗背后的游戏原生深色遮罩。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupOptions.CloseOnEscape">
+            <summary>
+            是否允许玩家按 Escape 关闭弹窗。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupOptions.MinimumSize">
+            <summary>
+            弹窗面板的最小尺寸。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Prefabs.JmcReportPopupButton">
+            <summary>
+            报告弹窗底部按钮的定义。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Prefabs.JmcReportPopupButton.#ctor(System.String,System.String,System.Action{JmcModLib.Prefabs.JmcReportPopupHandle},System.Boolean,System.Boolean)">
+            <summary>
+            创建一个报告弹窗按钮。
+            </summary>
+            <param name="key">按钮唯一键，用于后续通过句柄启用或禁用按钮。</param>
+            <param name="text">按钮显示文本。</param>
+            <param name="action">按钮点击回调。</param>
+            <param name="closeOnClick">点击按钮后是否关闭弹窗。</param>
+            <param name="enabled">按钮初始是否可用。</param>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupButton.Key">
+            <summary>
+            按钮唯一键，用于后续通过句柄启用或禁用按钮。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupButton.Text">
+            <summary>
+            按钮显示文本。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupButton.Action">
+            <summary>
+            按钮点击回调。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupButton.CloseOnClick">
+            <summary>
+            点击按钮后是否关闭弹窗。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupButton.Enabled">
+            <summary>
+            按钮初始是否可用。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Prefabs.JmcReportPopupHandle">
+            <summary>
+            已打开报告弹窗的操作句柄。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcReportPopupHandle.IsOpen">
+            <summary>
+            获取弹窗是否仍处于打开状态。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Prefabs.JmcReportPopupHandle.SetTitle(System.String)">
+            <summary>
+            更新弹窗标题。
+            </summary>
+            <param name="title">新的标题文本。</param>
+        </member>
+        <member name="M:JmcModLib.Prefabs.JmcReportPopupHandle.SetSubtitle(System.String)">
+            <summary>
+            更新弹窗副标题。
+            </summary>
+            <param name="subtitle">新的副标题文本；传入 <see langword="null"/> 或空白字符串会隐藏副标题。</param>
+        </member>
+        <member name="M:JmcModLib.Prefabs.JmcReportPopupHandle.SetStatus(System.String)">
+            <summary>
+            更新弹窗底部状态文本。
+            </summary>
+            <param name="status">新的状态文本；传入 <see langword="null"/> 或空白字符串会隐藏状态文本。</param>
+        </member>
+        <member name="M:JmcModLib.Prefabs.JmcReportPopupHandle.SetBody(System.String)">
+            <summary>
+            更新弹窗正文，并沿用当前正文格式。
+            </summary>
+            <param name="body">新的正文文本。</param>
+        </member>
+        <member name="M:JmcModLib.Prefabs.JmcReportPopupHandle.SetBody(System.String,System.Boolean)">
+            <summary>
+            更新弹窗正文，并同时指定是否按游戏富文本解析。
+            </summary>
+            <param name="body">新的正文文本。</param>
+            <param name="bodyUsesRichText">正文是否按游戏富文本解析。</param>
+        </member>
+        <member name="M:JmcModLib.Prefabs.JmcReportPopupHandle.SetBody(System.String,JmcModLib.Prefabs.JmcReportPopupBodyFormat)">
+            <summary>
+            更新弹窗正文，并同时指定正文解析格式。
+            </summary>
+            <param name="body">新的正文文本。</param>
+            <param name="bodyFormat">正文解析格式。</param>
+        </member>
+        <member name="M:JmcModLib.Prefabs.JmcReportPopupHandle.SetButtonEnabled(System.String,System.Boolean)">
+            <summary>
+            启用或禁用指定按钮。
+            </summary>
+            <param name="key">按钮唯一键。</param>
+            <param name="enabled">是否启用按钮。</param>
+        </member>
+        <member name="M:JmcModLib.Prefabs.JmcReportPopupHandle.Close">
+            <summary>
+            关闭弹窗。
+            </summary>
+        </member>
         <member name="T:JmcModLib.Reflection.MemberAccessor">
             <summary>
             字段 / 属性 的统一高性能访问器。

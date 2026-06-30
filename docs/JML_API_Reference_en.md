@@ -81,8 +81,8 @@ Namespace: `JmcModLib.Core`
 | Member | Description |
 |---|---|
 | `const string Name = "JmcModLib"` | JML name |
-| `const string Version = "1.4.4"` | JML version |
-| `string Tag` | `"[JmcModLib v1.4.4]"` |
+| `const string Version = "1.4.14"` | JML version |
+| `string Tag` | `"[JmcModLib v1.4.14]"` |
 | `GetName(Assembly? assembly = null)` | Gets the specified assembly name; JML itself returns the fixed name |
 | `GetVersion(Assembly? assembly = null)` | Gets the specified assembly version; JML itself returns the fixed version |
 | `GetTag(Assembly? assembly = null)` | Builds a log tag |
@@ -972,6 +972,52 @@ Namespace: `JmcModLib.Prefabs`. Source files are under `Prefabs/`.
 | `ShowConfirmationAsync(string title, string body, string? confirmText = null, string? cancelText = null, bool showBackstop = true, Assembly? assembly = null)` | Confirm/cancel popup, returns bool |
 | `ShowMessageAsync(string title, string body, string? okText = null, bool showBackstop = true, Assembly? assembly = null)` | OK message popup |
 | `LocString` overloads | Supports localized string parameters |
+
+### 12.3 `JmcReportPopup`
+
+Namespace: `JmcModLib.Prefabs`. Source files are under `Prefabs/`.
+
+`JmcReportPopup` displays longer diagnostic reports, log summaries, or debug information. It opens through the game's `NModalContainer`; the body uses a clipped `ScrollContainer` containing the game's `MegaRichTextLabel`, making it suitable for long logs and diagnostic reports. The body can be rendered as plain text, game rich text, or lightweight Markdown.
+
+The lightweight Markdown renderer escapes body text before converting it to game rich text, then renders headings, bold, italics, lists, blockquotes, horizontal rules, inline code, code fences, and plain links. Blockquotes are shown as muted, indented text with a vertical rail on the left. Log lines in normal paragraphs and code fences automatically detect prefixes such as `[WARN]`/`WARNING:` and `[ERROR]`/`ERROR:`, using warning yellow and error red colors close to LogConsole.
+
+| Member | Description |
+|---|---|
+| `IsAvailable` | Whether a modal can currently be shown |
+| `Open(JmcReportPopupOptions options, Assembly? assembly = null)` | Opens a report popup and returns `JmcReportPopupHandle` on success |
+| `JmcReportPopupOptions.Title` | Required popup title |
+| `JmcReportPopupOptions.Body` | Body text, rendered as plain text by default |
+| `JmcReportPopupOptions.Subtitle` | Optional subtitle |
+| `JmcReportPopupOptions.Status` | Optional footer status text |
+| `JmcReportPopupOptions.BodyFormat` | Body parser: `PlainText`, `RichText`, or `Markdown` |
+| `JmcReportPopupOptions.BodyUsesRichText` | Legacy compatibility option; new code should prefer `BodyFormat` |
+| `JmcReportPopupOptions.Buttons` | Footer buttons; an empty list adds a default close button |
+| `JmcReportPopupOptions.ShowBackstop` | Whether to show the native dark modal backstop |
+| `JmcReportPopupOptions.CloseOnEscape` | Whether Escape can close the popup |
+| `JmcReportPopupOptions.MinimumSize` | Popup minimum size |
+| `JmcReportPopupBodyFormat` | Body format enum |
+| `JmcReportPopupButton` | Defines button key, text, callback, close-on-click, and initial enabled state |
+| `JmcReportPopupHandle` | Updates title, subtitle, status, body and body format, button enabled state, or closes the popup |
+
+Example:
+
+```csharp
+JmcReportPopupHandle? popup = JmcReportPopup.Open(new JmcReportPopupOptions
+{
+    Title = "SpireDoctor Diagnosis",
+    Subtitle = "Latest 3 logs",
+    Body = reportText,
+    BodyFormat = JmcReportPopupBodyFormat.Markdown,
+    Status = "Analysis complete",
+    Buttons =
+    [
+        new JmcReportPopupButton("copy", "Copy", _ => DisplayServer.ClipboardSet(reportText)),
+        new JmcReportPopupButton("close", "Close", closeOnClick: true)
+    ]
+});
+
+popup?.SetStatus("Copied to clipboard");
+```
 
 ---
 

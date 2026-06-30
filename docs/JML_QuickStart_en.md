@@ -650,6 +650,34 @@ if (JmcConfirmationPopup.IsAvailable)
 }
 ```
 
+### Scrollable Report Popup
+
+Use `JmcReportPopup` for long log summaries, diagnostic reports, or debug output:
+
+```csharp
+using JmcModLib.Prefabs;
+
+string reportText = BuildReport();
+
+JmcReportPopupHandle? popup = JmcReportPopup.Open(new JmcReportPopupOptions
+{
+    Title = "Diagnostic Report",
+    Subtitle = "Latest 3 logs",
+    Body = reportText,
+    BodyFormat = JmcReportPopupBodyFormat.Markdown,
+    Status = "Analysis complete",
+    Buttons =
+    [
+        new JmcReportPopupButton("copy", "Copy", _ => DisplayServer.ClipboardSet(reportText)),
+        new JmcReportPopupButton("close", "Close", closeOnClick: true)
+    ]
+});
+
+popup?.SetStatus("Report displayed");
+```
+
+`Body` is rendered as plain text by default, which is suitable for logs containing `[INFO]`, stack frames, and file paths. For LLM-generated diagnostic reports, set `BodyFormat = JmcReportPopupBodyFormat.Markdown`. The first Markdown renderer supports headings, bold, italics, lists, blockquotes, horizontal rules, inline code, code fences, and plain link display; blockquotes are shown as muted, indented text with a vertical rail on the left, and log lines such as `[WARN]`/`WARNING:` or `[ERROR]`/`ERROR:` inside normal paragraphs and code fences are automatically highlighted with warning yellow or error red. Use `BodyFormat = JmcReportPopupBodyFormat.RichText` when the body intentionally uses game rich-text tags.
+
 ---
 
 ## 16. Config Storage
