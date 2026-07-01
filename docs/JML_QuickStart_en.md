@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 Quick Start
 
-Recommended for use together with the [Demo](https://github.com/JMC2002/SlayTheSpire2_JmcModLibDemo).
+Recommended for use together with the [Demo](https://github.com/JMC-Mods/SlayTheSpire2_JmcModLibDemo).
 ---
 
 ## 0. Understand JML's Default Workflow First
