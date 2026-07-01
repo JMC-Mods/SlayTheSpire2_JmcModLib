@@ -1,0 +1,9 @@
+{
+  "visibility": "public",
+  "changeNote": "规避某些 Linux 发行版下 Harmony 底层原生辅助库无法加载，导致补丁无法应用的问题；修复暂停菜单按钮高亮状态错误的问题。",
+  "tags": [
+    "Tools & APIs"
+  ],
+  "dependencies": []
+}
+  

@@ -2,17 +2,17 @@
   <a href="README.md"><img alt="中文" src=".github/badges/language-zh.svg"></a>
   <a href="README_en.md"><img alt="English" src=".github/badges/language-en.svg"></a>
   <a href="CHANGELOG_en.md"><img alt="Changelog" src=".github/badges/changelog-en.svg"></a>
-  <a href="https://github.com/JMC2002/SlayTheSpire2_JmcModLib/releases"><img alt="Releases" src=".github/badges/releases.svg"></a>
+  <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/releases"><img alt="Releases" src=".github/badges/releases.svg"></a>
 <!-- code-stats:start -->
-  <a href="https://github.com/JMC2002/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="C# lines" src=".github/badges/code-lines-csharp.svg"></a>
-  <a href="https://github.com/JMC2002/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="JSON lines" src=".github/badges/code-lines-json.svg"></a>
-  <a href="https://github.com/JMC2002/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="MSBuild script lines" src=".github/badges/code-lines-msbuild-script.svg"></a>
-  <a href="https://github.com/JMC2002/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="XML lines" src=".github/badges/code-lines-xml.svg"></a>
-  <a href="https://github.com/JMC2002/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="YAML lines" src=".github/badges/code-lines-yaml.svg"></a>
-  <a href="https://github.com/JMC2002/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="Visual Studio Solution lines" src=".github/badges/code-lines-visual-studio-solution.svg"></a>
-  <a href="https://github.com/JMC2002/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="Total code lines" src=".github/badges/code-lines-total.svg"></a>
-  <a href="https://github.com/JMC2002/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="Total added lines" src=".github/badges/code-lines-added.svg"></a>
-  <a href="https://github.com/JMC2002/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="Total deleted lines" src=".github/badges/code-lines-deleted.svg"></a>
+  <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="C# lines" src=".github/badges/code-lines-csharp.svg"></a>
+  <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="JSON lines" src=".github/badges/code-lines-json.svg"></a>
+  <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="MSBuild script lines" src=".github/badges/code-lines-msbuild-script.svg"></a>
+  <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="XML lines" src=".github/badges/code-lines-xml.svg"></a>
+  <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="YAML lines" src=".github/badges/code-lines-yaml.svg"></a>
+  <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="Visual Studio Solution lines" src=".github/badges/code-lines-visual-studio-solution.svg"></a>
+  <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="Total code lines" src=".github/badges/code-lines-total.svg"></a>
+  <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="Total added lines" src=".github/badges/code-lines-added.svg"></a>
+  <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="Total deleted lines" src=".github/badges/code-lines-deleted.svg"></a>
 <!-- code-stats:end -->
 </p>
 
@@ -22,7 +22,7 @@
 ### Installing the mod
 For the Steam version, subscribe through the Steam Workshop once it is available (not public yet).
 
-For other versions, you can build it yourself, or download the .zip from [📦 Releases](https://github.com/JMC2002/SlayTheSpire2_JmcModLib/releases) and extract it into the Mods folder under the game installation directory. Create the folder if it does not exist.
+For other versions, you can build it yourself, or download the .zip from [📦 Releases](https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/releases) and extract it into the Mods folder under the game installation directory. Create the folder if it does not exist.
 
 After installation, the directory should look like this:
 
@@ -59,7 +59,7 @@ The core of this Mod comes from my [JmcModLib](https://github.com/JMC2002/JmcMod
 
 [Demo video (Bilibili) (not posted yet)]()
 
-[Github repository](https://github.com/JMC2002/SlayTheSpire2_JmcModLib)
+[Github repository](https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib)
 ## ⚙️ 2. Features
 - Provides a settings UI and configuration items that fit the game's native style, including rich-text tooltips, with native controller support.
 ![](./pic/配置.png)
@@ -76,7 +76,7 @@ The core of this Mod comes from my [JmcModLib](https://github.com/JMC2002/JmcMod
 - Localization wrappers.
 
 ## 🔔 3. Other
-- If you want to use this Mod, start with the [Quick Start](./docs/JML_QuickStart_en.md) and [API Reference](./docs/JML_API_Reference_en.md), and use them together with the [Demo](https://github.com/JMC2002/SlayTheSpire2_JmcModLibDemo).
+- If you want to use this Mod, start with the [Quick Start](./docs/JML_QuickStart_en.md) and [API Reference](./docs/JML_API_Reference_en.md), and use them together with the [Demo](https://github.com/JMC-Mods/SlayTheSpire2_JmcModLibDemo).
 - This Mod is still under active construction. If you want to use it, joining the [Discord server](https://discord.gg/peRD8SUxXg) or QQ group (617674584) is recommended.
 - The core of this Mod comes from [JmcModLib](https://github.com/JMC2002/JmcModLib), with development assistance from CodeX.
 - This Mod's documentation and localization text rely on AI-generated content. If you find any translation that feels off, suggestions are welcome.
