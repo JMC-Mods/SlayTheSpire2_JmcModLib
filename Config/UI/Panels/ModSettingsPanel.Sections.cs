@@ -53,6 +53,7 @@ internal sealed partial class ModSettingsPanel
         string author = mod.manifest?.author ?? "unknown";
         string? description = mod.manifest?.description;
         bool isCollapsed = IsSectionCollapsed(mod);
+        System.Reflection.Assembly? assembly = ModConfigUiBridge.GetConfigAssembly(mod);
 
         var wrapper = new VBoxContainer
         {
@@ -76,9 +77,9 @@ internal sealed partial class ModSettingsPanel
         header.AddChild(collapseButton);
         focusableControls.Add(collapseButton);
 
-        if (mod.assembly != null)
+        if (assembly != null)
         {
-            Control resetButton = BuildResetButton(mod.assembly);
+            Control resetButton = BuildResetButton(assembly);
             header.AddChild(resetButton);
             focusableControls.Add(resetButton);
         }
@@ -92,14 +93,14 @@ internal sealed partial class ModSettingsPanel
                 wrapper.AddChild(CreateStyledText($"[color=#d0d8dc]{description}[/color]"));
             }
 
-            if (mod.assembly == null)
+            if (assembly == null)
             {
                 wrapper.AddChild(BuildNotice(ModSettingsText.NoManagedAssembly()));
                 wrapper.AddChild(new HSeparator());
                 return wrapper;
             }
 
-            IReadOnlyCollection<ConfigEntry> entries = ConfigManager.GetEntries(mod.assembly);
+            IReadOnlyCollection<ConfigEntry> entries = ConfigManager.GetEntries(assembly);
             if (entries.Count == 0)
             {
                 wrapper.AddChild(BuildNotice(ModSettingsText.NoConfigEntries()));
@@ -107,15 +108,15 @@ internal sealed partial class ModSettingsPanel
                 return wrapper;
             }
 
-            List<string> groups = [.. ConfigManager.GetGroups(mod.assembly)];
+            List<string> groups = [.. ConfigManager.GetGroups(assembly)];
             bool hideDefaultGroupHeader = groups.Count == 1 && groups[0] == ConfigAttribute.DefaultGroup;
 
             foreach (string group in groups)
             {
-                IReadOnlyCollection<ConfigEntry> groupEntries = [.. ConfigManager.GetEntries(group, mod.assembly)];
+                IReadOnlyCollection<ConfigEntry> groupEntries = [.. ConfigManager.GetEntries(group, assembly)];
                 if (!hideDefaultGroupHeader)
                 {
-                    wrapper.AddChild(BuildGroupHeader(mod.assembly, group, groupEntries));
+                    wrapper.AddChild(BuildGroupHeader(assembly, group, groupEntries));
                 }
 
                 foreach (ConfigEntry entry in groupEntries)

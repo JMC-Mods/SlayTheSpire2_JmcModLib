@@ -44,7 +44,7 @@ internal sealed partial class ModSettingsPanel
     {
         return mod.manifest?.id
             ?? mod.manifest?.name
-            ?? mod.assembly?.FullName
+            ?? ModAssemblyCompat.GetPrimaryAssembly(mod)?.FullName
             ?? "unknown";
     }
 

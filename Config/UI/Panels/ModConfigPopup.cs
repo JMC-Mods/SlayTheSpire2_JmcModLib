@@ -37,7 +37,7 @@ internal sealed class ModConfigPopup : Control, IScreenContext
 
     public override void _Ready()
     {
-        assembly = Mod.assembly;
+        assembly = ModConfigUiBridge.GetConfigAssembly(Mod);
         BuildLayout();
         RebuildContent();
         ConfigManager.ValueChanged += OnConfigValueChanged;

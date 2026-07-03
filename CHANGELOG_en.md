@@ -6,6 +6,13 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.5.0] - 2026-7-3
+### Added
+- Added a prefab for displaying Markdown information feeds.
+
+### Fixed
+- Fixed compatibility issues introduced by the STS2 0.108 mod assembly API changes.
+
 ## [1.4.4] - 2026-6-26
 ### Fixed
 - Worked around Harmony's native helper library failing to load on some Linux distributions, which could prevent patches from being applied.

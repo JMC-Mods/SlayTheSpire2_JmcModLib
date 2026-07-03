@@ -4,6 +4,7 @@ using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Modding;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens.ModdingScreen;
+using System.Reflection;
 
 namespace JmcModLib.Config.UI;
 
@@ -14,12 +15,13 @@ internal static class ModConfigUiBridge
 
     internal static bool HasConfig(Mod? mod)
     {
-        if (mod?.assembly == null)
-        {
-            return false;
-        }
+        return GetConfigAssembly(mod) != null;
+    }
 
-        return ConfigManager.GetEntries(mod.assembly).Count > 0;
+    internal static Assembly? GetConfigAssembly(Mod? mod)
+    {
+        return ModAssemblyCompat.GetAssemblies(mod)
+            .FirstOrDefault(static assembly => ConfigManager.GetEntries(assembly).Count > 0);
     }
 
     internal static void UpdateModInfoContainer(NModInfoContainer container, Mod mod)

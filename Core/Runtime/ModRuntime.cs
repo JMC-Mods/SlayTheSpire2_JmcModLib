@@ -11,7 +11,7 @@ public static class ModRuntime
     public static Mod? TryGetLoadedMod(Assembly? assembly = null)
     {
         assembly = ResolveAssembly(assembly);
-        return GetKnownMods().FirstOrDefault(mod => ReferenceEquals(GetAssembly(mod), assembly));
+        return GetKnownMods().FirstOrDefault(mod => ModAssemblyCompat.ContainsAssembly(mod, assembly));
     }
 
     public static ModManifest? TryGetManifest(Assembly? assembly = null)
@@ -76,7 +76,9 @@ public static class ModRuntime
             return string.Equals(GetManifestId(GetManifest(mod)), modId, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(GetPckName(mod), modId, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(GetManifestName(GetManifest(mod)), modId, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(modAssembly?.GetName().Name, modId, StringComparison.OrdinalIgnoreCase);
+                || string.Equals(modAssembly?.GetName().Name, modId, StringComparison.OrdinalIgnoreCase)
+                || ModAssemblyCompat.GetAssemblies(mod).Any(candidate =>
+                    string.Equals(candidate.GetName().Name, modId, StringComparison.OrdinalIgnoreCase));
         });
     }
 
@@ -99,7 +101,7 @@ public static class ModRuntime
 
     private static Assembly? GetAssembly(Mod? mod)
     {
-        return GetInstanceMemberValue(mod, "assembly", "Assembly") as Assembly;
+        return ModAssemblyCompat.GetPrimaryAssembly(mod);
     }
 
     private static ModManifest? GetManifest(Mod? mod)
