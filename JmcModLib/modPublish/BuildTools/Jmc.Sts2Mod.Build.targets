@@ -1,0 +1,224 @@
+<Project>
+  <Target Name="JmcSts2ModPrepareProjectFiles" Condition="'$(JmcSts2ModBuildEnabled)' != 'false'">
+    <Message Text="🔍 检查并补全 STS2 MOD 暂存区文件..." Importance="High" />
+    <MakeDir Directories="$(ModLocalDir)" />
+    <MakeDir Directories="$(PublishDir)" />
+
+    <PropertyGroup Condition="!Exists('$(ModLocalDir)\project.godot')">
+      <JmcSts2ProjectGodotText>
+; Engine configuration file.
+config_version=5
+
+[application]
+config/name="$(ModName)"
+      </JmcSts2ProjectGodotText>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(ModLocalDir)\project.godot" Lines="$(JmcSts2ProjectGodotText)" Overwrite="false" Encoding="ASCII" Condition="!Exists('$(ModLocalDir)\project.godot')" />
+
+    <PropertyGroup Condition="!Exists('$(ModLocalDir)\export_presets.cfg')">
+      <JmcSts2ExportPresetsText>
+[preset.0]
+name="Windows Desktop"
+platform="Windows Desktop"
+runnable=true
+dedicated_server=false
+custom_features=""
+export_filter="all_resources"
+include_filter="*.json, *.png, *.csv"
+exclude_filter=""
+export_path=""
+encryption_include_filters=""
+encryption_exclude_filters=""
+encrypt_pck=false
+encrypt_directory=false
+
+[preset.0.options]
+custom_template/debug=""
+custom_template/release=""
+debug/export_console_wrapper=1
+binary_format/embed_pck=false
+texture_format/bptc=true
+texture_format/s3tc=true
+texture_format/etc=false
+texture_format/etc2=false
+      </JmcSts2ExportPresetsText>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(ModLocalDir)\export_presets.cfg" Lines="$(JmcSts2ExportPresetsText)" Overwrite="false" Encoding="ASCII" Condition="!Exists('$(ModLocalDir)\export_presets.cfg')" />
+
+    <PropertyGroup Condition="!Exists('$(ModManifestPath)')">
+      <JmcSts2ManifestText>
+{
+  "id": "$(ModName)",
+  "name": "$(ModName)",
+  "author": "$(Author)",
+  "version": "1.0.0",
+  "description": "$(ModName)",
+  "has_pck": true,
+  "has_dll": true,
+  "dependencies": [
+    {
+      "id": "JmcModLib",
+      "min_version": "1.4.0"
+    }
+  ],
+  "affects_gameplay": false
+}
+      </JmcSts2ManifestText>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(ModManifestPath)" Lines="$(JmcSts2ManifestText)" Overwrite="false" Encoding="utf-8" Condition="!Exists('$(ModManifestPath)')" />
+  </Target>
+
+  <Target Name="JmcSts2ModReadMetadata"
+          BeforeTargets="GetAssemblyVersion"
+          DependsOnTargets="JmcSts2ModPrepareProjectFiles"
+          Condition="'$(JmcSts2ModBuildEnabled)' != 'false'">
+    <Error Condition="!Exists('$(VersionInfoFile)')" Text="找不到版本信息文件：$(VersionInfoFile)" />
+    <Error Condition="!Exists('$(ModManifestPath)')" Text="找不到 MOD 发布清单：$(ModManifestPath)" />
+    <ReadLinesFromFile File="$(VersionInfoFile)">
+      <Output TaskParameter="Lines" ItemName="_JmcSts2VersionInfoLines" />
+    </ReadLinesFromFile>
+    <ReadLinesFromFile File="$(ModManifestPath)">
+      <Output TaskParameter="Lines" ItemName="_JmcSts2ModManifestLines" />
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <_JmcSts2VersionInfoText>@(_JmcSts2VersionInfoLines, ' ')</_JmcSts2VersionInfoText>
+      <_JmcSts2ModManifestText>@(_JmcSts2ModManifestLines, ' ')</_JmcSts2ModManifestText>
+      <ModVersion>$([System.Text.RegularExpressions.Regex]::Match('$(_JmcSts2VersionInfoText)', 'public\s+const\s+string\s+Version\s*=\s*&quot;([^&quot;]+)&quot;').Groups[1].Value)</ModVersion>
+      <ModManifestId>$([System.Text.RegularExpressions.Regex]::Match('$(_JmcSts2ModManifestText)', '&quot;id&quot;\s*:\s*&quot;([^&quot;]+)&quot;').Groups[1].Value)</ModManifestId>
+      <ModManifestName>$([System.Text.RegularExpressions.Regex]::Match('$(_JmcSts2ModManifestText)', '&quot;name&quot;\s*:\s*&quot;([^&quot;]+)&quot;').Groups[1].Value)</ModManifestName>
+      <ModManifestAuthor>$([System.Text.RegularExpressions.Regex]::Match('$(_JmcSts2ModManifestText)', '&quot;author&quot;\s*:\s*&quot;([^&quot;]+)&quot;').Groups[1].Value)</ModManifestAuthor>
+      <ModManifestDescription>$([System.Text.RegularExpressions.Regex]::Match('$(_JmcSts2ModManifestText)', '&quot;description&quot;\s*:\s*&quot;([^&quot;]+)&quot;').Groups[1].Value)</ModManifestDescription>
+      <ModManifestRepositoryUrl>$([System.Text.RegularExpressions.Regex]::Match('$(_JmcSts2ModManifestText)', '&quot;repository_url&quot;\s*:\s*&quot;([^&quot;]+)&quot;').Groups[1].Value)</ModManifestRepositoryUrl>
+      <ModManifestRepositoryUrl Condition="'$(ModManifestRepositoryUrl)' == ''">$([System.Text.RegularExpressions.Regex]::Match('$(_JmcSts2ModManifestText)', '&quot;source_url&quot;\s*:\s*&quot;([^&quot;]+)&quot;').Groups[1].Value)</ModManifestRepositoryUrl>
+      <ModManifestRepositoryUrl Condition="'$(ModManifestRepositoryUrl)' == ''">$([System.Text.RegularExpressions.Regex]::Match('$(_JmcSts2ModManifestText)', '&quot;url&quot;\s*:\s*&quot;([^&quot;]+)&quot;').Groups[1].Value)</ModManifestRepositoryUrl>
+      <ModManifestId Condition="'$(ModManifestId)' == ''">$(ModName)</ModManifestId>
+      <ModManifestName Condition="'$(ModManifestName)' == ''">$(ModManifestId)</ModManifestName>
+      <ModManifestAuthor Condition="'$(ModManifestAuthor)' == ''">$(Author)</ModManifestAuthor>
+      <ModManifestDescription Condition="'$(ModManifestDescription)' == ''">$(ModManifestName)</ModManifestDescription>
+      <ModManifestAuthorDisplay>$(ModManifestAuthor)</ModManifestAuthorDisplay>
+      <ModManifestAuthorDisplay Condition="'$(AuthorEmail)' != ''">$(ModManifestAuthor) &lt;$(AuthorEmail)&gt;</ModManifestAuthorDisplay>
+      <Version>$(ModVersion)</Version>
+      <InformationalVersion>$(ModVersion)</InformationalVersion>
+      <Authors>$(ModManifestAuthorDisplay)</Authors>
+      <Company>$(ModManifestAuthorDisplay)</Company>
+      <Product>$(ModManifestName)</Product>
+      <AssemblyTitle>$(ModManifestDescription)</AssemblyTitle>
+      <Description>$(ModManifestDescription)</Description>
+      <Copyright>Copyright (c) $(ModManifestAuthor)</Copyright>
+      <Trademark>$(AuthorContactInfo)</Trademark>
+      <RepositoryUrl Condition="'$(ModManifestRepositoryUrl)' != ''">$(ModManifestRepositoryUrl)</RepositoryUrl>
+      <PackageProjectUrl Condition="'$(ModManifestRepositoryUrl)' != ''">$(ModManifestRepositoryUrl)</PackageProjectUrl>
+    </PropertyGroup>
+    <Error Condition="'$(ModVersion)' == ''" Text="无法从 $(VersionInfoFile) 提取 VersionInfo.Version。" />
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ModId</_Parameter1>
+        <_Parameter2>$(ModManifestId)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ModName</_Parameter1>
+        <_Parameter2>$(ModManifestName)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ModAuthor</_Parameter1>
+        <_Parameter2>$(ModManifestAuthor)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition="'$(AuthorEmail)' != ''">
+        <_Parameter1>AuthorEmail</_Parameter1>
+        <_Parameter2>$(AuthorEmail)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ModAuthorDisplay</_Parameter1>
+        <_Parameter2>$(ModManifestAuthorDisplay)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ModVersion</_Parameter1>
+        <_Parameter2>$(ModVersion)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ModDescription</_Parameter1>
+        <_Parameter2>$(ModManifestDescription)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition="'$(AuthorBilibiliUrl)' != ''">
+        <_Parameter1>AuthorBilibiliUrl</_Parameter1>
+        <_Parameter2>$(AuthorBilibiliUrl)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition="'$(AuthorGitHubUrl)' != ''">
+        <_Parameter1>AuthorGitHubUrl</_Parameter1>
+        <_Parameter2>$(AuthorGitHubUrl)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition="'$(SupportQQGroup)' != ''">
+        <_Parameter1>SupportQQGroup</_Parameter1>
+        <_Parameter2>$(SupportQQGroup)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition="'$(AuthorContactInfo)' != ''">
+        <_Parameter1>AuthorContactInfo</_Parameter1>
+        <_Parameter2>$(AuthorContactInfo)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition="'$(ModManifestRepositoryUrl)' != ''">
+        <_Parameter1>ModRepositoryUrl</_Parameter1>
+        <_Parameter2>$(ModManifestRepositoryUrl)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+    <Message Text="使用 Core\VersionInfo.cs 中的版本号：$(ModVersion)" Importance="High" />
+    <Message Text="使用 MOD 发布清单元信息：$(ModManifestId) / $(ModManifestName) / $(ModManifestAuthor)" Importance="High" />
+  </Target>
+
+  <Target Name="JmcSts2ModSyncManifestVersion"
+          DependsOnTargets="JmcSts2ModPrepareProjectFiles;JmcSts2ModReadMetadata"
+          Condition="'$(JmcSts2ModBuildEnabled)' != 'false'">
+    <Message Text="同步发布清单版本号：$(ModVersion) -> $(ModManifestPath)" Importance="High" />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)scripts\Sync-ModManifestVersion.ps1&quot; -ManifestPath &quot;$(ModManifestPath)&quot; -Version &quot;$(ModVersion)&quot;" />
+  </Target>
+
+  <Target Name="JmcSts2ModCopyDefaultDllToPublishDir" Condition="'$(JmcSts2CopyDefaultDllToPublishDir)' != 'false'">
+    <Message Text="[1/4] 准备 DLL..." Importance="High" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PublishDir)" />
+  </Target>
+
+  <Target Name="JmcSts2ModExportPck" Condition="'$(JmcSts2ExportPck)' != 'false'">
+    <Message Text="[2/4] 调用 Godot 打包 PCK (工作目录: $(ModLocalDir))..." Importance="High" />
+    <Exec Command="&quot;$(GodotExe)&quot; --headless --export-pack &quot;Windows Desktop&quot; &quot;modPublish\$(ModName).pck&quot;"
+          WorkingDirectory="$(ModLocalDir)"
+          StdOutEncoding="utf-8"
+          StdErrEncoding="utf-8"
+          EnvironmentVariables="NO_COLOR=1"
+          IgnoreStandardErrorWarningFormat="true"
+          Condition="Exists('$(GodotExe)') And Exists('$(ModLocalDir)\export_presets.cfg')" />
+  </Target>
+
+  <Target Name="JmcSts2ModDeployToGameDir" Condition="'$(JmcSts2DeployToGameDir)' != 'false'">
+    <Message Text="[3/4] 同步所有文件到游戏目录..." Importance="High" />
+    <MakeDir Directories="$(ModGameDir)" />
+    <Exec Command="robocopy &quot;$(PublishDir)\.&quot; &quot;$(ModGameDir)\.&quot; /E /XO /R:2 /W:2" IgnoreExitCode="true" StandardOutputImportance="Low">
+      <Output TaskParameter="ExitCode" PropertyName="JmcSts2RoboExitCode" />
+    </Exec>
+    <Error Condition="$(JmcSts2RoboExitCode) &gt; 3" Text="❌ Robocopy 同步失败（错误代码 $(JmcSts2RoboExitCode)）。请检查：1. 游戏是否已关闭；2. publish 文件夹内是否有文件。" />
+  </Target>
+
+  <Target Name="JmcSts2ModDeployToOneDriveDir" Condition="'$(JmcSts2DeployToOneDriveDir)' != 'false'">
+    <Message Text="[4/4] 同步所有文件到 OneDrive 联调目录..." Importance="High" />
+    <MakeDir Directories="$(ModOneDriveDir)" />
+    <Exec Command="robocopy &quot;$(PublishDir)\.&quot; &quot;$(ModOneDriveDir)\.&quot; /E /XO /R:2 /W:2" IgnoreExitCode="true" StandardOutputImportance="Low">
+      <Output TaskParameter="ExitCode" PropertyName="JmcSts2RoboOneDriveExitCode" />
+    </Exec>
+    <Error Condition="$(JmcSts2RoboOneDriveExitCode) &gt; 3" Text="❌ Robocopy 同步到 OneDrive 联调目录失败（错误代码 $(JmcSts2RoboOneDriveExitCode)）。请检查 OneDrive 目录是否可写。" />
+  </Target>
+
+  <Target Name="JmcSts2ModBuildAndDeploy"
+          AfterTargets="Build"
+          DependsOnTargets="JmcSts2ModPrepareProjectFiles;JmcSts2ModSyncManifestVersion;JmcSts2ModCopyDefaultDllToPublishDir;JmcSts2ModExportPck;JmcSts2ModDeployToGameDir;JmcSts2ModDeployToOneDriveDir"
+          Condition="'$(JmcSts2ModBuildEnabled)' != 'false'">
+    <Message Text="✅ 构建完成！发布目录: $(PublishDir)" Importance="High" />
+  </Target>
+
+  <Target Name="JmcSts2ModAskToLaunchGame"
+          AfterTargets="JmcSts2ModBuildAndDeploy"
+          Condition="'$(JmcSts2ModBuildEnabled)' != 'false' And '$(PromptLaunchGameAfterBuild)' != 'false'">
+    <WriteLinesToFile File="$(Sts2Path)\steam_appid.txt" Lines="2868840" Overwrite="false" Encoding="ASCII" Condition="!Exists('$(Sts2Path)\steam_appid.txt')" />
+    <PropertyGroup>
+      <GameExe>$(Sts2Path)\SlayTheSpire2.exe</GameExe>
+    </PropertyGroup>
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command ^&#xD;&#xA;        Add-Type -AssemblyName PresentationFramework; ^&#xD;&#xA;        $res = [System.Windows.MessageBox]::Show('Mod已同步！是否立刻启动《杀戮尖塔2》并打开调试终端？','启动游戏','YesNo','Question'); ^&#xD;&#xA;        if ($res -eq 'Yes') { Start-Process '&quot;$(GameExe)&quot;' }" IgnoreExitCode="true" />
+  </Target>
+</Project>

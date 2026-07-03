@@ -1,0 +1,51 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFramework)' == ''">net10.0</TargetFramework>
+    <ImplicitUsings Condition="'$(ImplicitUsings)' == ''">enable</ImplicitUsings>
+    <Nullable Condition="'$(Nullable)' == ''">enable</Nullable>
+    <LangVersion Condition="'$(LangVersion)' == ''">latest</LangVersion>
+    <PlatformTarget Condition="'$(PlatformTarget)' == ''">AnyCPU</PlatformTarget>
+
+    <ModName Condition="'$(ModName)' == ''">$(MSBuildProjectName)</ModName>
+    <Author Condition="'$(Author)' == ''">JMC</Author>
+    <AuthorEmail Condition="'$(AuthorEmail)' == ''">jmc8@qq.com</AuthorEmail>
+    <AuthorBilibiliUrl Condition="'$(AuthorBilibiliUrl)' == ''">https://space.bilibili.com/32632333</AuthorBilibiliUrl>
+    <AuthorGitHubUrl Condition="'$(AuthorGitHubUrl)' == ''">https://github.com/JMC2002</AuthorGitHubUrl>
+    <SupportQQGroup Condition="'$(SupportQQGroup)' == ''">617674584</SupportQQGroup>
+    <AuthorContactInfo Condition="'$(AuthorContactInfo)' == ''">Email: $(AuthorEmail); Bilibili: $(AuthorBilibiliUrl); GitHub: $(AuthorGitHubUrl); QQ群: $(SupportQQGroup)</AuthorContactInfo>
+
+    <SteamLibraryPath Condition="'$(SteamLibraryPath)' == ''">D:\SteamLibrary\steamapps\</SteamLibraryPath>
+    <Sts2Path Condition="'$(Sts2Path)' == ''">$(SteamLibraryPath)common\Slay the Spire 2</Sts2Path>
+    <Sts2DataDir Condition="'$(Sts2DataDir)' == ''">$(Sts2Path)\data_sts2_windows_x86_64</Sts2DataDir>
+    <GodotExe Condition="'$(GodotExe)' == ''">C:\Tools\Godot_v4.5.1-stable_mono_win64\Godot_v4.5.1-stable_mono_win64.exe</GodotExe>
+
+    <ModLocalDir Condition="'$(ModLocalDir)' == ''">$(ProjectDir)$(ModName)</ModLocalDir>
+    <PublishDir Condition="'$(PublishDir)' == ''">$(ModLocalDir)\modPublish</PublishDir>
+    <ModManifestPath Condition="'$(ModManifestPath)' == ''">$(PublishDir)\$(ModName).json</ModManifestPath>
+    <ModDir Condition="'$(ModDir)' == ''">$(Sts2Path)\mods</ModDir>
+    <ModGameDir Condition="'$(ModGameDir)' == ''">$(ModDir)\$(ModName)</ModGameDir>
+    <ModOneDriveDir Condition="'$(ModOneDriveDir)' == ''">C:\Users\JMC\OneDrive\文档\游戏\STS2\mods\$(ModName)</ModOneDriveDir>
+    <VersionInfoFile Condition="'$(VersionInfoFile)' == ''">$(ProjectDir)Core\VersionInfo.cs</VersionInfoFile>
+
+    <JmcSts2ModBuildEnabled Condition="'$(JmcSts2ModBuildEnabled)' == ''">true</JmcSts2ModBuildEnabled>
+    <JmcSts2AddGameReferences Condition="'$(JmcSts2AddGameReferences)' == ''">true</JmcSts2AddGameReferences>
+    <JmcSts2CopyDefaultDllToPublishDir Condition="'$(JmcSts2CopyDefaultDllToPublishDir)' == ''">true</JmcSts2CopyDefaultDllToPublishDir>
+    <JmcSts2ExportPck Condition="'$(JmcSts2ExportPck)' == ''">true</JmcSts2ExportPck>
+    <JmcSts2DeployToGameDir Condition="'$(JmcSts2DeployToGameDir)' == ''">true</JmcSts2DeployToGameDir>
+    <JmcSts2DeployToOneDriveDir Condition="'$(JmcSts2DeployToOneDriveDir)' == ''">true</JmcSts2DeployToOneDriveDir>
+    <LaunchGamePrompt Condition="'$(LaunchGamePrompt)' == ''">true</LaunchGamePrompt>
+    <PromptLaunchGameAfterBuild Condition="'$(PromptLaunchGameAfterBuild)' == ''">$(LaunchGamePrompt)</PromptLaunchGameAfterBuild>
+    <IncludeSourceRevisionInInformationalVersion Condition="'$(IncludeSourceRevisionInInformationalVersion)' == ''">false</IncludeSourceRevisionInInformationalVersion>
+
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(JmcSts2AddGameReferences)' != 'false'">
+    <Reference Include="GodotSharp" HintPath="$(Sts2DataDir)\GodotSharp.dll" Private="false" />
+    <Reference Include="sts2" HintPath="$(Sts2DataDir)\sts2.dll" Private="false" />
+    <Reference Include="0Harmony" HintPath="$(Sts2DataDir)\0Harmony.dll" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="$(ModManifestPath)" Condition="Exists('$(ModManifestPath)')" />
+  </ItemGroup>
+</Project>

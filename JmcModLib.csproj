@@ -51,6 +51,7 @@
   <ItemGroup>
     <None Include="JmcModLib\modPublish\JmcModLib.json" />
     <None Include="JmcModLib\modPublish\JmcModLib.Sts2.props" />
+    <None Include="BuildTools\**\*" />
   </ItemGroup>
 
   <!-- 引用游戏 DLL -->
@@ -172,6 +173,7 @@ texture_format/etc2=false
     <!-- [3/4] 调用 Godot 打包 PCK -->
     <Message Text="[2/4] 调用 Godot 打包 PCK (工作目录: $(ModLocalDir))..." Importance="High" />
     <RemoveDir Directories="$(PublishDir)\dispatch" Condition="Exists('$(PublishDir)\dispatch')" />
+    <RemoveDir Directories="$(PublishDir)\BuildTools" Condition="Exists('$(PublishDir)\BuildTools')" />
     <Delete Files="$(PublishDir)\JmcModLib.Dispatch.targets" Condition="Exists('$(PublishDir)\JmcModLib.Dispatch.targets')" />
     <Exec Command="&quot;$(GodotExe)&quot; --headless --export-pack &quot;Windows Desktop&quot; &quot;modPublish\$(ModName).pck&quot;" WorkingDirectory="$(ModLocalDir)" StdOutEncoding="utf-8" StdErrEncoding="utf-8" EnvironmentVariables="NO_COLOR=1" Condition="Exists('$(GodotExe)') And Exists('$(ModLocalDir)\export_presets.cfg')" />
 
@@ -183,6 +185,13 @@ texture_format/etc2=false
     </ItemGroup>
     <Copy SourceFiles="$(ProjectDir)Dispatch\JmcModLib.Dispatch.targets" DestinationFiles="$(PublishDir)\JmcModLib.Dispatch.targets" />
     <Copy SourceFiles="@(DispatchBootstrapFiles)" DestinationFolder="$(PublishDir)\dispatch" />
+
+    <Message Text="[2.6/4] 准备 STS2 MOD 构建工具..." Importance="High" />
+    <RemoveDir Directories="$(PublishDir)\BuildTools" Condition="Exists('$(PublishDir)\BuildTools')" />
+    <ItemGroup>
+      <Sts2ModBuildToolFiles Include="$(ProjectDir)BuildTools\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(Sts2ModBuildToolFiles)" DestinationFiles="@(Sts2ModBuildToolFiles->'$(PublishDir)\BuildTools\%(RecursiveDir)%(Filename)%(Extension)')" />
 
     <!-- 将发布内容同步到游戏目录 -->
     <Message Text="[3/4] 同步所有文件到游戏目录..." Importance="High" />
