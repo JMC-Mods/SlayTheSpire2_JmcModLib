@@ -13,6 +13,9 @@ namespace JmcModLib.Config.UI;
 internal sealed class ModConfigPopup : Control, IScreenContext
 {
     private readonly Dictionary<string, Action<object?>> bindings = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, DynamicDropdownBinding> dynamicDropdowns = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, List<string>> dynamicDropdownDependents = new(StringComparer.Ordinal);
+    private readonly HashSet<string> refreshingDynamicDropdowns = new(StringComparer.Ordinal);
 
     private Assembly? assembly;
     private Button? closeButton;
@@ -26,6 +29,32 @@ internal sealed class ModConfigPopup : Control, IScreenContext
     public required Mod Mod { get; init; }
 
     public Control? DefaultFocusedControl => closeButton;
+
+    private sealed class DropdownEditorState(IReadOnlyList<string> options)
+    {
+        public IReadOnlyList<string> Options { get; set; } = options;
+    }
+
+    private sealed class DynamicDropdownBinding(
+        string key,
+        ConfigEntry entry,
+        UIDropdownAttribute? dropdownAttribute,
+        Type valueType,
+        DropdownEditorState state,
+        Action<IReadOnlyList<string>, object?> applyOptions)
+    {
+        public string Key { get; } = key;
+
+        public ConfigEntry Entry { get; } = entry;
+
+        public UIDropdownAttribute? DropdownAttribute { get; } = dropdownAttribute;
+
+        public Type ValueType { get; } = valueType;
+
+        public DropdownEditorState State { get; } = state;
+
+        public Action<IReadOnlyList<string>, object?> ApplyOptions { get; } = applyOptions;
+    }
 
     public static ModConfigPopup Create(Mod mod)
     {
@@ -48,6 +77,10 @@ internal sealed class ModConfigPopup : Control, IScreenContext
     {
         ConfigManager.ValueChanged -= OnConfigValueChanged;
         L10n.UnsubscribeToLocaleChange(OnLocaleChanged);
+        bindings.Clear();
+        dynamicDropdowns.Clear();
+        dynamicDropdownDependents.Clear();
+        refreshingDynamicDropdowns.Clear();
         base._ExitTree();
     }
 
@@ -189,6 +222,9 @@ internal sealed class ModConfigPopup : Control, IScreenContext
         }
 
         bindings.Clear();
+        dynamicDropdowns.Clear();
+        dynamicDropdownDependents.Clear();
+        refreshingDynamicDropdowns.Clear();
 
         if (assembly == null)
         {
@@ -461,12 +497,9 @@ internal sealed class ModConfigPopup : Control, IScreenContext
             CustomMinimumSize = new Vector2(260f, 0f)
         };
 
-        IReadOnlyList<string> options = DropdownOptionsResolver.Resolve(entry, dropdownAttribute, valueType);
-
-        for (int i = 0; i < options.Count; i++)
-        {
-            dropdown.AddItem(ConfigLocalization.GetOptionText(entry, options[i]), i);
-        }
+        IReadOnlyList<string> options = ResolveDropdownOptionsForUi(entry, dropdownAttribute, valueType);
+        var state = new DropdownEditorState(options);
+        PopulateDropdownButton(dropdown, entry, state.Options);
 
         dropdown.ItemSelected += index =>
         {
@@ -475,7 +508,7 @@ internal sealed class ModConfigPopup : Control, IScreenContext
                 return;
             }
 
-            string selectedText = options[(int)index];
+            string selectedText = state.Options[(int)index];
             object? converted = valueType.IsEnum
                 ? Enum.Parse(valueType, selectedText, ignoreCase: true)
                 : selectedText;
@@ -484,18 +517,46 @@ internal sealed class ModConfigPopup : Control, IScreenContext
 
         bindings[entry.Key] = rawValue =>
         {
-            string selectedText = rawValue?.ToString() ?? string.Empty;
-            int index = options
-                .Select((text, i) => new { text, i })
-                .FirstOrDefault(item => string.Equals(item.text, selectedText, StringComparison.OrdinalIgnoreCase))?.i ?? 0;
-
             suppressControlEvents = true;
-            dropdown.Select(index);
+            SelectDropdownButtonValue(dropdown, state.Options, rawValue);
             suppressControlEvents = false;
         };
 
+        RegisterDynamicDropdown(new DynamicDropdownBinding(
+            entry.Key,
+            entry,
+            dropdownAttribute,
+            valueType,
+            state,
+            (refreshedOptions, rawValue) =>
+            {
+                suppressControlEvents = true;
+                PopulateDropdownButton(dropdown, entry, refreshedOptions);
+                SelectDropdownButtonValue(dropdown, refreshedOptions, rawValue);
+                suppressControlEvents = false;
+            }));
+
         bindings[entry.Key](entry.GetValue());
         return dropdown;
+    }
+
+    private static void PopulateDropdownButton(OptionButton dropdown, ConfigEntry entry, IReadOnlyList<string> options)
+    {
+        dropdown.Clear();
+        for (int i = 0; i < options.Count; i++)
+        {
+            dropdown.AddItem(ConfigLocalization.GetOptionText(entry, options[i]), i);
+        }
+    }
+
+    private static void SelectDropdownButtonValue(OptionButton dropdown, IReadOnlyList<string> options, object? rawValue)
+    {
+        string selectedText = rawValue?.ToString() ?? string.Empty;
+        int index = options
+            .Select((text, i) => new { text, i })
+            .FirstOrDefault(item => string.Equals(item.text, selectedText, StringComparison.OrdinalIgnoreCase))?.i ?? 0;
+
+        dropdown.Select(index);
     }
 
     private SpinBox BuildSpinBoxEditor(ConfigEntry entry, Type valueType)
@@ -619,6 +680,76 @@ internal sealed class ModConfigPopup : Control, IScreenContext
         }
     }
 
+    private void RegisterDynamicDropdown(DynamicDropdownBinding binding)
+    {
+        if (binding.Entry.DropdownOptionsProviderAttribute == null)
+        {
+            return;
+        }
+
+        dynamicDropdowns[binding.Key] = binding;
+
+        foreach (ConfigEntry dependency in DropdownOptionsResolver.ResolveDependencyEntries(binding.Entry))
+        {
+            if (!dynamicDropdownDependents.TryGetValue(dependency.Key, out List<string>? dependents))
+            {
+                dependents = [];
+                dynamicDropdownDependents[dependency.Key] = dependents;
+            }
+
+            if (!dependents.Contains(binding.Key, StringComparer.Ordinal))
+            {
+                dependents.Add(binding.Key);
+            }
+        }
+    }
+
+    private void RefreshDynamicDropdownDependents(ConfigEntry changedEntry)
+    {
+        if (!dynamicDropdownDependents.TryGetValue(changedEntry.Key, out List<string>? dependents))
+        {
+            return;
+        }
+
+        foreach (string dependentKey in dependents.ToArray())
+        {
+            if (dynamicDropdowns.TryGetValue(dependentKey, out DynamicDropdownBinding? binding))
+            {
+                RefreshDynamicDropdown(binding);
+            }
+        }
+    }
+
+    private void RefreshDynamicDropdown(DynamicDropdownBinding binding)
+    {
+        if (!refreshingDynamicDropdowns.Add(binding.Key))
+        {
+            return;
+        }
+
+        try
+        {
+            IReadOnlyList<string> options = ResolveDropdownOptionsForUi(
+                binding.Entry,
+                binding.DropdownAttribute,
+                binding.ValueType);
+            binding.State.Options = options;
+            binding.ApplyOptions(options, binding.Entry.GetValue());
+        }
+        finally
+        {
+            refreshingDynamicDropdowns.Remove(binding.Key);
+        }
+    }
+
+    private IReadOnlyList<string> ResolveDropdownOptionsForUi(
+        ConfigEntry entry,
+        UIDropdownAttribute? dropdownAttribute,
+        Type valueType)
+    {
+        return DropdownOptionsResolver.ResolveEffective(entry, dropdownAttribute, valueType, TrySetEntryValue);
+    }
+
     private void OnResetPressed()
     {
         if (assembly == null)
@@ -646,6 +777,8 @@ internal sealed class ModConfigPopup : Control, IScreenContext
         {
             updateBinding(value);
         }
+
+        RefreshDynamicDropdownDependents(entry);
     }
 
     private void OnLocaleChanged()

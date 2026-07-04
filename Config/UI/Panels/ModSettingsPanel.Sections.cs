@@ -21,6 +21,9 @@ internal sealed partial class ModSettingsPanel
         }
 
         bindings.Clear();
+        dynamicDropdowns.Clear();
+        dynamicDropdownDependents.Clear();
+        refreshingDynamicDropdowns.Clear();
         listeningKeybind = null;
         _firstControl = null;
 

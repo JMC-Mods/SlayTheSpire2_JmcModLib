@@ -508,12 +508,14 @@ Constructor:
 | `UISliderAttribute` | `(double min, double max, double step = 1.0)` | Numeric types | General numeric slider |
 | `UIIntSliderAttribute` | `(int min, int max, int characterLimit = 5)` | `int` | int slider |
 | `UIDropdownAttribute` | `(params string[]? exclude)` | `string` or enum | strings are used as options; enum values are used as exclusions |
+| `UIDropdownOptionsProviderAttribute` | `(string providerName, params string[] dependsOn)` | `string` or enum dropdowns | Provides runtime dropdown choices and declares dependencies that should refresh the list |
 
 Enums:
 
 ```csharp
 public enum UIButtonColor { Default, Green, Red, Gold, Blue, Reset }
 public enum UIColorPalette { None, Basic, Game, CardRarity, Rainbow }
+public enum UIDropdownInvalidValuePolicy { KeepCurrent, SelectFirstAvailable, ResetToDefault }
 ```
 
 Interface:
@@ -524,6 +526,37 @@ public interface ISliderConfigAttribute
     double Min { get; }
     double Max { get; }
     double Step { get; }
+}
+
+public interface IConfigUiContext
+{
+    T Get<T>(string key);
+    bool TryGet<T>(string key, out T value);
+    object? Get(string key);
+    bool TryGet(string key, out object? value);
+}
+```
+
+Dynamic dropdown example:
+
+```csharp
+[UIDropdown("Offense", "Defense")]
+[Config("Mode", Key = "dropdown.mode")]
+public static string Mode = "Offense";
+
+[UIDropdown]
+[UIDropdownOptionsProvider(
+    nameof(GetChoiceOptions),
+    nameof(Mode),
+    InvalidValuePolicy = UIDropdownInvalidValuePolicy.SelectFirstAvailable)]
+[Config("Choice", Key = "dropdown.choice")]
+public static string Choice = "Strike";
+
+private static IReadOnlyList<string> GetChoiceOptions(IConfigUiContext ctx)
+{
+    return ctx.Get<string>(nameof(Mode)) == "Defense"
+        ? ["Block", "Guard", "Barrier"]
+        : ["Strike", "Bash", "Whirlwind"];
 }
 ```
 

@@ -390,6 +390,7 @@ public static class ConfigManager
             attribute,
             uiAttribute)
         {
+            DropdownOptionsProviderAttribute = member.GetAttribute<UIDropdownOptionsProviderAttribute>(),
             SourceDeclaringType = member.DeclaringType,
             SourceMemberName = member.Name
         };

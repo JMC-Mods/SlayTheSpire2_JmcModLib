@@ -297,6 +297,32 @@ public static IReadOnlyList<string> DynamicProviderDropdownOptions =>
     ? ["Tiny", "Balanced", "Generous", "FeatureEnabled"]
     : ["Tiny", "Balanced", "Generous", "FeatureDisabled"];
 ```
+
+如果一个下拉需要在设置页打开后继续响应其他配置项变化，使用显式 provider 并声明依赖项：
+
+```csharp
+[UIDropdown("Offense", "Defense")]
+[Config("动态下拉控制项", Key = "dropdown.dynamic_mode")]
+public static string DynamicMode = "Offense";
+
+[UIDropdown]
+[UIDropdownOptionsProvider(
+    nameof(GetDynamicChoiceOptions),
+    nameof(DynamicMode),
+    InvalidValuePolicy = UIDropdownInvalidValuePolicy.SelectFirstAvailable)]
+[Config("显式动态下拉", Key = "dropdown.dynamic_choice")]
+public static string DynamicChoice = "Strike";
+
+private static IReadOnlyList<string> GetDynamicChoiceOptions(IConfigUiContext ctx)
+{
+    return ctx.Get<string>(nameof(DynamicMode)) == "Defense"
+        ? ["Block", "Guard", "Barrier"]
+        : ["Strike", "Bash", "Whirlwind"];
+}
+```
+
+这里 `ctx` 读取的是当前 MOD 的配置项当前值；`nameof(DynamicMode)` 变化后，JML 会重新调用 provider 并刷新 `DynamicChoice` 的候选项。
+
 ![动态下拉](../pic/动态下拉.png)
 
 

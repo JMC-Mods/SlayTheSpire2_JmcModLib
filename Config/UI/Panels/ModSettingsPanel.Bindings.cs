@@ -28,6 +28,7 @@ internal sealed partial class ModSettingsPanel
     private void OnConfigValueChanged(ConfigEntry entry, object? value)
     {
         _ = TryUpdateBinding(entry, value, logUnexpectedFailure: true);
+        RefreshDynamicDropdownDependents(entry);
     }
 
     private bool TryUpdateBinding(ConfigEntry entry, object? value, bool logUnexpectedFailure)

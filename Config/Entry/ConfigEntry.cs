@@ -32,6 +32,11 @@ public abstract class ConfigEntry(
 
     public UIConfigAttribute? UIAttribute { get; } = uiAttribute;
 
+    /// <summary>
+    /// 下拉配置项的动态候选项提供器声明；未声明时为 <see langword="null"/>。
+    /// </summary>
+    public UIDropdownOptionsProviderAttribute? DropdownOptionsProviderAttribute { get; internal set; }
+
     public Type? SourceDeclaringType { get; internal set; }
 
     public string? SourceMemberName { get; internal set; }

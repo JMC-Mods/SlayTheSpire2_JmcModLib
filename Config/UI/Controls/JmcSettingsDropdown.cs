@@ -160,6 +160,28 @@ internal sealed class JmcSettingsDropdown : NButton
         suppressChanged = false;
     }
 
+    public void SetOptions(IReadOnlyList<JmcDropdownOption> value, string selectedValue)
+    {
+        bool previousSuppressChanged = suppressChanged;
+        suppressChanged = true;
+        try
+        {
+            if (isOpen)
+            {
+                CloseDropdown();
+            }
+
+            options = value;
+            this.selectedValue = selectedValue;
+            PopulateItems();
+            currentLabel?.SetTextAutoSize(GetDisplayText(selectedValue));
+        }
+        finally
+        {
+            suppressChanged = previousSuppressChanged;
+        }
+    }
+
     private void PopulateItems()
     {
         if (itemTemplate == null || dropdownItems == null)

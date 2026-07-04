@@ -1,4 +1,5 @@
 using Godot;
+using JmcModLib.Config.Entry;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
 
@@ -8,6 +9,9 @@ internal sealed partial class ModSettingsPanel : NSettingsPanel
 {
 
     private readonly Dictionary<string, Action<object?>> bindings = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, DynamicDropdownBinding> dynamicDropdowns = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, List<string>> dynamicDropdownDependents = new(StringComparer.Ordinal);
+    private readonly HashSet<string> refreshingDynamicDropdowns = new(StringComparer.Ordinal);
 
     private const float ContentWidth = 1120f;
     private const int IntroFontSize = 24;
@@ -28,6 +32,32 @@ internal sealed partial class ModSettingsPanel : NSettingsPanel
     private Viewport? connectedViewport;
     private Callable? viewportSizeChangedCallable;
     private bool suppressControlEvents;
+
+    private sealed class DropdownEditorState(IReadOnlyList<string> options)
+    {
+        public IReadOnlyList<string> Options { get; set; } = options;
+    }
+
+    private sealed class DynamicDropdownBinding(
+        string key,
+        ConfigEntry entry,
+        UIDropdownAttribute? dropdownAttribute,
+        Type valueType,
+        DropdownEditorState state,
+        Action<IReadOnlyList<string>, object?> applyOptions)
+    {
+        public string Key { get; } = key;
+
+        public ConfigEntry Entry { get; } = entry;
+
+        public UIDropdownAttribute? DropdownAttribute { get; } = dropdownAttribute;
+
+        public Type ValueType { get; } = valueType;
+
+        public DropdownEditorState State { get; } = state;
+
+        public Action<IReadOnlyList<string>, object?> ApplyOptions { get; } = applyOptions;
+    }
 
     public static ModSettingsPanel Create()
     {

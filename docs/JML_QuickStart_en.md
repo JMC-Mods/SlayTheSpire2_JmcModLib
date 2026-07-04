@@ -295,6 +295,32 @@ public static IReadOnlyList<string> DynamicProviderDropdownOptions =>
     ? ["Tiny", "Balanced", "Generous", "FeatureEnabled"]
     : ["Tiny", "Balanced", "Generous", "FeatureDisabled"];
 ```
+
+If a dropdown should keep responding to other config changes after the settings page is open, use an explicit provider and declare dependencies:
+
+```csharp
+[UIDropdown("Offense", "Defense")]
+[Config("Dynamic Mode", Key = "dropdown.dynamic_mode")]
+public static string DynamicMode = "Offense";
+
+[UIDropdown]
+[UIDropdownOptionsProvider(
+    nameof(GetDynamicChoiceOptions),
+    nameof(DynamicMode),
+    InvalidValuePolicy = UIDropdownInvalidValuePolicy.SelectFirstAvailable)]
+[Config("Explicit Dynamic Dropdown", Key = "dropdown.dynamic_choice")]
+public static string DynamicChoice = "Strike";
+
+private static IReadOnlyList<string> GetDynamicChoiceOptions(IConfigUiContext ctx)
+{
+    return ctx.Get<string>(nameof(DynamicMode)) == "Defense"
+        ? ["Block", "Guard", "Barrier"]
+        : ["Strike", "Bash", "Whirlwind"];
+}
+```
+
+Here `ctx` reads the current values of this MOD's config entries. When `DynamicMode` changes, JML calls the provider again and refreshes the choices for `DynamicChoice`.
+
 ![Dynamic dropdown](../pic/动态下拉.png)
 
 

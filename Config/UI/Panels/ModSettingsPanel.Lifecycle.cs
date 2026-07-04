@@ -31,6 +31,9 @@ internal sealed partial class ModSettingsPanel
         L10n.UnsubscribeToLocaleChange(OnLocaleChanged);
         DisconnectViewportSizeChanged();
         bindings.Clear();
+        dynamicDropdowns.Clear();
+        dynamicDropdownDependents.Clear();
+        refreshingDynamicDropdowns.Clear();
         listeningKeybind = null;
         centerRoot = null;
         root = null;

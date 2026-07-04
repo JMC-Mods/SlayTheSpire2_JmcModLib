@@ -514,12 +514,14 @@ flowchart TD
 | `UISliderAttribute` | `(double min, double max, double step = 1.0)` | 数字类型 | 通用数字滑条 |
 | `UIIntSliderAttribute` | `(int min, int max, int characterLimit = 5)` | `int` | int 滑条 |
 | `UIDropdownAttribute` | `(params string[]? exclude)` | `string` 或 enum | string 用作选项；enum 用作排除项 |
+| `UIDropdownOptionsProviderAttribute` | `(string providerName, params string[] dependsOn)` | `string` 或 enum 下拉 | 为下拉项提供运行时动态候选项，并声明依赖项变化后刷新 |
 
 枚举：
 
 ```csharp
 public enum UIButtonColor { Default, Green, Red, Gold, Blue, Reset }
 public enum UIColorPalette { None, Basic, Game, CardRarity, Rainbow }
+public enum UIDropdownInvalidValuePolicy { KeepCurrent, SelectFirstAvailable, ResetToDefault }
 ```
 
 接口：
@@ -530,6 +532,37 @@ public interface ISliderConfigAttribute
     double Min { get; }
     double Max { get; }
     double Step { get; }
+}
+
+public interface IConfigUiContext
+{
+    T Get<T>(string key);
+    bool TryGet<T>(string key, out T value);
+    object? Get(string key);
+    bool TryGet(string key, out object? value);
+}
+```
+
+动态下拉示例：
+
+```csharp
+[UIDropdown("Offense", "Defense")]
+[Config("模式", Key = "dropdown.mode")]
+public static string Mode = "Offense";
+
+[UIDropdown]
+[UIDropdownOptionsProvider(
+    nameof(GetChoiceOptions),
+    nameof(Mode),
+    InvalidValuePolicy = UIDropdownInvalidValuePolicy.SelectFirstAvailable)]
+[Config("选项", Key = "dropdown.choice")]
+public static string Choice = "Strike";
+
+private static IReadOnlyList<string> GetChoiceOptions(IConfigUiContext ctx)
+{
+    return ctx.Get<string>(nameof(Mode)) == "Defense"
+        ? ["Block", "Guard", "Barrier"]
+        : ["Strike", "Bash", "Whirlwind"];
 }
 ```
 

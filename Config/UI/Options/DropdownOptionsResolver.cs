@@ -20,11 +20,18 @@ internal static class DropdownOptionsResolver
         Type valueType)
     {
         Type actualType = Nullable.GetUnderlyingType(valueType) ?? valueType;
-        IReadOnlyList<string> options = actualType.IsEnum
-            ? [.. Enum.GetNames(actualType).Where(option => dropdownAttribute?.Exclude.Contains(option, StringComparer.OrdinalIgnoreCase) != true)]
-            : dropdownAttribute?.Options.Count > 0
-                ? dropdownAttribute.Options
-                : TryResolveConventionOptions(entry);
+        IReadOnlyList<string> options = entry.DropdownOptionsProviderAttribute != null
+            ? TryResolveExplicitProviderOptions(entry, entry.DropdownOptionsProviderAttribute)
+            : [];
+
+        if (options.Count == 0)
+        {
+            options = actualType.IsEnum
+                ? [.. Enum.GetNames(actualType).Where(option => dropdownAttribute?.Exclude.Contains(option, StringComparer.OrdinalIgnoreCase) != true)]
+                : dropdownAttribute?.Options.Count > 0
+                    ? dropdownAttribute.Options
+                    : TryResolveConventionOptions(entry);
+        }
 
         if (options.Count == 0)
         {
@@ -38,6 +45,73 @@ internal static class DropdownOptionsResolver
         return filteredOptions.Length > 0
             ? filteredOptions
             : [entry.GetValue()?.ToString() ?? string.Empty];
+    }
+
+    public static IReadOnlyList<string> ResolveEffective(
+        ConfigEntry entry,
+        UIDropdownAttribute? dropdownAttribute,
+        Type valueType,
+        Action<ConfigEntry, object?> setValue)
+    {
+        IReadOnlyList<string> options = Resolve(entry, dropdownAttribute, valueType);
+        UIDropdownInvalidValuePolicy policy =
+            entry.DropdownOptionsProviderAttribute?.InvalidValuePolicy ?? UIDropdownInvalidValuePolicy.KeepCurrent;
+
+        if (options.Count == 0)
+        {
+            return [entry.GetValue()?.ToString() ?? string.Empty];
+        }
+
+        string currentText = entry.GetValue()?.ToString() ?? string.Empty;
+        if (ContainsOption(options, currentText))
+        {
+            return options;
+        }
+
+        return policy switch
+        {
+            UIDropdownInvalidValuePolicy.SelectFirstAvailable => SelectFirstAvailable(entry, options, setValue),
+            UIDropdownInvalidValuePolicy.ResetToDefault => ResetToDefault(entry, options, setValue),
+            _ => EnsureDisplayOption(options, currentText)
+        };
+    }
+
+    public static IReadOnlyList<ConfigEntry> ResolveDependencyEntries(ConfigEntry entry)
+    {
+        UIDropdownOptionsProviderAttribute? attribute = entry.DropdownOptionsProviderAttribute;
+        if (attribute == null || attribute.DependsOn.Length == 0)
+        {
+            return [];
+        }
+
+        var context = new ConfigUiContext(entry.Assembly, entry.SourceDeclaringType);
+        var dependencies = new List<ConfigEntry>();
+        foreach (string dependencyName in attribute.DependsOn.Where(static name => !string.IsNullOrWhiteSpace(name)).Distinct(StringComparer.Ordinal))
+        {
+            if (context.TryResolveEntry(dependencyName, out ConfigEntry? dependency) && dependency != null)
+            {
+                dependencies.Add(dependency);
+                continue;
+            }
+
+            ModLogger.Warn($"动态下拉 {entry.Key} 声明的依赖项 {dependencyName} 不存在，变更后可能不会自动刷新。", entry.Assembly);
+        }
+
+        return dependencies;
+    }
+
+    private static IReadOnlyList<string> TryResolveExplicitProviderOptions(
+        ConfigEntry entry,
+        UIDropdownOptionsProviderAttribute providerAttribute)
+    {
+        if (entry.SourceDeclaringType == null)
+        {
+            ModLogger.Warn($"动态下拉 {entry.Key} 缺少来源类型，无法解析 provider {providerAttribute.ProviderName}。", entry.Assembly);
+            return [];
+        }
+
+        object? rawOptions = InvokeProvider(entry, providerAttribute);
+        return NormalizeOptions(rawOptions);
     }
 
     private static IReadOnlyList<string> TryResolveConventionOptions(ConfigEntry entry)
@@ -102,6 +176,67 @@ internal static class DropdownOptionsResolver
         return false;
     }
 
+    private static object? InvokeProvider(ConfigEntry entry, UIDropdownOptionsProviderAttribute providerAttribute)
+    {
+        Type declaringType = entry.SourceDeclaringType!;
+        string providerName = providerAttribute.ProviderName;
+        const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+
+        try
+        {
+            MethodInfo? method = ResolveProviderMethod(declaringType, providerName);
+            if (method != null)
+            {
+                ParameterInfo[] parameters = method.GetParameters();
+                object?[]? args = parameters.Length == 0
+                    ? null
+                    : [new ConfigUiContext(entry.Assembly, declaringType)];
+                return method.Invoke(null, args);
+            }
+
+            PropertyInfo? property = declaringType.GetProperty(providerName, flags);
+            if (property != null)
+            {
+                return property.GetValue(null);
+            }
+
+            ModLogger.Warn($"找不到动态下拉选项 provider {declaringType.FullName}.{providerName}。", entry.Assembly);
+            return null;
+        }
+        catch (TargetInvocationException ex)
+        {
+            Exception inner = ex.InnerException ?? ex;
+            ModLogger.Warn($"动态下拉选项 provider {declaringType.FullName}.{providerName} 执行失败：{inner.Message}", inner, entry.Assembly);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            ModLogger.Warn($"动态下拉选项 provider {declaringType.FullName}.{providerName} 执行失败：{ex.Message}", ex, entry.Assembly);
+            return null;
+        }
+    }
+
+    private static MethodInfo? ResolveProviderMethod(Type declaringType, string providerName)
+    {
+        const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+
+        foreach (MethodInfo method in declaringType.GetMethods(flags).Where(method => method.Name == providerName))
+        {
+            ParameterInfo[] parameters = method.GetParameters();
+            if (parameters.Length == 0)
+            {
+                return method;
+            }
+
+            if (parameters.Length == 1 && parameters[0].ParameterType.IsAssignableFrom(typeof(ConfigUiContext)))
+            {
+                return method;
+            }
+        }
+
+        return null;
+    }
+
     private static object? InvokeProvider(Type declaringType, string providerName)
     {
         const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
@@ -147,5 +282,39 @@ internal static class DropdownOptionsResolver
         }
 
         return [rawOptions.ToString() ?? string.Empty];
+    }
+
+    private static IReadOnlyList<string> SelectFirstAvailable(
+        ConfigEntry entry,
+        IReadOnlyList<string> options,
+        Action<ConfigEntry, object?> setValue)
+    {
+        setValue(entry, options[0]);
+        return options;
+    }
+
+    private static IReadOnlyList<string> ResetToDefault(
+        ConfigEntry entry,
+        IReadOnlyList<string> options,
+        Action<ConfigEntry, object?> setValue)
+    {
+        setValue(entry, entry.DefaultValue);
+        string defaultText = entry.DefaultValue?.ToString() ?? string.Empty;
+        return ContainsOption(options, defaultText) ? options : EnsureDisplayOption(options, defaultText);
+    }
+
+    private static IReadOnlyList<string> EnsureDisplayOption(IReadOnlyList<string> options, string value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || ContainsOption(options, value))
+        {
+            return options;
+        }
+
+        return [.. options, value];
+    }
+
+    private static bool ContainsOption(IReadOnlyList<string> options, string value)
+    {
+        return options.Any(option => string.Equals(option, value, StringComparison.OrdinalIgnoreCase));
     }
 }

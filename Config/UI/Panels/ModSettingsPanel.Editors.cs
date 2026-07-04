@@ -171,11 +171,13 @@ internal sealed partial class ModSettingsPanel
         Type valueType,
         List<Control> focusableControls)
     {
-        IReadOnlyList<string> options = DropdownOptionsResolver.Resolve(entry, dropdownAttribute, valueType);
+        IReadOnlyList<string> options = ResolveDropdownOptionsForUi(entry, dropdownAttribute, valueType);
+        var state = new DropdownEditorState(options);
+        string bindingKey = CreateBindingKey(entry);
 
         if (nativeTemplates?.DropdownTemplate != null && nativeTemplates.DropdownItemTemplate != null)
         {
-            IReadOnlyList<JmcDropdownOption> localizedOptions = [.. options.Select(option =>
+            IReadOnlyList<JmcDropdownOption> localizedOptions = [.. state.Options.Select(option =>
                 new JmcDropdownOption(ConfigLocalization.GetOptionText(entry, option), option))];
 
             var nativeDropdown = JmcSettingsDropdown.Create(
@@ -196,10 +198,23 @@ internal sealed partial class ModSettingsPanel
                     TrySetEntryValue(entry, converted);
                 });
 
-            bindings[CreateBindingKey(entry)] = rawValue =>
+            bindings[bindingKey] = rawValue =>
             {
                 RunSuppressed(() => nativeDropdown.SetValue(rawValue?.ToString() ?? string.Empty));
             };
+
+            RegisterDynamicDropdown(new DynamicDropdownBinding(
+                bindingKey,
+                entry,
+                dropdownAttribute,
+                valueType,
+                state,
+                (refreshedOptions, rawValue) =>
+                {
+                    IReadOnlyList<JmcDropdownOption> refreshedLocalizedOptions = [.. refreshedOptions.Select(option =>
+                        new JmcDropdownOption(ConfigLocalization.GetOptionText(entry, option), option))];
+                    RunSuppressed(() => nativeDropdown.SetOptions(refreshedLocalizedOptions, rawValue?.ToString() ?? string.Empty));
+                }));
 
             focusableControls.Add(nativeDropdown);
             return nativeDropdown;
@@ -211,10 +226,7 @@ internal sealed partial class ModSettingsPanel
             CustomMinimumSize = new Vector2(260f, 0f)
         };
 
-        for (int i = 0; i < options.Count; i++)
-        {
-            dropdown.AddItem(ConfigLocalization.GetOptionText(entry, options[i]), i);
-        }
+        PopulateDropdownButton(dropdown, entry, state.Options);
 
         dropdown.ItemSelected += index =>
         {
@@ -223,26 +235,55 @@ internal sealed partial class ModSettingsPanel
                 return;
             }
 
-            string selectedText = options[(int)index];
+            string selectedText = state.Options[(int)index];
             object? converted = valueType.IsEnum
                 ? Enum.Parse(valueType, selectedText, ignoreCase: true)
                 : selectedText;
             TrySetEntryValue(entry, converted);
         };
 
-        bindings[CreateBindingKey(entry)] = rawValue =>
+        bindings[bindingKey] = rawValue =>
         {
-            string selectedText = rawValue?.ToString() ?? string.Empty;
-            int index = options
-                .Select((text, i) => new { text, i })
-                .FirstOrDefault(item => string.Equals(item.text, selectedText, StringComparison.OrdinalIgnoreCase))?.i ?? 0;
-
-            RunSuppressed(() => dropdown.Select(index));
+            RunSuppressed(() => SelectDropdownButtonValue(dropdown, state.Options, rawValue));
         };
 
-        bindings[CreateBindingKey(entry)](entry.GetValue());
+        RegisterDynamicDropdown(new DynamicDropdownBinding(
+            bindingKey,
+            entry,
+            dropdownAttribute,
+            valueType,
+            state,
+            (refreshedOptions, rawValue) =>
+            {
+                RunSuppressed(() =>
+                {
+                    PopulateDropdownButton(dropdown, entry, refreshedOptions);
+                    SelectDropdownButtonValue(dropdown, refreshedOptions, rawValue);
+                });
+            }));
+
+        bindings[bindingKey](entry.GetValue());
         focusableControls.Add(dropdown);
         return dropdown;
+    }
+
+    private static void PopulateDropdownButton(OptionButton dropdown, ConfigEntry entry, IReadOnlyList<string> options)
+    {
+        dropdown.Clear();
+        for (int i = 0; i < options.Count; i++)
+        {
+            dropdown.AddItem(ConfigLocalization.GetOptionText(entry, options[i]), i);
+        }
+    }
+
+    private static void SelectDropdownButtonValue(OptionButton dropdown, IReadOnlyList<string> options, object? rawValue)
+    {
+        string selectedText = rawValue?.ToString() ?? string.Empty;
+        int index = options
+            .Select((text, i) => new { text, i })
+            .FirstOrDefault(item => string.Equals(item.text, selectedText, StringComparison.OrdinalIgnoreCase))?.i ?? 0;
+
+        dropdown.Select(index);
     }
 
     private SpinBox BuildSpinBoxEditor(ConfigEntry entry, Type valueType, List<Control> focusableControls)
