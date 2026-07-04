@@ -6,6 +6,11 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.5.1] - 2026-7-3
+### Fixed
+- Fixed Steam Input controller mapping repair writing back to the settings save, which could make older game versions load nonexistent controller actions after a rollback and spam errors.
+- Runtime controller mappings now ignore actions that do not exist in the current game version and fall back to the game's default bindings.
+
 ## [1.5.0] - 2026-7-3
 ### Added
 - Added a prefab for displaying Markdown information feeds.

@@ -1,13 +1,13 @@
 using HarmonyLib;
+using JmcModLib.Reflection;
 using MegaCrit.Sts2.Core.ControllerInput;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Platform.Steam;
-using System.Reflection;
 
 namespace JmcModLib.Input;
 
 /// <summary>
-/// Steam Input 初始化补丁：在游戏调用 SteamInput.Init 前准备 manifest，并补全缺失的原生手柄映射。
+/// Steam Input 初始化补丁：在游戏调用 SteamInput.Init 前准备 manifest，并在运行时修复原生手柄映射。
 /// </summary>
 [HarmonyPatch(typeof(SteamControllerInputStrategy), nameof(SteamControllerInputStrategy.Init))]
 internal static class SteamInputPatches
@@ -38,14 +38,11 @@ internal static class SteamInputPatches
 
 internal static class SteamInputControllerMappingRepairer
 {
-    private static readonly FieldInfo? ControllerInputMapField =
-        AccessTools.Field(typeof(NInputManager), "_controllerInputMap");
+    private static readonly MemberAccessor? ControllerInputMapMember =
+        TryGetMember(typeof(NInputManager), "_controllerInputMap");
 
-    private static readonly MethodInfo? SaveControllerInputMappingMethod =
-        AccessTools.Method(typeof(NInputManager), "SaveControllerInputMapping");
-
-    private static readonly MethodInfo? EmitSignalInputReboundMethod =
-        AccessTools.Method(typeof(NInputManager), "EmitSignalInputRebound");
+    private static readonly MethodAccessor? EmitSignalInputReboundMethod =
+        TryGetMethod(typeof(NInputManager), "EmitSignalInputRebound");
 
     private static int repairedLogged;
 
@@ -61,8 +58,7 @@ internal static class SteamInputControllerMappingRepairer
                 return;
             }
 
-            if (ControllerInputMapField == null
-                || SaveControllerInputMappingMethod == null
+            if (ControllerInputMapMember == null
                 || EmitSignalInputReboundMethod == null)
             {
                 ModLogger.Warn("无法修复 Steam Input 手柄映射：游戏内部映射结构已变化。");
@@ -70,16 +66,33 @@ internal static class SteamInputControllerMappingRepairer
             }
 
             Dictionary<Godot.StringName, Godot.StringName> defaultMap = controllerManager.GetDefaultControllerInputMap;
-            object? currentValue = ControllerInputMapField.GetValue(inputManager);
+            object? currentValue = ControllerInputMapMember.GetValue(inputManager);
             Dictionary<Godot.StringName, Godot.StringName> repairedMap = currentValue is Dictionary<Godot.StringName, Godot.StringName> currentMap
                 ? new Dictionary<Godot.StringName, Godot.StringName>(currentMap)
                 : [];
 
+            KeyValuePair<Godot.StringName, Godot.StringName>[] invalidEntries =
+            [
+                .. repairedMap.Where(entry => !Godot.InputMap.HasAction(entry.Value))
+            ];
+            foreach (KeyValuePair<Godot.StringName, Godot.StringName> entry in invalidEntries)
+            {
+                if (defaultMap.TryGetValue(entry.Key, out Godot.StringName? defaultValue)
+                    && defaultValue != null
+                    && Godot.InputMap.HasAction(defaultValue))
+                {
+                    repairedMap[entry.Key] = defaultValue;
+                    continue;
+                }
+
+                repairedMap.Remove(entry.Key);
+            }
+
             KeyValuePair<Godot.StringName, Godot.StringName>[] missingEntries =
             [
-                .. defaultMap.Where(entry => !repairedMap.ContainsKey(entry.Key))
+                .. defaultMap.Where(entry => Godot.InputMap.HasAction(entry.Value) && !repairedMap.ContainsKey(entry.Key))
             ];
-            if (missingEntries.Length == 0)
+            if (invalidEntries.Length == 0 && missingEntries.Length == 0)
             {
                 return;
             }
@@ -89,18 +102,52 @@ internal static class SteamInputControllerMappingRepairer
                 repairedMap.Add(entry.Key, entry.Value);
             }
 
-            ControllerInputMapField.SetValue(inputManager, repairedMap);
-            _ = SaveControllerInputMappingMethod.Invoke(inputManager, null);
-            _ = EmitSignalInputReboundMethod.Invoke(inputManager, null);
+            ControllerInputMapMember.SetValue(inputManager, repairedMap);
+            _ = EmitSignalInputReboundMethod.Invoke(inputManager);
 
             if (Interlocked.Exchange(ref repairedLogged, 1) == 0)
             {
-                ModLogger.Info($"已补全 Steam Input 手柄映射缺失项：{controllerManager.ControllerMappingType}，补全 {missingEntries.Length} 项。");
+                List<string> details = [];
+                if (missingEntries.Length > 0)
+                {
+                    details.Add($"补全 {missingEntries.Length} 项");
+                }
+
+                if (invalidEntries.Length > 0)
+                {
+                    details.Add($"回退无效映射 {invalidEntries.Length} 项");
+                }
+
+                ModLogger.Info($"已修复 Steam Input 手柄映射（仅本次运行生效）：{controllerManager.ControllerMappingType}，{string.Join("，", details)}。");
             }
         }
         catch (Exception ex)
         {
             ModLogger.Error("修复 Steam Input 手柄映射失败。", ex);
+        }
+    }
+
+    private static MemberAccessor? TryGetMember(Type type, string memberName)
+    {
+        try
+        {
+            return MemberAccessor.Get(type, memberName);
+        }
+        catch (MissingMemberException)
+        {
+            return null;
+        }
+    }
+
+    private static MethodAccessor? TryGetMethod(Type type, string methodName)
+    {
+        try
+        {
+            return MethodAccessor.Get(type, methodName);
+        }
+        catch (MissingMethodException)
+        {
+            return null;
         }
     }
 }
