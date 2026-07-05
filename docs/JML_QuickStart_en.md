@@ -321,6 +321,34 @@ private static IReadOnlyList<string> GetDynamicChoiceOptions(IConfigUiContext ct
 
 Here `ctx` reads the current values of this MOD's config entries. When `DynamicMode` changes, JML calls the provider again and refreshes the choices for `DynamicChoice`.
 
+Use `UIVisibleWhen` when a config entry should dynamically show or hide based on another config value:
+
+```csharp
+[UIToggle]
+[Config("Show Advanced Text", Key = "visibility.show_advanced_text")]
+public static bool ShowAdvancedText = false;
+
+[UIInput(64)]
+[UIVisibleWhen(nameof(ShowAdvancedText))]
+[Config("Advanced Text", Key = "visibility.advanced_text")]
+public static string AdvancedText = "Only visible when enabled";
+```
+
+It can also compare text, numbers, or enum names:
+
+```csharp
+[UIDropdown("Simple", "Advanced")]
+[Config("Mode", Key = "visibility.mode")]
+public static string VisibilityMode = "Simple";
+
+[UIIntSlider(0, 100)]
+[UIVisibleWhen(nameof(VisibilityMode), "Advanced")]
+[Config("Advanced Power", Key = "visibility.power")]
+public static int AdvancedPower = 50;
+```
+
+Hiding only affects the settings UI row. It does not unregister the config entry or change the saved value.
+
 ![Dynamic dropdown](../pic/动态下拉.png)
 
 

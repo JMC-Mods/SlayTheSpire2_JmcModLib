@@ -6,6 +6,10 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.5.3] - 2026-7-5
+### Added
+- Added `UIVisibleWhenAttribute` for dynamically showing or hiding config entries in the settings UI based on other config values.
+
 ## [1.5.2] - 2026-7-4
 ### Added
 - Added `UIDropdownOptionsProviderAttribute` for refreshing dropdown choices at runtime based on other config values.

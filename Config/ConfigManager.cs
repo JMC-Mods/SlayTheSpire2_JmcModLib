@@ -391,6 +391,7 @@ public static class ConfigManager
             uiAttribute)
         {
             DropdownOptionsProviderAttribute = member.GetAttribute<UIDropdownOptionsProviderAttribute>(),
+            VisibleWhenAttribute = member.GetAttribute<UIVisibleWhenAttribute>(),
             SourceDeclaringType = member.DeclaringType,
             SourceMemberName = member.Name
         };

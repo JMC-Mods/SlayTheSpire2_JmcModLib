@@ -69,7 +69,7 @@ public enum UIDropdownInvalidValuePolicy
 }
 
 /// <summary>
-/// 配置 UI 运行时上下文，用于动态候选项或未来动态状态提供器读取当前 MOD 的其他配置项。
+/// 配置 UI 运行时上下文，用于动态候选项或动态 UI 状态判断读取当前 MOD 的其他配置项。
 /// </summary>
 public interface IConfigUiContext
 {

@@ -34,6 +34,8 @@ internal sealed partial class ModSettingsPanel
         dynamicDropdowns.Clear();
         dynamicDropdownDependents.Clear();
         refreshingDynamicDropdowns.Clear();
+        dynamicVisibilityBindings.Clear();
+        dynamicVisibilityDependents.Clear();
         listeningKeybind = null;
         centerRoot = null;
         root = null;

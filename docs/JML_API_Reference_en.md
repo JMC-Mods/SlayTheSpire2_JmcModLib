@@ -397,6 +397,8 @@ Namespace: `JmcModLib.Config.Entry`
 | `Key` | `CreateKey(StorageKey, Group)` |
 | `Attribute` | Config metadata |
 | `UIAttribute` | UI metadata, may be null |
+| `DropdownOptionsProviderAttribute` | Dynamic dropdown provider metadata, may be null |
+| `VisibleWhenAttribute` | Dynamic visibility metadata, may be null |
 | `SourceDeclaringType` | Attribute source type, may be null |
 | `SourceMemberName` | Attribute source member name, may be null |
 | `ValueType` | Value type |
@@ -509,6 +511,7 @@ Constructor:
 | `UIIntSliderAttribute` | `(int min, int max, int characterLimit = 5)` | `int` | int slider |
 | `UIDropdownAttribute` | `(params string[]? exclude)` | `string` or enum | strings are used as options; enum values are used as exclusions |
 | `UIDropdownOptionsProviderAttribute` | `(string providerName, params string[] dependsOn)` | `string` or enum dropdowns | Provides runtime dropdown choices and declares dependencies that should refresh the list |
+| `UIVisibleWhenAttribute` | `(string dependsOn)` / `(string dependsOn, bool/string/int/double expectedValue)` | Any config entry | Dynamically shows or hides the current config entry based on another config value in the same MOD |
 
 Enums:
 
@@ -559,6 +562,30 @@ private static IReadOnlyList<string> GetChoiceOptions(IConfigUiContext ctx)
         : ["Strike", "Bash", "Whirlwind"];
 }
 ```
+
+Dynamic visibility example:
+
+```csharp
+[UIToggle]
+[Config("Show Advanced", Key = "advanced.enabled")]
+public static bool AdvancedEnabled = false;
+
+[UIInput(64)]
+[UIVisibleWhen(nameof(AdvancedEnabled))]
+[Config("Advanced Text", Key = "advanced.text")]
+public static string AdvancedText = "Only visible when enabled";
+
+[UIDropdown("Simple", "Advanced")]
+[Config("Mode", Key = "advanced.mode")]
+public static string Mode = "Simple";
+
+[UIIntSlider(0, 100)]
+[UIVisibleWhen(nameof(Mode), "Advanced")]
+[Config("Advanced Power", Key = "advanced.power")]
+public static int AdvancedPower = 50;
+```
+
+Hiding only affects the settings UI row. It does not unregister the config entry and does not automatically clear, reset, or stop persisting the value.
 
 ---
 

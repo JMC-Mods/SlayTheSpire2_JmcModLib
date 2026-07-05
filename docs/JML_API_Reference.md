@@ -403,6 +403,8 @@ string RegisterConfig<TValue>(
 | `Key` | `CreateKey(StorageKey, Group)` |
 | `Attribute` | 配置元数据 |
 | `UIAttribute` | UI 元数据，可为空 |
+| `DropdownOptionsProviderAttribute` | 动态下拉候选项提供器元数据，可为空 |
+| `VisibleWhenAttribute` | 动态可见性元数据，可为空 |
 | `SourceDeclaringType` | Attribute 来源类型，可为空 |
 | `SourceMemberName` | Attribute 来源成员名，可为空 |
 | `ValueType` | 值类型 |
@@ -515,6 +517,7 @@ flowchart TD
 | `UIIntSliderAttribute` | `(int min, int max, int characterLimit = 5)` | `int` | int 滑条 |
 | `UIDropdownAttribute` | `(params string[]? exclude)` | `string` 或 enum | string 用作选项；enum 用作排除项 |
 | `UIDropdownOptionsProviderAttribute` | `(string providerName, params string[] dependsOn)` | `string` 或 enum 下拉 | 为下拉项提供运行时动态候选项，并声明依赖项变化后刷新 |
+| `UIVisibleWhenAttribute` | `(string dependsOn)` / `(string dependsOn, bool/string/int/double expectedValue)` | 任意配置项 | 根据同 MOD 内其他配置项的当前值动态显示或隐藏当前配置项 |
 
 枚举：
 
@@ -565,6 +568,30 @@ private static IReadOnlyList<string> GetChoiceOptions(IConfigUiContext ctx)
         : ["Strike", "Bash", "Whirlwind"];
 }
 ```
+
+动态可见性示例：
+
+```csharp
+[UIToggle]
+[Config("显示高级项", Key = "advanced.enabled")]
+public static bool AdvancedEnabled = false;
+
+[UIInput(64)]
+[UIVisibleWhen(nameof(AdvancedEnabled))]
+[Config("高级文本", Key = "advanced.text")]
+public static string AdvancedText = "Only visible when enabled";
+
+[UIDropdown("Simple", "Advanced")]
+[Config("模式", Key = "advanced.mode")]
+public static string Mode = "Simple";
+
+[UIIntSlider(0, 100)]
+[UIVisibleWhen(nameof(Mode), "Advanced")]
+[Config("高级强度", Key = "advanced.power")]
+public static int AdvancedPower = 50;
+```
+
+隐藏只影响设置 UI 行的显示状态，不会取消配置项注册，也不会自动清空、重置或停止持久化该配置值。
 
 ---
 

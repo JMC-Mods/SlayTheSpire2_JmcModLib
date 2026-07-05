@@ -12,6 +12,8 @@ internal sealed partial class ModSettingsPanel : NSettingsPanel
     private readonly Dictionary<string, DynamicDropdownBinding> dynamicDropdowns = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<string>> dynamicDropdownDependents = new(StringComparer.Ordinal);
     private readonly HashSet<string> refreshingDynamicDropdowns = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, DynamicVisibilityBinding> dynamicVisibilityBindings = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, List<string>> dynamicVisibilityDependents = new(StringComparer.Ordinal);
 
     private const float ContentWidth = 1120f;
     private const int IntroFontSize = 24;
@@ -57,6 +59,15 @@ internal sealed partial class ModSettingsPanel : NSettingsPanel
         public DropdownEditorState State { get; } = state;
 
         public Action<IReadOnlyList<string>, object?> ApplyOptions { get; } = applyOptions;
+    }
+
+    private sealed class DynamicVisibilityBinding(string key, ConfigEntry entry, Control target)
+    {
+        public string Key { get; } = key;
+
+        public ConfigEntry Entry { get; } = entry;
+
+        public Control Target { get; } = target;
     }
 
     public static ModSettingsPanel Create()

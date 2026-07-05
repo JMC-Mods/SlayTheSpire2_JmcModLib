@@ -24,6 +24,8 @@ internal sealed partial class ModSettingsPanel
         dynamicDropdowns.Clear();
         dynamicDropdownDependents.Clear();
         refreshingDynamicDropdowns.Clear();
+        dynamicVisibilityBindings.Clear();
+        dynamicVisibilityDependents.Clear();
         listeningKeybind = null;
         _firstControl = null;
 
@@ -153,7 +155,9 @@ internal sealed partial class ModSettingsPanel
     {
         if (entry.UIAttribute is UIKeybindAttribute keybindAttribute)
         {
-            return BuildKeybindEntryRow(entry, keybindAttribute, focusableControls);
+            VBoxContainer keybindRow = BuildKeybindEntryRow(entry, keybindAttribute, focusableControls);
+            RegisterDynamicVisibility(new DynamicVisibilityBinding(CreateBindingKey(entry), entry, keybindRow));
+            return keybindRow;
         }
 
         var wrapper = new VBoxContainer
@@ -184,6 +188,7 @@ internal sealed partial class ModSettingsPanel
         AttachEntryHoverTip(topRow, entry);
 
         wrapper.AddChild(new HSeparator());
+        RegisterDynamicVisibility(new DynamicVisibilityBinding(CreateBindingKey(entry), entry, wrapper));
         return wrapper;
     }
 

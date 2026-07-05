@@ -323,6 +323,34 @@ private static IReadOnlyList<string> GetDynamicChoiceOptions(IConfigUiContext ct
 
 这里 `ctx` 读取的是当前 MOD 的配置项当前值；`nameof(DynamicMode)` 变化后，JML 会重新调用 provider 并刷新 `DynamicChoice` 的候选项。
 
+如果一个配置项需要根据另一个配置项动态显示或隐藏，使用 `UIVisibleWhen`：
+
+```csharp
+[UIToggle]
+[Config("显示高级文本", Key = "visibility.show_advanced_text")]
+public static bool ShowAdvancedText = false;
+
+[UIInput(64)]
+[UIVisibleWhen(nameof(ShowAdvancedText))]
+[Config("高级文本", Key = "visibility.advanced_text")]
+public static string AdvancedText = "Only visible when enabled";
+```
+
+也可以比较文本、数字或 enum 名称：
+
+```csharp
+[UIDropdown("Simple", "Advanced")]
+[Config("模式", Key = "visibility.mode")]
+public static string VisibilityMode = "Simple";
+
+[UIIntSlider(0, 100)]
+[UIVisibleWhen(nameof(VisibilityMode), "Advanced")]
+[Config("高级强度", Key = "visibility.power")]
+public static int AdvancedPower = 50;
+```
+
+隐藏只影响设置页中的显示状态，不会取消配置项注册或修改已保存值。
+
 ![动态下拉](../pic/动态下拉.png)
 
 

@@ -37,6 +37,11 @@ public abstract class ConfigEntry(
     /// </summary>
     public UIDropdownOptionsProviderAttribute? DropdownOptionsProviderAttribute { get; internal set; }
 
+    /// <summary>
+    /// 配置项的动态可见性声明；未声明时为 <see langword="null"/>，表示始终显示。
+    /// </summary>
+    public UIVisibleWhenAttribute? VisibleWhenAttribute { get; internal set; }
+
     public Type? SourceDeclaringType { get; internal set; }
 
     public string? SourceMemberName { get; internal set; }

@@ -34,6 +34,11 @@
             下拉配置项的动态候选项提供器声明；未声明时为 <see langword="null"/>。
             </summary>
         </member>
+        <member name="P:JmcModLib.Config.Entry.ConfigEntry.VisibleWhenAttribute">
+            <summary>
+            配置项的动态可见性声明；未声明时为 <see langword="null"/>，表示始终显示。
+            </summary>
+        </member>
         <member name="T:JmcModLib.Config.Storage.JsonConfigStorage">
             <summary>
             Dependency-free JSON storage backend for mod configuration files.
@@ -177,7 +182,7 @@
         </member>
         <member name="T:JmcModLib.Config.UI.IConfigUiContext">
             <summary>
-            配置 UI 运行时上下文，用于动态候选项或未来动态状态提供器读取当前 MOD 的其他配置项。
+            配置 UI 运行时上下文，用于动态候选项或动态 UI 状态判断读取当前 MOD 的其他配置项。
             </summary>
         </member>
         <member name="M:JmcModLib.Config.UI.IConfigUiContext.Get``1(System.String)">
@@ -211,6 +216,69 @@
             <param name="key">配置成员名、存储 key 或完整运行时 key。</param>
             <param name="value">读取成功时返回当前原始值。</param>
             <returns>找到配置项时为 <see langword="true"/>。</returns>
+        </member>
+        <member name="T:JmcModLib.Config.UI.UIVisibleWhenAttribute">
+            <summary>
+            指定配置项在设置 UI 中何时显示。
+            </summary>
+            <remarks>
+            该 Attribute 只影响 UI 中的显示状态，不影响配置项注册、读取、写入或持久化。
+            未声明该 Attribute 的配置项会保持默认行为：始终显示。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Config.UI.UIVisibleWhenAttribute.#ctor(System.String)">
+            <summary>
+            创建布尔依赖可见性声明；依赖配置项转换为 <see langword="true"/> 时显示。
+            </summary>
+            <param name="dependsOn">依赖的配置成员名、存储 key 或完整运行时 key。</param>
+        </member>
+        <member name="M:JmcModLib.Config.UI.UIVisibleWhenAttribute.#ctor(System.String,System.Boolean)">
+            <summary>
+            创建布尔值相等可见性声明。
+            </summary>
+            <param name="dependsOn">依赖的配置成员名、存储 key 或完整运行时 key。</param>
+            <param name="expectedValue">依赖配置项等于该布尔值时显示。</param>
+        </member>
+        <member name="M:JmcModLib.Config.UI.UIVisibleWhenAttribute.#ctor(System.String,System.String)">
+            <summary>
+            创建文本值相等可见性声明。
+            </summary>
+            <param name="dependsOn">依赖的配置成员名、存储 key 或完整运行时 key。</param>
+            <param name="expectedValue">依赖配置项等于该文本值时显示；若依赖项为 enum，会按成员名解析。</param>
+        </member>
+        <member name="M:JmcModLib.Config.UI.UIVisibleWhenAttribute.#ctor(System.String,System.Int32)">
+            <summary>
+            创建整数值相等可见性声明。
+            </summary>
+            <param name="dependsOn">依赖的配置成员名、存储 key 或完整运行时 key。</param>
+            <param name="expectedValue">依赖配置项等于该整数值时显示。</param>
+        </member>
+        <member name="M:JmcModLib.Config.UI.UIVisibleWhenAttribute.#ctor(System.String,System.Double)">
+            <summary>
+            创建浮点值相等可见性声明。
+            </summary>
+            <param name="dependsOn">依赖的配置成员名、存储 key 或完整运行时 key。</param>
+            <param name="expectedValue">依赖配置项等于该浮点值时显示。</param>
+        </member>
+        <member name="P:JmcModLib.Config.UI.UIVisibleWhenAttribute.DependsOn">
+            <summary>
+            依赖的配置成员名、存储 key 或完整运行时 key。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Config.UI.UIVisibleWhenAttribute.ExpectedValue">
+            <summary>
+            依赖配置项应匹配的目标值。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Config.UI.UIVisibleWhenAttribute.Invert">
+            <summary>
+            是否反转判断结果；为 <see langword="true"/> 时，匹配目标值会隐藏，不匹配时显示。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Config.UI.UIVisibleWhenAttribute.IgnoreCase">
+            <summary>
+            文本值比较时是否忽略大小写。
+            </summary>
         </member>
         <member name="T:JmcModLib.Config.UI.JmcHotkeyAttribute">
             <summary>
