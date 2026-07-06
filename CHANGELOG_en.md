@@ -6,6 +6,10 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.5.4] - 2026-7-6
+### Changed
+- Reverted the previous Steam Input controller mapping fallback handling and restored the original mapping completion behavior.
+
 ## [1.5.3] - 2026-7-5
 ### Added
 - Added `UIVisibleWhenAttribute` for dynamically showing or hiding config entries in the settings UI based on other config values.
@@ -13,11 +17,6 @@ Versioning rule: major.minor.patch. The major version is used for larger feature
 ## [1.5.2] - 2026-7-4
 ### Added
 - Added `UIDropdownOptionsProviderAttribute` for refreshing dropdown choices at runtime based on other config values.
-
-## [1.5.1] - 2026-7-3
-### Fixed
-- Fixed Steam Input controller mapping repair writing back to the settings save, which could make older game versions load nonexistent controller actions after a rollback and spam errors.
-- Runtime controller mappings now ignore actions that do not exist in the current game version and fall back to the game's default bindings.
 
 ## [1.5.0] - 2026-7-3
 ### Added
