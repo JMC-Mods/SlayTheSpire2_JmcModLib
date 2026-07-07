@@ -15,9 +15,9 @@ JML 推荐的模型是：
 flowchart LR
     A[子 MOD 入口 Initialize] --> B[ModRegistry.Register<MainFile>]
     B --> C[自动推断 Assembly / ModId / DisplayName / Version]
-    C --> D[自动启用 Logger / ConfigManager / AttributeRouter]
+    C --> D[自动启用 Logger / ConfigManager / Persistence / AttributeRouter]
     D --> E[扫描 static 字段/属性/方法上的 Attribute]
-    E --> F[配置文件 / 设置 UI / 热键自动生效]
+    E --> F[配置文件 / 设置 UI / 热键 / 持久化数据自动生效]
 ```
 
 普通 MOD 入口只需要一行：
@@ -449,6 +449,57 @@ if (!ApiKey.TryRead(out string apiKey, out JmcSecretReadStatus status))
 ```
 
 Windows 第一版使用 current-user DPAPI，保护等级为 `UserProfileProtected`。非 Windows 第一版默认返回 `Unavailable` / `WeakProtectionNotAllowed`，不会崩溃。只有在声明或 `JmcSecretOptions` 中显式 `AllowWeakFileProtection = true` 时，才会启用弱保护文件保存；它只是尽量收紧文件权限，不是安全加密，不能宣传成安全存储。
+
+## 7.6 Persistence：非配置数据持久化
+
+如果要保存的内容不是“设置页选项”，使用 `JmcModLib.Persistence`。它支持账号范围 global、当前 profile 范围 profile，以及当前 run 的本地非同步数据。
+
+```csharp
+using JmcModLib.Persistence;
+
+internal sealed class Stats
+{
+    public int TotalRuns { get; set; }
+    public List<string> Notes { get; set; } = [];
+}
+
+internal sealed class RunState
+{
+    public int RoomsVisited { get; set; }
+}
+
+internal static class DemoPersistence
+{
+    [JmcProfileData("stats")]
+    internal static readonly JmcDataSlot<Stats> Stats = new(new Stats());
+
+    [JmcProfileData("stats.total_runs")]
+    internal static int TotalRuns;
+
+    [JmcRunData("run_state")]
+    internal static readonly JmcRunDataSlot<RunState> RunState = new(new RunState());
+
+    public static void RecordRunStart()
+    {
+        TotalRuns++;
+        Stats.Modify(static stats => stats.TotalRuns++);
+        JmcPersistenceManager.Flush();
+    }
+
+    public static void RecordRoomVisited()
+    {
+        RunState.Modify(static state => state.RoomsVisited++);
+    }
+}
+```
+
+要点：
+
+- `JmcDataSlot<T>` 用于 global/profile；`JmcRunDataSlot<T>` 用于当前 run。
+- 引用类型内部修改推荐使用 `Modify`，例如 `Stats.Modify(static stats => stats.TotalRuns++)`。
+- 裸静态值适合简单类型，例如上面的 `TotalRuns`。
+- Profile 数据会在切换 profile 时自动 flush/reload；需要立刻写盘时调用 `JmcPersistenceManager.Flush()`。
+- Run data 第一阶段只保存到本地 run save 的 `_jml` 扩展文档，不参与多人同步。
 
 ## 8. 滑动条
 ```cs

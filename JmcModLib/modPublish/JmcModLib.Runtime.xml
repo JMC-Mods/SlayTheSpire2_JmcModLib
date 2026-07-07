@@ -1299,6 +1299,278 @@
             Steam Input 初始化补丁：在游戏调用 SteamInput.Init 前准备 manifest，并补全缺失的原生手柄映射。
             </summary>
         </member>
+        <member name="T:JmcModLib.Persistence.JmcDataSlot`1">
+            <summary>
+            子 MOD 用于读写全局或 profile 持久化数据的槽位句柄。
+            </summary>
+            <typeparam name="T">槽位保存的数据类型。</typeparam>
+            <remarks>
+            引用类型数据发生内部变化时，应优先通过 <see cref="M:JmcModLib.Persistence.JmcDataSlot`1.Modify(System.Action{`0})"/> 包裹修改，
+            不要依赖直接修改 <see cref="P:JmcModLib.Persistence.JmcDataSlot`1.Value"/> 返回对象后自动保存。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcDataSlot`1.#ctor">
+            <summary>
+            创建使用 <typeparamref name="T"/> 默认值的槽位。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcDataSlot`1.#ctor(`0)">
+            <summary>
+            创建带初始默认值的槽位。
+            </summary>
+            <param name="defaultValue">存储文件中没有对应数据时使用的默认值。</param>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcDataSlot`1.IsBound">
+            <summary>
+            当前槽位是否已经由 JML Attribute 扫描绑定。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcDataSlot`1.Key">
+            <summary>
+            当前槽位绑定的数据键；未绑定时为空字符串。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcDataSlot`1.Value">
+            <summary>
+            当前槽位值。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcDataSlot`1.SetValue(`0)">
+            <summary>
+            设置槽位值并标记为待保存。
+            </summary>
+            <param name="newValue">新的槽位值。</param>
+            <returns>写入请求结果。</returns>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcDataSlot`1.Modify(System.Action{`0})">
+            <summary>
+            修改当前槽位值并标记为待保存。
+            </summary>
+            <param name="update">对当前值执行的修改逻辑。</param>
+            <returns>写入请求结果。</returns>
+        </member>
+        <member name="T:JmcModLib.Persistence.JmcDataWritePolicy">
+            <summary>
+            指定持久化数据在刷新时的写入策略。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Persistence.JmcDataWritePolicy.WhenChanged">
+            <summary>
+            仅当 JML 观察到数据与上次保存值不同时写入。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Persistence.JmcDataWritePolicy.Always">
+            <summary>
+            每次刷新时都重新写入当前值。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Persistence.JmcDataWriteResult">
+            <summary>
+            表示一次持久化槽位写入请求的结果。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcDataWriteResult.Success">
+            <summary>
+            写入请求是否已被 JML 接受。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcDataWriteResult.Message">
+            <summary>
+            写入结果说明；成功时通常为空字符串。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcDataWriteResult.Succeeded">
+            <summary>
+            创建一个成功结果。
+            </summary>
+            <returns>成功结果。</returns>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcDataWriteResult.Failed(System.String)">
+            <summary>
+            创建一个失败结果。
+            </summary>
+            <param name="message">失败原因。</param>
+            <returns>失败结果。</returns>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcDataWriteResult.ToString">
+            <inheritdoc />
+        </member>
+        <member name="T:JmcModLib.Persistence.JmcGlobalDataAttribute">
+            <summary>
+            将静态字段或静态属性注册为当前账号范围内的 JML 全局持久化数据。
+            </summary>
+            <remarks>
+            全局数据不随游戏 profile 切换而变化，适合保存跨 profile 共享的缓存、统计或状态。
+            成员可以是 <see cref="T:JmcModLib.Persistence.JmcDataSlot`1"/>，也可以是简单裸静态值。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcGlobalDataAttribute.#ctor(System.String)">
+            <summary>
+            创建全局持久化数据声明。
+            </summary>
+            <param name="key">当前 MOD 内稳定的数据键。</param>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcGlobalDataAttribute.Key">
+            <summary>
+            当前 MOD 内稳定的数据键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcGlobalDataAttribute.SchemaVersion">
+            <summary>
+            数据结构版本；第一阶段仅写入文档，不自动执行迁移。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcGlobalDataAttribute.WritePolicy">
+            <summary>
+            刷新时的写入策略。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Persistence.JmcPersistenceManager">
+            <summary>
+            JML Persistence 的统一初始化与刷新入口。
+            </summary>
+            <remarks>
+            子 MOD 通常只需要声明 <see cref="T:JmcModLib.Persistence.JmcGlobalDataAttribute"/>、
+            <see cref="T:JmcModLib.Persistence.JmcProfileDataAttribute"/> 或 <see cref="T:JmcModLib.Persistence.JmcRunDataAttribute"/>。
+            本类型主要用于需要立即写盘时手动调用 <see cref="M:JmcModLib.Persistence.JmcPersistenceManager.Flush(System.Reflection.Assembly)"/>。
+            </remarks>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcPersistenceManager.IsInitialized">
+            <summary>
+            当前 Persistence 模块是否已经初始化。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcPersistenceManager.Init">
+            <summary>
+            初始化 Persistence 模块并注册 Attribute 扫描处理器。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcPersistenceManager.Dispose">
+            <summary>
+            释放 Persistence 模块持有的注册信息，并先刷新已注册的对局外数据。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcPersistenceManager.Flush(System.Reflection.Assembly)">
+            <summary>
+            刷新当前调用方 MOD 的全局和 profile 数据。
+            </summary>
+            <param name="assembly">目标程序集；留空时自动推断调用方程序集。</param>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcPersistenceManager.FlushAll">
+            <summary>
+            刷新所有已注册 MOD 的全局和 profile 数据。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Persistence.JmcProfileDataAttribute">
+            <summary>
+            将静态字段或静态属性注册为当前 profile 范围内的 JML 持久化数据。
+            </summary>
+            <remarks>
+            Profile 数据会随游戏 profile 切换而重新加载，适合保存角色外统计、进度和缓存。
+            成员可以是 <see cref="T:JmcModLib.Persistence.JmcDataSlot`1"/>，也可以是简单裸静态值。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcProfileDataAttribute.#ctor(System.String)">
+            <summary>
+            创建 profile 持久化数据声明。
+            </summary>
+            <param name="key">当前 MOD 内稳定的数据键。</param>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcProfileDataAttribute.Key">
+            <summary>
+            当前 MOD 内稳定的数据键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcProfileDataAttribute.SchemaVersion">
+            <summary>
+            数据结构版本；第一阶段仅写入文档，不自动执行迁移。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcProfileDataAttribute.WritePolicy">
+            <summary>
+            刷新时的写入策略。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Persistence.JmcRunDataAttribute">
+            <summary>
+            将静态字段或静态属性注册为当前 run 范围内的 JML 非同步持久化数据。
+            </summary>
+            <remarks>
+            第一阶段 run data 只承诺本地保存与读取，不参与多人同步、重连同步或一致性校验。
+            成员可以是 <see cref="T:JmcModLib.Persistence.JmcRunDataSlot`1"/>，也可以是简单裸静态值。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcRunDataAttribute.#ctor(System.String)">
+            <summary>
+            创建 run 持久化数据声明。
+            </summary>
+            <param name="key">当前 MOD 内稳定的数据键。</param>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcRunDataAttribute.Key">
+            <summary>
+            当前 MOD 内稳定的数据键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcRunDataAttribute.SchemaVersion">
+            <summary>
+            数据结构版本；第一阶段仅写入 run save 扩展文档，不自动执行迁移。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcRunDataAttribute.WritePolicy">
+            <summary>
+            刷新时的写入策略。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Persistence.JmcRunDataSlot`1">
+            <summary>
+            子 MOD 用于读写当前 run 非同步持久化数据的槽位句柄。
+            </summary>
+            <typeparam name="T">槽位保存的数据类型。</typeparam>
+            <remarks>
+            第一阶段 run data 只用于本地 run save 读写，不参与多人同步。引用类型数据发生内部变化时，
+            应优先通过 <see cref="M:JmcModLib.Persistence.JmcRunDataSlot`1.Modify(System.Action{`0})"/> 包裹修改。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcRunDataSlot`1.#ctor">
+            <summary>
+            创建使用 <typeparamref name="T"/> 默认值的 run 槽位。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcRunDataSlot`1.#ctor(`0)">
+            <summary>
+            创建带初始默认值的 run 槽位。
+            </summary>
+            <param name="defaultValue">新 run 或存档中没有对应数据时使用的默认值。</param>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcRunDataSlot`1.IsBound">
+            <summary>
+            当前槽位是否已经由 JML Attribute 扫描绑定。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcRunDataSlot`1.Key">
+            <summary>
+            当前槽位绑定的数据键；未绑定时为空字符串。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcRunDataSlot`1.Value">
+            <summary>
+            当前 run 槽位值；不在 run 上下文中时返回类型默认值。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcRunDataSlot`1.SetValue(`0)">
+            <summary>
+            设置当前 run 槽位值并标记为待写入 run save。
+            </summary>
+            <param name="newValue">新的槽位值。</param>
+            <returns>写入请求结果。</returns>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcRunDataSlot`1.Modify(System.Action{`0})">
+            <summary>
+            修改当前 run 槽位值并标记为待写入 run save。
+            </summary>
+            <param name="update">对当前值执行的修改逻辑。</param>
+            <returns>写入请求结果。</returns>
+        </member>
         <member name="T:JmcModLib.Prefabs.JmcConfirmationPopup">
             <summary>
             通过游戏原生的 <see cref="T:MegaCrit.Sts2.Core.Nodes.Multiplayer.NGenericPopup"/> 与 <see cref="T:MegaCrit.Sts2.Core.Nodes.CommonUi.NModalContainer"/> 显示通用弹窗。

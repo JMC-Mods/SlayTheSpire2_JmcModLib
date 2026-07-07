@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 API 文档
 
-源码基准：JML `1.5.7`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
+源码基准：JML `1.5.9`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
 
 ```csharp
 using JmcModLib.Core;
@@ -10,6 +10,7 @@ using JmcModLib.Config;
 using JmcModLib.Config.UI;
 using JmcModLib.Config.Storage;
 using JmcModLib.Security;
+using JmcModLib.Persistence;
 using JmcModLib.UI.PauseMenu;
 using JmcModLib.Reflection;
 using JmcModLib.Utils;
@@ -31,8 +32,8 @@ flowchart TD
     E --> F[子 MOD Initialize]
     F --> G[ModRegistry.Register]
     G --> H[ModContext 创建或更新]
-    H --> I[默认服务启用: Logger + ConfigManager]
-    I --> J[ConfigManager 初始化 AttributeRouter 与 handlers]
+    H --> I[默认服务启用: Logger + ConfigManager + Persistence]
+    I --> J[ConfigManager/Persistence 初始化 AttributeRouter 与 handlers]
     J --> K[Register 立即 Done 或 Builder.Done]
     K --> L[ModRegistry.OnRegistered]
     L --> M[AttributeRouter.ScanAssembly]
@@ -64,7 +65,7 @@ flowchart TD
     C --> D[Contexts AddOrUpdate]
     D --> E[EnsureDefaultServices]
     E --> F[ModLogger.RegisterAssembly]
-    E --> G[ConfigManager.Init]
+    E --> G[ConfigManager.Init + JmcPersistenceManager.Init]
     G --> H{deferred?}
     H -- no --> I[Builder.Done]
     H -- yes --> J[WithDisplayName / WithVersion / WithConfigStorage / RegisterButton / RegisterPauseMenuButton]
@@ -82,8 +83,8 @@ flowchart TD
 | 成员 | 说明 |
 |---|---|
 | `const string Name = "JmcModLib"` | JML 名称 |
-| `const string Version = "1.5.7"` | JML 版本 |
-| `string Tag` | `"[JmcModLib v1.5.7]"` |
+| `const string Version = "1.5.9"` | JML 版本 |
+| `string Tag` | `"[JmcModLib v1.5.9]"` |
 | `GetName(Assembly? assembly = null)` | 获取指定程序集名称，JML 自身返回固定名称 |
 | `GetVersion(Assembly? assembly = null)` | 获取指定程序集版本，JML 自身返回固定版本 |
 | `GetTag(Assembly? assembly = null)` | 生成日志标签 |
@@ -555,6 +556,98 @@ bool ok = JmcSecretStore.TryRead(
 | 显式 `AllowWeakFileProtection = true` | 可使用弱保护文件保存，保护等级为 `WeakFileProtection` |
 
 弱保护文件保存只会尽量收紧文件权限，并不等于安全加密。不要把它用于共享设备或高价值密钥；文档、UI 和日志都应明确提示风险。无论哪种后端，业务代码都不要记录 Secret 明文，读取到的 `string` 也无法在 .NET 中真正清零。
+
+### 5.8 Persistence：非配置持久化
+
+命名空间：`JmcModLib.Persistence`
+
+Persistence 是独立于 `ConfigManager` 的数据持久化模块，用于保存“不是设置项”的数据：跨 profile 的全局数据、当前 profile 数据，以及当前 run 的本地非同步数据。它复用 `AttributeRouter` 扫描静态字段/属性，但不生成设置 UI。
+
+```csharp
+using JmcModLib.Persistence;
+
+internal sealed class Stats
+{
+    public int TotalRuns { get; set; }
+    public List<string> Notes { get; set; } = [];
+}
+
+internal sealed class RunState
+{
+    public int RoomsVisited { get; set; }
+}
+
+internal static class DemoPersistence
+{
+    [JmcProfileData("stats")]
+    internal static readonly JmcDataSlot<Stats> Stats = new(new Stats());
+
+    [JmcProfileData("stats.total_runs")]
+    internal static int TotalRuns;
+
+    [JmcRunData("run_state")]
+    internal static readonly JmcRunDataSlot<RunState> RunState = new(new RunState());
+
+    public static void RecordRunStart()
+    {
+        TotalRuns++;
+        Stats.Modify(static stats => stats.TotalRuns++);
+        JmcPersistenceManager.Flush();
+    }
+
+    public static void RecordRoomVisited()
+    {
+        RunState.Modify(static state => state.RoomsVisited++);
+    }
+}
+```
+
+生命周期：
+
+```mermaid
+flowchart TD
+    A[ModRegistry.EnsureDefaultServices] --> B[JmcPersistenceManager.Init]
+    B --> C[注册 Global/Profile/Run Attribute handlers]
+    C --> D[AttributeRouter 扫描 static 字段/属性]
+    D --> E{数据范围}
+    E -- Global --> F[account scoped global.v1.json]
+    E -- Profile --> G[当前 profile profile.v1.json]
+    E -- Run --> H[当前 run save 根节点 _jml]
+    G --> I[切 profile 前 flush]
+    I --> J[切 profile 后 reload]
+    H --> K[RunSaveManager 保存/读取时合并扩展文档]
+```
+
+公开 API：
+
+| 类型 / 成员 | 说明 |
+|---|---|
+| `JmcGlobalDataAttribute` | 声明账号范围数据，不随 profile 切换 |
+| `JmcProfileDataAttribute` | 声明当前 profile 范围数据，切 profile 时 flush/reload |
+| `JmcRunDataAttribute` | 声明当前 run 本地非同步数据，写入 run save 的 `_jml` 扩展文档 |
+| `JmcDataSlot<T>` | global/profile 槽位；提供 `IsBound`、`Key`、`Value`、`SetValue(T)`、`Modify(Action<T>)` |
+| `JmcRunDataSlot<T>` | run 槽位；无 run 上下文时读取默认值，写入返回失败结果 |
+| `JmcDataWritePolicy` | `WhenChanged` 或 `Always` |
+| `JmcDataWriteResult` | `SetValue` / `Modify` 的结果，包含 `Success` 和 `Message` |
+| `JmcPersistenceManager.Init()` | 初始化 Attribute handler，通常由 `ModRegistry` 自动调用 |
+| `JmcPersistenceManager.Flush(Assembly? assembly = null)` | 刷新当前 MOD 的 global/profile 数据 |
+| `JmcPersistenceManager.FlushAll()` | 刷新所有已注册 MOD 的 global/profile 数据 |
+
+Attribute 参数：
+
+| 参数 | 默认 | 说明 |
+|---|---:|---|
+| `key` | 必填 | 当前 MOD 内稳定 key。进入 JSON 属性名前会做安全化处理 |
+| `SchemaVersion` | `1` | 写入文档，第一阶段不自动迁移 |
+| `WritePolicy` | `WhenChanged` | `WhenChanged` 仅变化时写入，`Always` 每次 flush 写入 |
+
+使用建议：
+
+- Slot 适合复杂对象；引用类型内部变化必须通过 `Modify` 包裹，或修改后调用 `SetValue`。
+- 裸静态字段/属性适合 `int`、`bool`、`string`、`enum` 和简单 JSON 对象。裸静态值不会在直接赋值时即时 dirty，只会在 flush / 保存边界读取当前值。
+- Global 数据保存到账号范围 `mods/persistence/<modId>/global.v1.json`。
+- Profile 数据保存到当前 profile 范围 `mods/persistence/<modId>/profile.v1.json`。
+- Run 数据第一阶段不参与多人同步、重连同步、回放或一致性校验，只在本地 run save 的 `_jml` 根扩展文档中保存；JML 会保留未知 MOD 的 `_jml` 数据。
 
 ---
 

@@ -6,6 +6,14 @@
 
 版本号规则： 主版本号.次版本号.修订号，其中主版本号涉及到大功能完善，次版本号原则上Steam创意工坊发布新版本后进行更新，修订号每次涉及代码的commit后更新（从0开始）。
 
+## [1.5.9] - 2026-7-7
+### Changed
+- 调整 Persistence run save 写入策略：不再用 Harmony Prefix 跳过原版 `RunSaveManager.SaveRun`，改为原版保存成功后附加写入 `_jml` 扩展数据，以降低兼容性风险。
+
+## [1.5.8] - 2026-7-7
+### Added
+- 新增 JML Persistence 第一阶段：支持 global/profile/run 非同步持久化、Slot 写入 API、Attribute 扫描接入和 run save `_jml` 扩展文档。
+
 ## [1.5.7] - 2026-7-6
 ### Changed
 - Secret 的 `ScopeProvider` 解析改为使用 JML 自带反射访问器，避免直接使用原生反射调用。

@@ -1,5 +1,6 @@
 // 文件用途：维护子 MOD 注册表，负责注册生命周期、上下文查询与注册事件分发。
 using JmcModLib.Config;
+using JmcModLib.Persistence;
 using JmcModLib.Reflection;
 using System.Collections.Concurrent;
 using System.Reflection;
@@ -364,6 +365,7 @@ public static class ModRegistry
     {
         ModLogger.RegisterAssembly(assembly);
         ConfigManager.Init();
+        JmcPersistenceManager.Init();
         UI.PauseMenu.PauseMenuRegistry.Init();
     }
 

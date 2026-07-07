@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 API Reference
 
-Source baseline: JML `1.5.7`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
+Source baseline: JML `1.5.9`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
 
 ```csharp
 using JmcModLib.Core;
@@ -10,6 +10,7 @@ using JmcModLib.Config;
 using JmcModLib.Config.UI;
 using JmcModLib.Config.Storage;
 using JmcModLib.Security;
+using JmcModLib.Persistence;
 using JmcModLib.UI.PauseMenu;
 using JmcModLib.Reflection;
 using JmcModLib.Utils;
@@ -31,8 +32,8 @@ flowchart TD
     E --> F[Child MOD Initialize]
     F --> G[ModRegistry.Register]
     G --> H[ModContext created or updated]
-    H --> I[Default services enabled: Logger + ConfigManager]
-    I --> J[ConfigManager initializes AttributeRouter and handlers]
+    H --> I[Default services enabled: Logger + ConfigManager + Persistence]
+    I --> J[ConfigManager/Persistence initialize AttributeRouter and handlers]
     J --> K[Register immediately Done or Builder.Done]
     K --> L[ModRegistry.OnRegistered]
     L --> M[AttributeRouter.ScanAssembly]
@@ -64,7 +65,7 @@ flowchart TD
     C --> D[Contexts AddOrUpdate]
     D --> E[EnsureDefaultServices]
     E --> F[ModLogger.RegisterAssembly]
-    E --> G[ConfigManager.Init]
+    E --> G[ConfigManager.Init + JmcPersistenceManager.Init]
     G --> H{deferred?}
     H -- no --> I[Builder.Done]
     H -- yes --> J[WithDisplayName / WithVersion / WithConfigStorage / RegisterButton / RegisterPauseMenuButton]
@@ -82,8 +83,8 @@ Namespace: `JmcModLib.Core`
 | Member | Description |
 |---|---|
 | `const string Name = "JmcModLib"` | JML name |
-| `const string Version = "1.5.7"` | JML version |
-| `string Tag` | `"[JmcModLib v1.5.7]"` |
+| `const string Version = "1.5.9"` | JML version |
+| `string Tag` | `"[JmcModLib v1.5.9]"` |
 | `GetName(Assembly? assembly = null)` | Gets the specified assembly name; JML itself returns the fixed name |
 | `GetVersion(Assembly? assembly = null)` | Gets the specified assembly version; JML itself returns the fixed version |
 | `GetTag(Assembly? assembly = null)` | Builds a log tag |
@@ -549,6 +550,98 @@ Public API:
 | Explicit `AllowWeakFileProtection = true` | Can save through weak file protection; protection level is `WeakFileProtection` |
 
 Weak file protection only attempts to restrict file permissions; it is not secure encryption. Do not use it for shared devices or high-value secrets, and make the risk clear in docs, UI, and logs. With any backend, business code must never log plaintext Secret values. Also remember that a read `string` cannot truly be zeroed in .NET.
+
+### 5.8 Persistence: Non-Config Persistence
+
+Namespace: `JmcModLib.Persistence`
+
+Persistence is separate from `ConfigManager`. It stores data that is not a settings entry: account-wide global data, current-profile data, and local non-synced current-run data. It reuses `AttributeRouter` to scan static fields/properties, but it does not create settings UI.
+
+```csharp
+using JmcModLib.Persistence;
+
+internal sealed class Stats
+{
+    public int TotalRuns { get; set; }
+    public List<string> Notes { get; set; } = [];
+}
+
+internal sealed class RunState
+{
+    public int RoomsVisited { get; set; }
+}
+
+internal static class DemoPersistence
+{
+    [JmcProfileData("stats")]
+    internal static readonly JmcDataSlot<Stats> Stats = new(new Stats());
+
+    [JmcProfileData("stats.total_runs")]
+    internal static int TotalRuns;
+
+    [JmcRunData("run_state")]
+    internal static readonly JmcRunDataSlot<RunState> RunState = new(new RunState());
+
+    public static void RecordRunStart()
+    {
+        TotalRuns++;
+        Stats.Modify(static stats => stats.TotalRuns++);
+        JmcPersistenceManager.Flush();
+    }
+
+    public static void RecordRoomVisited()
+    {
+        RunState.Modify(static state => state.RoomsVisited++);
+    }
+}
+```
+
+Lifecycle:
+
+```mermaid
+flowchart TD
+    A[ModRegistry.EnsureDefaultServices] --> B[JmcPersistenceManager.Init]
+    B --> C[Register Global/Profile/Run Attribute handlers]
+    C --> D[AttributeRouter scans static fields/properties]
+    D --> E{Data scope}
+    E -- Global --> F[account scoped global.v1.json]
+    E -- Profile --> G[current profile profile.v1.json]
+    E -- Run --> H[current run save root _jml]
+    G --> I[flush before profile switch]
+    I --> J[reload after profile switch]
+    H --> K[merge extension document at RunSaveManager save/load boundaries]
+```
+
+Public API:
+
+| Type / Member | Description |
+|---|---|
+| `JmcGlobalDataAttribute` | Declares account-scoped data that does not switch with profile |
+| `JmcProfileDataAttribute` | Declares current-profile-scoped data, flushed/reloaded on profile switch |
+| `JmcRunDataAttribute` | Declares current-run local non-synced data stored under `_jml` in the run save |
+| `JmcDataSlot<T>` | Global/profile slot exposing `IsBound`, `Key`, `Value`, `SetValue(T)`, and `Modify(Action<T>)` |
+| `JmcRunDataSlot<T>` | Run slot; outside a run context, reads return the default value and writes fail |
+| `JmcDataWritePolicy` | `WhenChanged` or `Always` |
+| `JmcDataWriteResult` | Result returned by `SetValue` / `Modify`, with `Success` and `Message` |
+| `JmcPersistenceManager.Init()` | Initializes Attribute handlers; normally called automatically by `ModRegistry` |
+| `JmcPersistenceManager.Flush(Assembly? assembly = null)` | Flushes the current MOD's global/profile data |
+| `JmcPersistenceManager.FlushAll()` | Flushes global/profile data for all registered MODs |
+
+Attribute parameters:
+
+| Parameter | Default | Description |
+|---|---:|---|
+| `key` | Required | Stable key within the current MOD. It is sanitized before becoming a JSON property name |
+| `SchemaVersion` | `1` | Written to the document; first phase does not run migrations automatically |
+| `WritePolicy` | `WhenChanged` | `WhenChanged` writes only observed changes; `Always` writes on every flush |
+
+Usage notes:
+
+- Slots are best for complex objects. For reference-type internal mutations, wrap changes in `Modify`, or call `SetValue` after changing the object.
+- Bare static fields/properties are best for `int`, `bool`, `string`, `enum`, and simple JSON objects. Direct assignment to a bare static value does not dirty immediately; JML reads it at flush / save boundaries.
+- Global data is saved under account scope: `mods/persistence/<modId>/global.v1.json`.
+- Profile data is saved under current-profile scope: `mods/persistence/<modId>/profile.v1.json`.
+- Run data does not participate in multiplayer sync, rejoin sync, replay, or checksum semantics in the first phase. It is stored only in the local run save root `_jml` extension document, and JML preserves unknown MOD data under `_jml`.
 
 ---
 

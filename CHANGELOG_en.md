@@ -6,6 +6,14 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.5.9] - 2026-7-7
+### Changed
+- Changed Persistence run-save writes to stop skipping vanilla `RunSaveManager.SaveRun` with a Harmony Prefix. JML now appends `_jml` extension data after the vanilla save succeeds, reducing compatibility risk.
+
+## [1.5.8] - 2026-7-7
+### Added
+- Added JML Persistence phase 1 with global/profile/run non-synced persistence, Slot write APIs, Attribute scanning integration, and a run-save `_jml` extension document.
+
 ## [1.5.7] - 2026-7-6
 ### Changed
 - Changed Secret `ScopeProvider` resolution to use JML reflection accessors instead of direct native reflection calls.

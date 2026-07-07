@@ -13,9 +13,9 @@ JML's recommended model is:
 flowchart LR
     A[Child MOD entry Initialize] --> B[ModRegistry.Register<MainFile>]
     B --> C[Automatically infer Assembly / ModId / DisplayName / Version]
-    C --> D[Automatically enable Logger / ConfigManager / AttributeRouter]
+    C --> D[Automatically enable Logger / ConfigManager / Persistence / AttributeRouter]
     D --> E[Scan Attributes on static fields/properties/methods]
-    E --> F[Config files / settings UI / hotkeys take effect automatically]
+    E --> F[Config files / settings UI / hotkeys / persistence data take effect automatically]
 ```
 
 A normal MOD entry only needs one line:
@@ -447,6 +447,57 @@ if (!ApiKey.TryRead(out string apiKey, out JmcSecretReadStatus status))
 ```
 
 The first Windows backend uses current-user DPAPI and reports `UserProfileProtected`. Non-Windows platforms return `Unavailable` / `WeakProtectionNotAllowed` by default and do not crash. Weak file storage is enabled only when the declaration or `JmcSecretOptions` explicitly sets `AllowWeakFileProtection = true`; it only tries to restrict file permissions, is not secure encryption, and must not be presented as secure storage.
+
+## 7.6 Persistence: Non-Config Data Persistence
+
+For data that is not a settings-page option, use `JmcModLib.Persistence`. It supports account-scoped global data, current-profile data, and local non-synced current-run data.
+
+```csharp
+using JmcModLib.Persistence;
+
+internal sealed class Stats
+{
+    public int TotalRuns { get; set; }
+    public List<string> Notes { get; set; } = [];
+}
+
+internal sealed class RunState
+{
+    public int RoomsVisited { get; set; }
+}
+
+internal static class DemoPersistence
+{
+    [JmcProfileData("stats")]
+    internal static readonly JmcDataSlot<Stats> Stats = new(new Stats());
+
+    [JmcProfileData("stats.total_runs")]
+    internal static int TotalRuns;
+
+    [JmcRunData("run_state")]
+    internal static readonly JmcRunDataSlot<RunState> RunState = new(new RunState());
+
+    public static void RecordRunStart()
+    {
+        TotalRuns++;
+        Stats.Modify(static stats => stats.TotalRuns++);
+        JmcPersistenceManager.Flush();
+    }
+
+    public static void RecordRoomVisited()
+    {
+        RunState.Modify(static state => state.RoomsVisited++);
+    }
+}
+```
+
+Key points:
+
+- `JmcDataSlot<T>` is for global/profile data; `JmcRunDataSlot<T>` is for the current run.
+- Use `Modify` for reference-type internal mutations, for example `Stats.Modify(static stats => stats.TotalRuns++)`.
+- Bare static values are good for simple types, such as `TotalRuns` above.
+- Profile data is flushed/reloaded automatically on profile switch. Call `JmcPersistenceManager.Flush()` when you need an immediate write.
+- First-phase run data is stored only in the local run save's `_jml` extension document and does not participate in multiplayer sync.
 
 ## 8. Sliders
 ```cs
