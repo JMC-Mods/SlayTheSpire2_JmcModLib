@@ -6,6 +6,18 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.5.7] - 2026-7-6
+### Changed
+- Changed Secret `ScopeProvider` resolution to use JML reflection accessors instead of direct native reflection calls.
+
+## [1.5.6] - 2026-7-6
+### Fixed
+- Fixed the Secret input popup showing only the modal backstop without the input panel.
+
+## [1.5.5] - 2026-7-6
+### Added
+- Added JML SecretStore with `[Secret]`, `RegistryBuilder.RegisterSecret`, automatic settings-page set/clear UI, a Windows current-user DPAPI backend, and an explicitly enabled weak-file fallback.
+
 ## [1.5.4] - 2026-7-6
 ### Changed
 - Reverted the previous Steam Input controller mapping fallback handling and restored the original mapping completion behavior.

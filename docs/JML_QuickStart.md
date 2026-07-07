@@ -389,6 +389,67 @@ ModRegistry.Register<MainFile>(true)?
 
 按钮方法应是静态、无参数。返回值会被忽略。
 
+## 7.5 SecretStore：保存 API Key / Token
+
+SecretStore 用于 API Key、Token、Webhook URL 等敏感文本。它和普通 `[Config]` 最大的区别是：Secret 不会写入普通配置 JSON，不走 `IConfigStorage`，也不会显示明文；JML 设置页只会自动生成状态、设置/更新和清空按钮。
+
+### Attribute 声明
+
+```csharp
+using JmcModLib.Security;
+
+[Secret(
+    "llm.api_key",
+    Group = "secrets",
+    DisplayNameKey = "EXTENSION.MYMOD.SECRET.api_key.NAME",
+    DescriptionKey = "EXTENSION.MYMOD.SECRET.api_key.DESCRIPTION",
+    SetButtonTextKey = "EXTENSION.MYMOD.SECRET.api_key.SET_BUTTON",
+    ClearButtonTextKey = "EXTENSION.MYMOD.SECRET.api_key.CLEAR_BUTTON",
+    GroupKey = "EXTENSION.MYMOD.GROUP.secrets",
+    Order = 10)]
+internal static readonly JmcSecretSlot ApiKey = new();
+```
+
+如果同一个 key 要按服务商隔离，使用动态 scope：
+
+```csharp
+[Secret("llm.api_key", ScopeProvider = nameof(GetProviderScope))]
+internal static readonly JmcSecretSlot ApiKey = new();
+
+private static string GetProviderScope() => Provider.ToString();
+```
+
+### Builder 注册
+
+```csharp
+ModRegistry.Register<MainFile>(true)?
+    .RegisterSecret(
+        out JmcSecretSlot apiKey,
+        "llm.api_key",
+        new JmcSecretOptions
+        {
+            Group = "secrets",
+            DisplayName = "API Key",
+            Description = "用于请求当前服务商。",
+            ScopeProvider = () => Provider.ToString()
+        })
+    .Done();
+```
+
+### 读取
+
+```csharp
+if (!ApiKey.TryRead(out string apiKey, out JmcSecretReadStatus status))
+{
+    ModLogger.Warn($"API Key 不可用：{status}");
+    return;
+}
+
+// 使用 apiKey 调用服务。不要记录明文，不要放进异常、状态栏、剪贴板或普通配置。
+```
+
+Windows 第一版使用 current-user DPAPI，保护等级为 `UserProfileProtected`。非 Windows 第一版默认返回 `Unavailable` / `WeakProtectionNotAllowed`，不会崩溃。只有在声明或 `JmcSecretOptions` 中显式 `AllowWeakFileProtection = true` 时，才会启用弱保护文件保存；它只是尽量收紧文件权限，不是安全加密，不能宣传成安全存储。
+
 ## 8. 滑动条
 ```cs
 [UIIntSlider(0, 100)]

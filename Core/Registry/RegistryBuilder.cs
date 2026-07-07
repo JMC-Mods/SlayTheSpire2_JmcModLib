@@ -2,6 +2,7 @@
 using JmcModLib.Config;
 using JmcModLib.Config.Storage;
 using JmcModLib.Config.UI;
+using JmcModLib.Security;
 using JmcModLib.UI.PauseMenu;
 using System.Reflection;
 
@@ -189,6 +190,63 @@ public sealed class RegistryBuilder
             groupKey,
             order,
             color);
+    }
+
+    /// <summary>
+    /// 手动向当前 MOD 的设置界面注册一个 Secret 槽位，并返回生成的槽位句柄。
+    /// </summary>
+    /// <param name="slot">输出生成的 Secret 槽位句柄，业务代码可用它读取、保存或删除 Secret。</param>
+    /// <param name="key">当前 MOD 内稳定的 Secret 键。</param>
+    /// <param name="options">Secret 的显示、本地化、范围和保护选项。</param>
+    /// <returns>当前构建器，用于继续链式调用。</returns>
+    /// <remarks>
+    /// Secret 不会写入普通配置 JSON；设置页只显示状态、设置按钮和清空按钮。
+    /// </remarks>
+    /// <example>
+    /// <code><![CDATA[
+    /// ModRegistry.Register<MainFile>(true)?
+    ///     .RegisterSecret(
+    ///         out JmcSecretSlot apiKey,
+    ///         "llm.api_key",
+    ///         new JmcSecretOptions { DisplayName = "API Key" })
+    ///     .Done();
+    /// ]]></code>
+    /// </example>
+    public RegistryBuilder RegisterSecret(
+        out JmcSecretSlot slot,
+        string key,
+        JmcSecretOptions options)
+    {
+        slot = ConfigManager.RegisterSecret(key, options, assembly);
+        return this;
+    }
+
+    /// <summary>
+    /// 手动向当前 MOD 的设置界面注册一个 Secret 槽位。
+    /// </summary>
+    /// <param name="slot">调用方持有的 Secret 槽位句柄，注册后会被绑定到指定键。</param>
+    /// <param name="key">当前 MOD 内稳定的 Secret 键。</param>
+    /// <param name="options">Secret 的显示、本地化、范围和保护选项。</param>
+    /// <returns>当前构建器，用于继续链式调用。</returns>
+    public RegistryBuilder RegisterSecret(
+        JmcSecretSlot slot,
+        string key,
+        JmcSecretOptions options)
+    {
+        ConfigManager.RegisterSecret(slot, key, options, assembly);
+        return this;
+    }
+
+    /// <summary>
+    /// 手动向当前 MOD 的设置界面注册一个 Secret 槽位，但不保留槽位句柄。
+    /// </summary>
+    /// <param name="key">当前 MOD 内稳定的 Secret 键。</param>
+    /// <param name="options">Secret 的显示、本地化、范围和保护选项。</param>
+    /// <returns>当前构建器，用于继续链式调用。</returns>
+    public RegistryBuilder RegisterSecret(string key, JmcSecretOptions options)
+    {
+        _ = ConfigManager.RegisterSecret(key, options, assembly);
+        return this;
     }
 
     /// <summary>

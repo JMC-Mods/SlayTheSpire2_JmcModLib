@@ -6,6 +6,18 @@
 
 版本号规则： 主版本号.次版本号.修订号，其中主版本号涉及到大功能完善，次版本号原则上Steam创意工坊发布新版本后进行更新，修订号每次涉及代码的commit后更新（从0开始）。
 
+## [1.5.7] - 2026-7-6
+### Changed
+- Secret 的 `ScopeProvider` 解析改为使用 JML 自带反射访问器，避免直接使用原生反射调用。
+
+## [1.5.6] - 2026-7-6
+### Fixed
+- 修复 Secret 输入弹窗只显示模态遮罩、不显示输入面板的问题。
+
+## [1.5.5] - 2026-7-6
+### Added
+- 新增 JML SecretStore：支持 `[Secret]`、`RegistryBuilder.RegisterSecret`、设置页自动设置/清空 UI、Windows current-user DPAPI 后端和显式允许的弱保护文件回退。
+
 ## [1.5.4] - 2026-7-6
 ### Changed
 - 撤回此前的 Steam Input 手柄映射回退处理，恢复原有手柄映射补全逻辑。

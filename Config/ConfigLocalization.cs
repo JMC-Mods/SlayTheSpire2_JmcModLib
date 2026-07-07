@@ -1,4 +1,5 @@
 using JmcModLib.Config.Entry;
+using JmcModLib.Security;
 using System.Reflection;
 
 namespace JmcModLib.Config;
@@ -31,6 +32,16 @@ internal static class ConfigLocalization
     public static string GetButtonText(ButtonEntry entry)
     {
         return ResolveEntryText(entry, entry.ButtonTextKey, ButtonSuffix, entry.ButtonText);
+    }
+
+    public static string GetSecretSetButtonText(SecretEntry entry, string fallback)
+    {
+        return ResolveEntryText(entry, entry.SetButtonTextKey, "SET_BUTTON", entry.SetButtonText ?? fallback);
+    }
+
+    public static string GetSecretClearButtonText(SecretEntry entry, string fallback)
+    {
+        return ResolveEntryText(entry, entry.ClearButtonTextKey, "CLEAR_BUTTON", entry.ClearButtonText ?? fallback);
     }
 
     public static string GetOptionText(ConfigEntry entry, string option)

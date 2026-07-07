@@ -1,6 +1,7 @@
 using Godot;
 using JmcModLib.Config.Entry;
 using JmcModLib.Config.Serialization;
+using JmcModLib.Security;
 using System.Globalization;
 
 namespace JmcModLib.Config.UI;
@@ -12,6 +13,11 @@ internal sealed partial class ModSettingsPanel
         if (entry is ButtonEntry buttonEntry)
         {
             return BuildButtonEditor(buttonEntry, focusableControls);
+        }
+
+        if (entry is SecretEntry secretEntry)
+        {
+            return BuildSecretEditor(secretEntry, focusableControls);
         }
 
         Type valueType = Nullable.GetUnderlyingType(entry.ValueType) ?? entry.ValueType;

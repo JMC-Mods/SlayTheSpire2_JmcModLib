@@ -2,13 +2,14 @@
 
 # JmcModLib STS2 API Reference
 
-Source baseline: JML `1.4.4`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
+Source baseline: JML `1.5.7`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
 
 ```csharp
 using JmcModLib.Core;
 using JmcModLib.Config;
 using JmcModLib.Config.UI;
 using JmcModLib.Config.Storage;
+using JmcModLib.Security;
 using JmcModLib.UI.PauseMenu;
 using JmcModLib.Reflection;
 using JmcModLib.Utils;
@@ -81,8 +82,8 @@ Namespace: `JmcModLib.Core`
 | Member | Description |
 |---|---|
 | `const string Name = "JmcModLib"` | JML name |
-| `const string Version = "1.4.14"` | JML version |
-| `string Tag` | `"[JmcModLib v1.4.14]"` |
+| `const string Version = "1.5.7"` | JML version |
+| `string Tag` | `"[JmcModLib v1.5.7]"` |
 | `GetName(Assembly? assembly = null)` | Gets the specified assembly name; JML itself returns the fixed name |
 | `GetVersion(Assembly? assembly = null)` | Gets the specified assembly version; JML itself returns the fixed version |
 | `GetTag(Assembly? assembly = null)` | Builds a log tag |
@@ -441,6 +442,113 @@ new JsonConfigStorage(string? rootDirectory = null)
 ```
 
 Both implement `IConfigStorage`. When the default root is empty, `OS.GetUserDataDir()/mods/config` is used. The default storage is `NewtonsoftConfigStorage`, which is more tolerant of complex types; `JsonConfigStorage` is lighter, but compatibility with complex types needs extra validation.
+
+### 5.7 SecretStore
+
+Namespace: `JmcModLib.Security`
+
+SecretStore is for sensitive text such as API keys, tokens, and webhook URLs. A Secret appears in the JML settings page like a config entry, but it is not normal Config: it is not written through `NewtonsoftConfigStorage` / `JsonConfigStorage`, it does not enter the normal config JSON, and it is not persisted through `IConfigStorage`. The settings page only shows status plus set/update and clear actions.
+
+#### Attribute Declaration
+
+```csharp
+using JmcModLib.Security;
+
+[Secret(
+    "llm.api_key",
+    Group = "secrets",
+    DisplayNameKey = "EXTENSION.MYMOD.SECRET.api_key.NAME",
+    DescriptionKey = "EXTENSION.MYMOD.SECRET.api_key.DESCRIPTION",
+    SetButtonTextKey = "EXTENSION.MYMOD.SECRET.api_key.SET_BUTTON",
+    ClearButtonTextKey = "EXTENSION.MYMOD.SECRET.api_key.CLEAR_BUTTON",
+    GroupKey = "EXTENSION.MYMOD.GROUP.secrets",
+    Order = 10)]
+internal static readonly JmcSecretSlot ApiKey = new();
+```
+
+If one Secret key must be separated by provider, account, or environment, declare a static parameterless `string` method or property on the same type and point `ScopeProvider` at it:
+
+```csharp
+[Secret("llm.api_key", ScopeProvider = nameof(GetProviderScope))]
+internal static readonly JmcSecretSlot ApiKey = new();
+
+private static string GetProviderScope() => CurrentProvider;
+```
+
+#### Builder Registration
+
+```csharp
+ModRegistry.Register<MainFile>(true)?
+    .RegisterSecret(
+        out JmcSecretSlot apiKey,
+        "llm.api_key",
+        new JmcSecretOptions
+        {
+            Group = "secrets",
+            DisplayName = "API Key",
+            Description = "Used for the current provider.",
+            ScopeProvider = () => CurrentProvider,
+            Order = 10
+        })
+    .Done();
+```
+
+You can also pass a slot created by the caller:
+
+```csharp
+private static readonly JmcSecretSlot ApiKey = new();
+
+ModRegistry.Register<MainFile>(true)?
+    .RegisterSecret(ApiKey, "llm.api_key", new JmcSecretOptions { Group = "secrets" })
+    .Done();
+```
+
+#### Read, Save, and Delete
+
+Normal business code should prefer the slot:
+
+```csharp
+if (!ApiKey.TryRead(out string apiKey, out JmcSecretReadStatus status))
+{
+    ModLogger.Warn($"API Key unavailable: {status}");
+    return;
+}
+
+// Drop apiKey as soon as possible; never log it, throw it, show it in status text, or copy it to the clipboard.
+```
+
+Advanced scenarios can use the static store:
+
+```csharp
+bool ok = JmcSecretStore.TryRead(
+    "llm.api_key",
+    out string value,
+    out JmcSecretReadStatus status,
+    scope: CurrentProvider);
+```
+
+Public API:
+
+| Type / Member | Description |
+|---|---|
+| `SecretAttribute` | Declares a static `JmcSecretSlot` field or property; supports display text, button text, group, dynamic scope, weak-protection opt-in, and order |
+| `JmcSecretSlot` | Slot handle held by child MODs; exposes `TryRead`, `TrySave`, `TryDelete`, `Exists`, and `ProtectionLevel` |
+| `JmcSecretOptions` | Display, localization, scope, and weak-protection options for manual registration |
+| `JmcSecretStore` | Advanced static entry point for key/scope/assembly-based read, save, delete, and existence checks |
+| `JmcSecretProtectionLevel` | Protection levels such as `SystemKeychain`, `UserProfileProtected`, `WeakFileProtection`, `SessionOnly`, and `Unavailable` |
+| `JmcSecretReadStatus` | `Success`, `Missing`, `Unavailable`, `AccessDenied`, `DecryptionFailed`, `BackendError` |
+| `JmcSecretWriteStatus` | `Success`, `Unavailable`, `AccessDenied`, `WeakProtectionNotAllowed`, `BackendError` |
+| `RegistryBuilder.RegisterSecret(...)` | Manually registers a Secret settings row during the registration chain |
+
+#### Platform Protection Levels
+
+| Platform / Condition | First-version behavior |
+|---|---|
+| Windows | Uses current-user DPAPI; protection level is `UserProfileProtected` |
+| Non-Windows by default | Returns `Unavailable` or `WeakProtectionNotAllowed`; no unhandled exception |
+| Explicit `AllowWeakFileProtection = true` | Can save through weak file protection; protection level is `WeakFileProtection` |
+
+Weak file protection only attempts to restrict file permissions; it is not secure encryption. Do not use it for shared devices or high-value secrets, and make the risk clear in docs, UI, and logs. With any backend, business code must never log plaintext Secret values. Also remember that a read `string` cannot truly be zeroed in .NET.
 
 ---
 
@@ -1033,7 +1141,26 @@ Namespace: `JmcModLib.Prefabs`. Source files are under `Prefabs/`.
 | `ShowMessageAsync(string title, string body, string? okText = null, bool showBackstop = true, Assembly? assembly = null)` | OK message popup |
 | `LocString` overloads | Supports localized string parameters |
 
-### 12.3 `JmcReportPopup`
+### 12.3 `JmcSecretInputPopup`
+
+Namespace: `JmcModLib.Prefabs`. Source files are under `Prefabs/`.
+
+`JmcSecretInputPopup` is for entering Secret plaintext. It uses `LineEdit.Secret = true`, does not prefill the old value, and never logs the input. Ordinary child MODs usually do not call it directly; after `[Secret]` or `RegisterSecret` registration, the JML settings page uses it automatically.
+
+| Member | Description |
+|---|---|
+| `IsAvailable` | Whether a modal can currently be shown |
+| `PromptAsync(JmcSecretInputPopupOptions options, Assembly? assembly = null)` | Opens a Secret input popup; confirm returns the input, while cancel/close/unavailable returns `null` |
+| `JmcSecretInputPopupOptions.Title` | Required popup title |
+| `Description` | Optional description or risk warning |
+| `Placeholder` | Input placeholder text |
+| `ConfirmText` / `CancelText` | Button text |
+| `EmptyText` | Prompt shown when the input is empty |
+| `ProtectionLevel` | Current Secret protection level, available for caller-composed risk text |
+| `ShowBackstop` | Whether to show the native dark modal backstop |
+| `MinimumSize` | Popup minimum size |
+
+### 12.4 `JmcReportPopup`
 
 Namespace: `JmcModLib.Prefabs`. Source files are under `Prefabs/`.
 

@@ -1079,6 +1079,45 @@
             <param name="color">按钮颜色风格。</param>
             <returns>当前构建器，用于继续链式调用。</returns>
         </member>
+        <member name="M:JmcModLib.Core.RegistryBuilder.RegisterSecret(JmcModLib.Security.JmcSecretSlot@,System.String,JmcModLib.Security.JmcSecretOptions)">
+            <summary>
+            手动向当前 MOD 的设置界面注册一个 Secret 槽位，并返回生成的槽位句柄。
+            </summary>
+            <param name="slot">输出生成的 Secret 槽位句柄，业务代码可用它读取、保存或删除 Secret。</param>
+            <param name="key">当前 MOD 内稳定的 Secret 键。</param>
+            <param name="options">Secret 的显示、本地化、范围和保护选项。</param>
+            <returns>当前构建器，用于继续链式调用。</returns>
+            <remarks>
+            Secret 不会写入普通配置 JSON；设置页只显示状态、设置按钮和清空按钮。
+            </remarks>
+            <example>
+            <code><![CDATA[
+            ModRegistry.Register<MainFile>(true)?
+                .RegisterSecret(
+                    out JmcSecretSlot apiKey,
+                    "llm.api_key",
+                    new JmcSecretOptions { DisplayName = "API Key" })
+                .Done();
+            ]]></code>
+            </example>
+        </member>
+        <member name="M:JmcModLib.Core.RegistryBuilder.RegisterSecret(JmcModLib.Security.JmcSecretSlot,System.String,JmcModLib.Security.JmcSecretOptions)">
+            <summary>
+            手动向当前 MOD 的设置界面注册一个 Secret 槽位。
+            </summary>
+            <param name="slot">调用方持有的 Secret 槽位句柄，注册后会被绑定到指定键。</param>
+            <param name="key">当前 MOD 内稳定的 Secret 键。</param>
+            <param name="options">Secret 的显示、本地化、范围和保护选项。</param>
+            <returns>当前构建器，用于继续链式调用。</returns>
+        </member>
+        <member name="M:JmcModLib.Core.RegistryBuilder.RegisterSecret(System.String,JmcModLib.Security.JmcSecretOptions)">
+            <summary>
+            手动向当前 MOD 的设置界面注册一个 Secret 槽位，但不保留槽位句柄。
+            </summary>
+            <param name="key">当前 MOD 内稳定的 Secret 键。</param>
+            <param name="options">Secret 的显示、本地化、范围和保护选项。</param>
+            <returns>当前构建器，用于继续链式调用。</returns>
+        </member>
         <member name="M:JmcModLib.Core.RegistryBuilder.RegisterPauseMenuButton(System.String,System.String,System.Action,System.Int32,JmcModLib.UI.PauseMenu.PauseMenuButtonAnchor,System.String,System.String,System.Func{JmcModLib.UI.PauseMenu.PauseMenuButtonContext,System.Boolean},System.Func{JmcModLib.UI.PauseMenu.PauseMenuButtonContext,System.Boolean},System.Boolean,JmcModLib.Config.UI.UIButtonColor)">
             <summary>
             手动向运行中暂停菜单注册一个无上下文参数的同步按钮条目。
@@ -1503,6 +1542,74 @@
             <summary>
             关闭弹窗。
             </summary>
+        </member>
+        <member name="T:JmcModLib.Prefabs.JmcSecretInputPopupOptions">
+            <summary>
+            Secret 输入弹窗的显示选项。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcSecretInputPopupOptions.Title">
+            <summary>
+            弹窗标题。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcSecretInputPopupOptions.Description">
+            <summary>
+            弹窗说明文本。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcSecretInputPopupOptions.Placeholder">
+            <summary>
+            输入框占位文本。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcSecretInputPopupOptions.ConfirmText">
+            <summary>
+            确认按钮文本。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcSecretInputPopupOptions.CancelText">
+            <summary>
+            取消按钮文本。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcSecretInputPopupOptions.EmptyText">
+            <summary>
+            输入为空时显示的提示文本。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcSecretInputPopupOptions.ProtectionLevel">
+            <summary>
+            当前 Secret 后端保护等级，用于展示风险提示。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcSecretInputPopupOptions.ShowBackstop">
+            <summary>
+            是否显示弹窗背后的原生深色模态遮罩。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcSecretInputPopupOptions.MinimumSize">
+            <summary>
+            弹窗面板的最小尺寸。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Prefabs.JmcSecretInputPopup">
+            <summary>
+            通过游戏模态容器显示 Secret 输入框。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Prefabs.JmcSecretInputPopup.IsAvailable">
+            <summary>
+            获取当前是否可以打开 Secret 输入弹窗。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Prefabs.JmcSecretInputPopup.PromptAsync(JmcModLib.Prefabs.JmcSecretInputPopupOptions,System.Reflection.Assembly)">
+            <summary>
+            打开 Secret 输入弹窗。
+            </summary>
+            <param name="options">弹窗显示选项。</param>
+            <param name="assembly">可选所属程序集，用于日志上下文。</param>
+            <returns>确认时返回输入内容；取消、关闭或弹窗不可用时返回 <see langword="null"/>。</returns>
         </member>
         <member name="T:JmcModLib.Reflection.MemberAccessor">
             <summary>
@@ -1997,6 +2104,375 @@
         <member name="M:JmcModLib.Reflection.TypeAccessor.CreateInstance``1">
             <summary>
             泛型创建实例
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Security.JmcSecretOptions">
+            <summary>
+            手动注册 Secret 槽位时使用的显示、分组和后端选项。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.Group">
+            <summary>
+            设置页中的分组名。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.LocTable">
+            <summary>
+            本地化表名；为空时使用默认设置页表。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.DisplayName">
+            <summary>
+            显示名称的回退文本。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.Description">
+            <summary>
+            描述文本的回退文本。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.DisplayNameKey">
+            <summary>
+            显示名称的本地化键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.DescriptionKey">
+            <summary>
+            描述文本的本地化键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.SetButtonText">
+            <summary>
+            设置或更新按钮文本的回退文本。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.ClearButtonText">
+            <summary>
+            清空按钮文本的回退文本。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.SetButtonTextKey">
+            <summary>
+            设置或更新按钮文本的本地化键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.ClearButtonTextKey">
+            <summary>
+            清空按钮文本的本地化键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.GroupKey">
+            <summary>
+            分组名称的本地化键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.ScopeProvider">
+            <summary>
+            动态 Secret 范围提供器；返回值会参与存储隔离。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.AllowWeakFileProtection">
+            <summary>
+            是否允许在没有系统安全存储时使用弱保护文件保存。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretOptions.Order">
+            <summary>
+            同组内排序值，数值越小越靠前。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Security.JmcSecretSlot">
+            <summary>
+            子 MOD 持有的 Secret 槽位句柄。
+            </summary>
+            <remarks>
+            本类型只保存槽位元数据，不保存密钥明文。读取到的 <see cref="T:System.String"/> 明文无法被 .NET 清零，
+            调用方应避免记录日志、长时间缓存或传递到不可信位置。
+            </remarks>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretSlot.Key">
+            <summary>
+            当前 Secret 的稳定键；未绑定时为空字符串。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretSlot.ModId">
+            <summary>
+            当前 Secret 所属 MOD 的标识；未绑定时为空字符串。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretSlot.Scope">
+            <summary>
+            当前运行时解析出的 Secret 范围；未绑定时为空字符串。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.JmcSecretSlot.ProtectionLevel">
+            <summary>
+            当前 Secret 槽位使用的保护等级。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Security.JmcSecretSlot.TryRead(System.String@,JmcModLib.Security.JmcSecretReadStatus@)">
+            <summary>
+            尝试读取 Secret 明文。
+            </summary>
+            <param name="value">读取成功时返回 Secret 明文；失败时为空字符串。</param>
+            <param name="status">读取结果状态。</param>
+            <returns>读取成功时返回 <see langword="true"/>。</returns>
+        </member>
+        <member name="M:JmcModLib.Security.JmcSecretSlot.TrySave(System.String,JmcModLib.Security.JmcSecretWriteStatus@)">
+            <summary>
+            尝试保存 Secret 明文。
+            </summary>
+            <param name="value">要保存的 Secret 明文；不会写入普通配置 JSON。</param>
+            <param name="status">写入结果状态。</param>
+            <returns>保存成功时返回 <see langword="true"/>。</returns>
+        </member>
+        <member name="M:JmcModLib.Security.JmcSecretSlot.TryDelete(JmcModLib.Security.JmcSecretWriteStatus@)">
+            <summary>
+            尝试删除当前 Secret。
+            </summary>
+            <param name="status">删除结果状态。</param>
+            <returns>删除成功或目标已不存在时返回 <see langword="true"/>。</returns>
+        </member>
+        <member name="M:JmcModLib.Security.JmcSecretSlot.Exists">
+            <summary>
+            判断当前 Secret 是否已保存。
+            </summary>
+            <returns>存在已保存 Secret 时返回 <see langword="true"/>。</returns>
+        </member>
+        <member name="T:JmcModLib.Security.JmcSecretProtectionLevel">
+            <summary>
+            表示当前 Secret 后端能够提供的保护等级。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretProtectionLevel.Unknown">
+            <summary>
+            尚未确定保护等级。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretProtectionLevel.SystemKeychain">
+            <summary>
+            由操作系统钥匙串或同等级安全设施保护。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretProtectionLevel.UserProfileProtected">
+            <summary>
+            由当前用户配置文件保护，例如 Windows current-user DPAPI。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretProtectionLevel.WeakFileProtection">
+            <summary>
+            仅使用受限权限文件保存；这不是安全加密。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretProtectionLevel.SessionOnly">
+            <summary>
+            仅在当前进程会话内保留，不会持久化。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretProtectionLevel.Unavailable">
+            <summary>
+            当前平台或运行环境不支持保存 Secret。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Security.JmcSecretReadStatus">
+            <summary>
+            表示读取 Secret 的结果状态。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretReadStatus.Success">
+            <summary>
+            读取成功。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretReadStatus.Missing">
+            <summary>
+            尚未保存对应 Secret。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretReadStatus.Unavailable">
+            <summary>
+            当前平台或运行环境不支持读取 Secret。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretReadStatus.AccessDenied">
+            <summary>
+            当前用户无权读取 Secret。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretReadStatus.DecryptionFailed">
+            <summary>
+            Secret 密文无法解密，通常需要重新设置。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretReadStatus.BackendError">
+            <summary>
+            后端发生其它错误。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Security.JmcSecretWriteStatus">
+            <summary>
+            表示写入或删除 Secret 的结果状态。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretWriteStatus.Success">
+            <summary>
+            操作成功。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretWriteStatus.Unavailable">
+            <summary>
+            当前平台或运行环境不支持写入 Secret。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretWriteStatus.AccessDenied">
+            <summary>
+            当前用户无权写入或删除 Secret。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretWriteStatus.WeakProtectionNotAllowed">
+            <summary>
+            当前平台只有弱保护文件保存可用，但调用方没有显式允许。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Security.JmcSecretWriteStatus.BackendError">
+            <summary>
+            后端发生其它错误。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Security.JmcSecretStore">
+            <summary>
+            JML Secret 的统一读写入口。
+            </summary>
+            <remarks>
+            普通子 MOD 优先持有 <see cref="T:JmcModLib.Security.JmcSecretSlot"/> 并通过槽位读取。此静态类用于需要按键动态访问的高级场景。
+            Secret 不会写入普通配置 JSON。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Security.JmcSecretStore.GetProtectionLevel">
+            <summary>
+            获取当前平台默认 Secret 后端的保护等级。
+            </summary>
+            <returns>默认后端保护等级。</returns>
+        </member>
+        <member name="M:JmcModLib.Security.JmcSecretStore.TryRead(System.String,System.String@,JmcModLib.Security.JmcSecretReadStatus@,System.String,System.Reflection.Assembly)">
+            <summary>
+            尝试读取指定 Secret。
+            </summary>
+            <param name="key">当前 MOD 内稳定的 Secret 键。</param>
+            <param name="value">读取成功时返回 Secret 明文；失败时为空字符串。</param>
+            <param name="status">读取结果状态。</param>
+            <param name="scope">可选范围；用于区分同一键下的不同账号、服务商或环境。</param>
+            <param name="assembly">Secret 所属程序集；留空时自动推断调用方程序集。</param>
+            <returns>读取成功时返回 <see langword="true"/>。</returns>
+        </member>
+        <member name="M:JmcModLib.Security.JmcSecretStore.TrySave(System.String,System.String,JmcModLib.Security.JmcSecretWriteStatus@,System.String,System.Reflection.Assembly)">
+            <summary>
+            尝试保存指定 Secret。
+            </summary>
+            <param name="key">当前 MOD 内稳定的 Secret 键。</param>
+            <param name="value">要保存的 Secret 明文。</param>
+            <param name="status">写入结果状态。</param>
+            <param name="scope">可选范围；用于区分同一键下的不同账号、服务商或环境。</param>
+            <param name="assembly">Secret 所属程序集；留空时自动推断调用方程序集。</param>
+            <returns>保存成功时返回 <see langword="true"/>。</returns>
+        </member>
+        <member name="M:JmcModLib.Security.JmcSecretStore.TryDelete(System.String,JmcModLib.Security.JmcSecretWriteStatus@,System.String,System.Reflection.Assembly)">
+            <summary>
+            尝试删除指定 Secret。
+            </summary>
+            <param name="key">当前 MOD 内稳定的 Secret 键。</param>
+            <param name="status">删除结果状态。</param>
+            <param name="scope">可选范围；用于区分同一键下的不同账号、服务商或环境。</param>
+            <param name="assembly">Secret 所属程序集；留空时自动推断调用方程序集。</param>
+            <returns>删除成功或目标已不存在时返回 <see langword="true"/>。</returns>
+        </member>
+        <member name="M:JmcModLib.Security.JmcSecretStore.Exists(System.String,System.String,System.Reflection.Assembly)">
+            <summary>
+            判断指定 Secret 是否已保存。
+            </summary>
+            <param name="key">当前 MOD 内稳定的 Secret 键。</param>
+            <param name="scope">可选范围；用于区分同一键下的不同账号、服务商或环境。</param>
+            <param name="assembly">Secret 所属程序集；留空时自动推断调用方程序集。</param>
+            <returns>存在已保存 Secret 时返回 <see langword="true"/>。</returns>
+        </member>
+        <member name="T:JmcModLib.Security.SecretAttribute">
+            <summary>
+            将静态 <see cref="T:JmcModLib.Security.JmcSecretSlot"/> 字段或属性声明为一个 Secret 槽位。
+            </summary>
+            <remarks>
+            Secret 槽位会显示在 JML 设置页中，但不会写入普通配置 JSON；保存、读取和删除都通过
+            <see cref="T:JmcModLib.Security.JmcSecretStore"/> 的独立后端完成。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Security.SecretAttribute.#ctor(System.String)">
+            <summary>
+            创建一个 Secret 声明。
+            </summary>
+            <param name="key">当前 MOD 内稳定的 Secret 键。</param>
+        </member>
+        <member name="P:JmcModLib.Security.SecretAttribute.Key">
+            <summary>
+            当前 MOD 内稳定的 Secret 键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.SecretAttribute.Group">
+            <summary>
+            设置页中的分组名。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.SecretAttribute.LocTable">
+            <summary>
+            本地化表名；为空时使用默认设置页表。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.SecretAttribute.DisplayName">
+            <summary>
+            显示名称的回退文本。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.SecretAttribute.Description">
+            <summary>
+            描述文本的回退文本。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.SecretAttribute.DisplayNameKey">
+            <summary>
+            显示名称的本地化键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.SecretAttribute.DescriptionKey">
+            <summary>
+            描述文本的本地化键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.SecretAttribute.SetButtonTextKey">
+            <summary>
+            设置或更新按钮文本的本地化键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.SecretAttribute.ClearButtonTextKey">
+            <summary>
+            清空按钮文本的本地化键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.SecretAttribute.GroupKey">
+            <summary>
+            分组名称的本地化键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.SecretAttribute.ScopeProvider">
+            <summary>
+            指向同一类型内静态无参 string 方法或属性的名称，用于动态区分 Secret 范围。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.SecretAttribute.AllowWeakFileProtection">
+            <summary>
+            是否允许在没有系统安全存储时使用弱保护文件保存。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Security.SecretAttribute.Order">
+            <summary>
+            同组内排序值，数值越小越靠前。
             </summary>
         </member>
         <member name="T:JmcModLib.UI.PauseMenu.PauseMenuButtonAnchor">

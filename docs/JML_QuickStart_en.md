@@ -387,6 +387,67 @@ ModRegistry.Register<MainFile>(true)?
 
 Button methods should be static and parameterless. Return values are ignored.
 
+## 7.5 SecretStore: Saving API Keys / Tokens
+
+SecretStore is for sensitive text such as API keys, tokens, and webhook URLs. Its key difference from normal `[Config]` is that a Secret is not written to normal config JSON, does not use `IConfigStorage`, and is never shown as plaintext. The JML settings page only generates status, set/update, and clear controls.
+
+### Attribute Declaration
+
+```csharp
+using JmcModLib.Security;
+
+[Secret(
+    "llm.api_key",
+    Group = "secrets",
+    DisplayNameKey = "EXTENSION.MYMOD.SECRET.api_key.NAME",
+    DescriptionKey = "EXTENSION.MYMOD.SECRET.api_key.DESCRIPTION",
+    SetButtonTextKey = "EXTENSION.MYMOD.SECRET.api_key.SET_BUTTON",
+    ClearButtonTextKey = "EXTENSION.MYMOD.SECRET.api_key.CLEAR_BUTTON",
+    GroupKey = "EXTENSION.MYMOD.GROUP.secrets",
+    Order = 10)]
+internal static readonly JmcSecretSlot ApiKey = new();
+```
+
+If the same key should be isolated per provider, use a dynamic scope:
+
+```csharp
+[Secret("llm.api_key", ScopeProvider = nameof(GetProviderScope))]
+internal static readonly JmcSecretSlot ApiKey = new();
+
+private static string GetProviderScope() => Provider.ToString();
+```
+
+### Builder Registration
+
+```csharp
+ModRegistry.Register<MainFile>(true)?
+    .RegisterSecret(
+        out JmcSecretSlot apiKey,
+        "llm.api_key",
+        new JmcSecretOptions
+        {
+            Group = "secrets",
+            DisplayName = "API Key",
+            Description = "Used for the current provider.",
+            ScopeProvider = () => Provider.ToString()
+        })
+    .Done();
+```
+
+### Reading
+
+```csharp
+if (!ApiKey.TryRead(out string apiKey, out JmcSecretReadStatus status))
+{
+    ModLogger.Warn($"API Key unavailable: {status}");
+    return;
+}
+
+// Use apiKey for the service call. Do not log plaintext or place it in exceptions, status text, clipboard, or normal config.
+```
+
+The first Windows backend uses current-user DPAPI and reports `UserProfileProtected`. Non-Windows platforms return `Unavailable` / `WeakProtectionNotAllowed` by default and do not crash. Weak file storage is enabled only when the declaration or `JmcSecretOptions` explicitly sets `AllowWeakFileProtection = true`; it only tries to restrict file permissions, is not secure encryption, and must not be presented as secure storage.
+
 ## 8. Sliders
 ```cs
 [UIIntSlider(0, 100)]

@@ -3,6 +3,7 @@ using JmcModLib.Config.Storage;
 using JmcModLib.Config.UI;
 using JmcModLib.Input;
 using JmcModLib.Reflection;
+using JmcModLib.Security;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -43,6 +44,7 @@ public static class ConfigManager
         AttributeRouting.Init();
         AttributeRouting.RegisterHandler<ConfigAttribute>(new ConfigAttributeHandler());
         AttributeRouting.RegisterHandler<UIButtonAttribute>(new UIButtonAttributeHandler());
+        AttributeRouting.RegisterHandler<SecretAttribute>(new SecretAttributeHandler());
         AttributeRouting.RegisterHandler<JmcHotkeyAttribute>(new JmcHotkeyAttributeHandler());
         AttributeRouting.RegisterHandler<UIHotkeyAttribute>(new UIHotkeyAttributeHandler());
         AttributeRouting.AssemblyScanned += OnAssemblyScanned;
@@ -312,6 +314,44 @@ public static class ConfigManager
         entry.SyncFromStorage(GetStorageInternal(entry.Assembly));
         JmcInputActionRegistry.RegisterConfigEntry(entry);
         EntryRegistered?.Invoke(entry);
+    }
+
+    internal static JmcSecretSlot RegisterSecret(
+        string key,
+        JmcSecretOptions options,
+        Assembly? assembly = null,
+        string? fallbackDisplayName = null,
+        Type? sourceDeclaringType = null,
+        string? sourceMemberName = null)
+    {
+        var slot = new JmcSecretSlot();
+        RegisterSecret(slot, key, options, assembly, fallbackDisplayName, sourceDeclaringType, sourceMemberName);
+        return slot;
+    }
+
+    internal static void RegisterSecret(
+        JmcSecretSlot slot,
+        string key,
+        JmcSecretOptions options,
+        Assembly? assembly = null,
+        string? fallbackDisplayName = null,
+        Type? sourceDeclaringType = null,
+        string? sourceMemberName = null)
+    {
+        ArgumentNullException.ThrowIfNull(slot);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        ArgumentNullException.ThrowIfNull(options);
+
+        EnsureInitialized();
+
+        Assembly resolvedAssembly = ResolveAssembly(assembly);
+        string displayName = string.IsNullOrWhiteSpace(fallbackDisplayName)
+            ? key.Trim()
+            : fallbackDisplayName.Trim();
+        SecretEntry entry = SecretEntry.Create(resolvedAssembly, key, slot, options, displayName);
+        entry.SourceDeclaringType = sourceDeclaringType;
+        entry.SourceMemberName = sourceMemberName;
+        RegisterEntry(entry);
     }
 
     internal static ConfigEntry BuildConfigEntry(Assembly assembly, MemberAccessor member, ConfigAttribute attribute)

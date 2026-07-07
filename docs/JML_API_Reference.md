@@ -2,13 +2,14 @@
 
 # JmcModLib STS2 API 文档
 
-源码基准：JML `1.4.4`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
+源码基准：JML `1.5.7`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
 
 ```csharp
 using JmcModLib.Core;
 using JmcModLib.Config;
 using JmcModLib.Config.UI;
 using JmcModLib.Config.Storage;
+using JmcModLib.Security;
 using JmcModLib.UI.PauseMenu;
 using JmcModLib.Reflection;
 using JmcModLib.Utils;
@@ -81,8 +82,8 @@ flowchart TD
 | 成员 | 说明 |
 |---|---|
 | `const string Name = "JmcModLib"` | JML 名称 |
-| `const string Version = "1.4.14"` | JML 版本 |
-| `string Tag` | `"[JmcModLib v1.4.14]"` |
+| `const string Version = "1.5.7"` | JML 版本 |
+| `string Tag` | `"[JmcModLib v1.5.7]"` |
 | `GetName(Assembly? assembly = null)` | 获取指定程序集名称，JML 自身返回固定名称 |
 | `GetVersion(Assembly? assembly = null)` | 获取指定程序集版本，JML 自身返回固定版本 |
 | `GetTag(Assembly? assembly = null)` | 生成日志标签 |
@@ -447,6 +448,113 @@ new JsonConfigStorage(string? rootDirectory = null)
 ```
 
 两者都实现 `IConfigStorage`。默认 root 为空时会使用 `OS.GetUserDataDir()/mods/config`。默认存储是 `NewtonsoftConfigStorage`，对复杂类型更宽容；`JsonConfigStorage` 更轻，但复杂类型兼容性需要额外验证。
+
+### 5.7 SecretStore
+
+命名空间：`JmcModLib.Security`
+
+SecretStore 用于保存 API Key、Token、Webhook URL 等敏感文本。Secret 会像配置项一样出现在 JML 设置页，但它不是普通 Config：不会写入 `NewtonsoftConfigStorage` / `JsonConfigStorage`，不会进入普通配置 JSON，也不通过 `IConfigStorage` 持久化。设置页只提供状态、设置/更新按钮和清空按钮。
+
+#### Attribute 声明
+
+```csharp
+using JmcModLib.Security;
+
+[Secret(
+    "llm.api_key",
+    Group = "secrets",
+    DisplayNameKey = "EXTENSION.MYMOD.SECRET.api_key.NAME",
+    DescriptionKey = "EXTENSION.MYMOD.SECRET.api_key.DESCRIPTION",
+    SetButtonTextKey = "EXTENSION.MYMOD.SECRET.api_key.SET_BUTTON",
+    ClearButtonTextKey = "EXTENSION.MYMOD.SECRET.api_key.CLEAR_BUTTON",
+    GroupKey = "EXTENSION.MYMOD.GROUP.secrets",
+    Order = 10)]
+internal static readonly JmcSecretSlot ApiKey = new();
+```
+
+如果同一个 Secret 键需要按服务商、账号或环境分隔，声明一个同类型静态无参 `string` 方法或属性，并通过 `ScopeProvider` 指向它：
+
+```csharp
+[Secret("llm.api_key", ScopeProvider = nameof(GetProviderScope))]
+internal static readonly JmcSecretSlot ApiKey = new();
+
+private static string GetProviderScope() => CurrentProvider;
+```
+
+#### Builder 注册
+
+```csharp
+ModRegistry.Register<MainFile>(true)?
+    .RegisterSecret(
+        out JmcSecretSlot apiKey,
+        "llm.api_key",
+        new JmcSecretOptions
+        {
+            Group = "secrets",
+            DisplayName = "API Key",
+            Description = "用于请求当前服务商。",
+            ScopeProvider = () => CurrentProvider,
+            Order = 10
+        })
+    .Done();
+```
+
+也可以传入调用方已有的 `JmcSecretSlot`：
+
+```csharp
+private static readonly JmcSecretSlot ApiKey = new();
+
+ModRegistry.Register<MainFile>(true)?
+    .RegisterSecret(ApiKey, "llm.api_key", new JmcSecretOptions { Group = "secrets" })
+    .Done();
+```
+
+#### 读取、保存与删除
+
+普通业务代码优先通过槽位读取：
+
+```csharp
+if (!ApiKey.TryRead(out string apiKey, out JmcSecretReadStatus status))
+{
+    ModLogger.Warn($"API Key 不可用：{status}");
+    return;
+}
+
+// 使用后尽快丢弃 apiKey；不要写日志、异常、状态栏或剪贴板。
+```
+
+高级场景可用静态入口：
+
+```csharp
+bool ok = JmcSecretStore.TryRead(
+    "llm.api_key",
+    out string value,
+    out JmcSecretReadStatus status,
+    scope: CurrentProvider);
+```
+
+公开 API：
+
+| 类型 / 成员 | 说明 |
+|---|---|
+| `SecretAttribute` | 声明静态 `JmcSecretSlot` 字段或属性；支持显示名、描述、按钮文本、分组、动态 scope、弱保护开关和排序 |
+| `JmcSecretSlot` | 子 MOD 持有的槽位句柄；提供 `TryRead`、`TrySave`、`TryDelete`、`Exists`、`ProtectionLevel` |
+| `JmcSecretOptions` | 手动注册 Secret 时使用的显示、本地化、scope 与弱保护选项 |
+| `JmcSecretStore` | 高级静态入口；按 key/scope/assembly 读取、保存、删除和检查存在 |
+| `JmcSecretProtectionLevel` | `SystemKeychain`、`UserProfileProtected`、`WeakFileProtection`、`SessionOnly`、`Unavailable` 等保护等级 |
+| `JmcSecretReadStatus` | `Success`、`Missing`、`Unavailable`、`AccessDenied`、`DecryptionFailed`、`BackendError` |
+| `JmcSecretWriteStatus` | `Success`、`Unavailable`、`AccessDenied`、`WeakProtectionNotAllowed`、`BackendError` |
+| `RegistryBuilder.RegisterSecret(...)` | 在注册链中手动注册 Secret 设置行 |
+
+#### 平台保护等级
+
+| 平台 / 条件 | 第一版行为 |
+|---|---|
+| Windows | 使用 current-user DPAPI，保护等级为 `UserProfileProtected` |
+| 非 Windows 默认 | 返回 `Unavailable` 或 `WeakProtectionNotAllowed`，不抛未处理异常 |
+| 显式 `AllowWeakFileProtection = true` | 可使用弱保护文件保存，保护等级为 `WeakFileProtection` |
+
+弱保护文件保存只会尽量收紧文件权限，并不等于安全加密。不要把它用于共享设备或高价值密钥；文档、UI 和日志都应明确提示风险。无论哪种后端，业务代码都不要记录 Secret 明文，读取到的 `string` 也无法在 .NET 中真正清零。
 
 ---
 
@@ -1039,7 +1147,26 @@ flowchart TD
 | `ShowMessageAsync(string title, string body, string? okText = null, bool showBackstop = true, Assembly? assembly = null)` | OK 消息弹窗 |
 | `LocString` overloads | 支持本地化字符串参数 |
 
-### 12.3 `JmcReportPopup`
+### 12.3 `JmcSecretInputPopup`
+
+命名空间：`JmcModLib.Prefabs`。源码文件在 `Prefabs/`。
+
+`JmcSecretInputPopup` 用于输入 Secret 明文。它使用 `LineEdit.Secret = true`，不会预填旧值，也不会记录输入内容。普通子 MOD 通常不需要直接调用；通过 `[Secret]` 或 `RegisterSecret` 注册后，JML 设置页会自动使用它。
+
+| 成员 | 说明 |
+|---|---|
+| `IsAvailable` | 当前是否可显示 modal |
+| `PromptAsync(JmcSecretInputPopupOptions options, Assembly? assembly = null)` | 打开 Secret 输入弹窗；确认返回输入内容，取消/关闭/不可用返回 `null` |
+| `JmcSecretInputPopupOptions.Title` | 弹窗标题，必填 |
+| `Description` | 可选说明或风险提示 |
+| `Placeholder` | 输入框占位文本 |
+| `ConfirmText` / `CancelText` | 按钮文本 |
+| `EmptyText` | 输入为空时的提示 |
+| `ProtectionLevel` | 当前 Secret 保护等级，用于调用方组织风险说明 |
+| `ShowBackstop` | 是否显示原生深色模态遮罩 |
+| `MinimumSize` | 弹窗最小尺寸 |
+
+### 12.4 `JmcReportPopup`
 
 命名空间：`JmcModLib.Prefabs`。源码文件在 `Prefabs/`。
 
