@@ -251,6 +251,19 @@ public static class ModRegistry
         return context;
     }
 
+    internal static bool TryGetContextByModId(string? modId, out ModContext? context)
+    {
+        if (string.IsNullOrWhiteSpace(modId))
+        {
+            context = null;
+            return false;
+        }
+
+        context = Contexts.Values.FirstOrDefault(candidate =>
+            string.Equals(candidate.ModId, modId.Trim(), StringComparison.OrdinalIgnoreCase));
+        return context != null;
+    }
+
     /// <summary>
     /// 获取指定程序集的 MOD 标识；未注册时回退到程序集名称。
     /// </summary>
