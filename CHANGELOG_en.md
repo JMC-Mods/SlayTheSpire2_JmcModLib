@@ -6,55 +6,18 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
-## [1.5.12] - 2026-7-8
+## [1.6.0] - 2026-7-9
 ### Added
-- Added Persistence `[JmcClientRunData]` for current-client, current-run lifecycle data stored in a local sidecar. It survives Save and Quit, is not rolled back by SL, and is cleared when the run ends, is deleted, or a new run starts.
-
-### Changed
-- Removed the child-mod-facing `JmcRunContext` / `JmcRunIdentity` approach from the public API to avoid treating long-lived `LocalPreference` data as a current-run isolation tool.
-
-## [1.5.11] - 2026-7-7
-### Added
-- Added `JmcRunContext.TryGetCurrentRunIdentity()` and `JmcRunIdentity` so local preferences can store the current run identity and decide whether they still belong to this run.
-
-## [1.5.10] - 2026-7-7
-### Added
-- Added Persistence `[JmcLocalPreference]` for current-machine local UI preferences and other non-gameplay data, plus `JmcPersistenceManager.FlushLocalPreferences()`.
-
-### Changed
-- Run-save `_jml` extension data is preserved after vanilla `RunManager.CanonicalizeSave`, reducing the risk of losing JML data during multiplayer save canonicalization.
-
-## [1.5.9] - 2026-7-7
-### Changed
-- Changed Persistence run-save writes to stop skipping vanilla `RunSaveManager.SaveRun` with a Harmony Prefix. JML now appends `_jml` extension data after the vanilla save succeeds, reducing compatibility risk.
-
-## [1.5.8] - 2026-7-7
-### Added
-- Added JML Persistence phase 1 with global/profile/run non-synced persistence, Slot write APIs, Attribute scanning integration, and a run-save `_jml` extension document.
-
-## [1.5.7] - 2026-7-6
-### Changed
-- Changed Secret `ScopeProvider` resolution to use JML reflection accessors instead of direct native reflection calls.
-
-## [1.5.6] - 2026-7-6
+- Added a public cross-platform restart API. After the user confirms in a popup, it restarts the game; on Android and iOS it fails gracefully and falls back.
+- Completed restart support. Config entries marked as requiring a restart now provide a quick restart button.
+- Added default support for showing a restart button in the game's native mod manager when changes require a restart. This feature can be disabled in settings.
+- Added semantics for dynamic config UI visibility, dropdown options, and other dynamic display content.
+- Added a cross-platform secret storage service.
+- Added a Markdown-rendering information feed prefab.
+- Added a series of persistence APIs.
 ### Fixed
-- Fixed the Secret input popup showing only the modal backstop without the input panel.
-
-## [1.5.5] - 2026-7-6
-### Added
-- Added JML SecretStore with `[Secret]`, `RegistryBuilder.RegisterSecret`, automatic settings-page set/clear UI, a Windows current-user DPAPI backend, and an explicitly enabled weak-file fallback.
-
-## [1.5.4] - 2026-7-6
-### Changed
-- Reverted the previous Steam Input controller mapping fallback handling and restored the original mapping completion behavior.
-
-## [1.5.3] - 2026-7-5
-### Added
-- Added `UIVisibleWhenAttribute` for dynamically showing or hiding config entries in the settings UI based on other config values.
-
-## [1.5.2] - 2026-7-4
-### Added
-- Added `UIDropdownOptionsProviderAttribute` for refreshing dropdown choices at runtime based on other config values.
+- Fixed abnormal settings-screen aspect ratio when the aspect ratio is set to "auto" on non-16:9 displays.
+- Fixed incomplete AttributeRouter scanning when a mod uses split DLLs. It now automatically falls back to scanning DLLs with the same ID.
 
 ## [1.5.0] - 2026-7-3
 ### Added
@@ -75,7 +38,7 @@ Versioning rule: major.minor.patch. The major version is used for larger feature
 
 ## [1.4.0] - 2026-6-19
 ### Fixed
-0.99.1 compact
+Fixed compatibility with version 0.99.1.
 
 ### Changed
 - Adapted the manifest format migration for official MOD publishing.

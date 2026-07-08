@@ -6,55 +6,18 @@
 
 版本号规则： 主版本号.次版本号.修订号，其中主版本号涉及到大功能完善，次版本号原则上Steam创意工坊发布新版本后进行更新，修订号每次涉及代码的commit后更新（从0开始）。
 
-## [1.5.12] - 2026-7-8
+## [1.6.0] - 2026-7-9
 ### Added
-- Persistence 新增 `[JmcClientRunData]`，用于保存“当前客户端、当前 run 生命周期”的本地 sidecar 数据；保存退出后保留，SL 不回滚，run 结束、删除或开启新 run 时清理。
-
-### Changed
-- 撤回上一版面向子 MOD 暴露的 `JmcRunContext` / `JmcRunIdentity` 方案，避免把长期 `LocalPreference` 误用成本局状态隔离工具。
-
-## [1.5.11] - 2026-7-7
-### Added
-- Persistence 新增 `JmcRunContext.TryGetCurrentRunIdentity()` 和 `JmcRunIdentity`，供本地偏好保存当前 run 身份并自行判断是否仍属于当前这一局。
-
-## [1.5.10] - 2026-7-7
-### Added
-- Persistence 新增 `[JmcLocalPreference]`，用于保存当前机器本地 UI 偏好等不影响玩法的数据，并提供 `JmcPersistenceManager.FlushLocalPreferences()`。
-
-### Changed
-- Run save `_jml` 扩展数据会在原版 `RunManager.CanonicalizeSave` 后继续保留，降低多人存档整理流程丢失 JML 数据的风险。
-
-## [1.5.9] - 2026-7-7
-### Changed
-- 调整 Persistence run save 写入策略：不再用 Harmony Prefix 跳过原版 `RunSaveManager.SaveRun`，改为原版保存成功后附加写入 `_jml` 扩展数据，以降低兼容性风险。
-
-## [1.5.8] - 2026-7-7
-### Added
-- 新增 JML Persistence 第一阶段：支持 global/profile/run 非同步持久化、Slot 写入 API、Attribute 扫描接入和 run save `_jml` 扩展文档。
-
-## [1.5.7] - 2026-7-6
-### Changed
-- Secret 的 `ScopeProvider` 解析改为使用 JML 自带反射访问器，避免直接使用原生反射调用。
-
-## [1.5.6] - 2026-7-6
+- 提供一个用于重启的跨平台的公开API，用户点击后会弹窗确认是否重启游戏，安卓/iOS会失败回退
+- 完备化重启，现在标记为需要重启的配置项将会提供一个供快捷重启的按钮
+- 默认为游戏自带的模组管理在需要重启时增加重启按钮的功能，这个功能可在设置中关闭
+- 增加配置项可动态显示隐藏、下拉列表等动态显示内容的语义
+- 增加跨平台的密钥存取服务
+- 增加一个可渲染Markdown的信息流显示预制件
+- 增加一系列用于持久化的API
 ### Fixed
-- 修复 Secret 输入弹窗只显示模态遮罩、不显示输入面板的问题。
-
-## [1.5.5] - 2026-7-6
-### Added
-- 新增 JML SecretStore：支持 `[Secret]`、`RegistryBuilder.RegisterSecret`、设置页自动设置/清空 UI、Windows current-user DPAPI 后端和显式允许的弱保护文件回退。
-
-## [1.5.4] - 2026-7-6
-### Changed
-- 撤回此前的 Steam Input 手柄映射回退处理，恢复原有手柄映射补全逻辑。
-
-## [1.5.3] - 2026-7-5
-### Added
-- 新增 `UIVisibleWhenAttribute`，支持配置项根据其他配置项的当前值在设置 UI 中动态显示或隐藏。
-
-## [1.5.2] - 2026-7-4
-### Added
-- 新增 `UIDropdownOptionsProviderAttribute`，支持下拉候选项根据其他配置项在运行时动态刷新。
+- 修复了非16:9比例屏幕屏幕比例设置为“自动”时的设置界面显示比例不正常的问题
+- 修复了AttributeRouter在MOD具有分离式DLL时扫描不完备的问题，现在会自动回退扫描同ID的DLL
 
 ## [1.5.0] - 2026-7-3
 ### Added
