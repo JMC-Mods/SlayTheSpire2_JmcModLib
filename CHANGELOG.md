@@ -6,6 +6,13 @@
 
 版本号规则： 主版本号.次版本号.修订号，其中主版本号涉及到大功能完善，次版本号原则上Steam创意工坊发布新版本后进行更新，修订号每次涉及代码的commit后更新（从0开始）。
 
+## [1.5.12] - 2026-7-8
+### Added
+- Persistence 新增 `[JmcClientRunData]`，用于保存“当前客户端、当前 run 生命周期”的本地 sidecar 数据；保存退出后保留，SL 不回滚，run 结束、删除或开启新 run 时清理。
+
+### Changed
+- 撤回上一版面向子 MOD 暴露的 `JmcRunContext` / `JmcRunIdentity` 方案，避免把长期 `LocalPreference` 误用成本局状态隔离工具。
+
 ## [1.5.11] - 2026-7-7
 ### Added
 - Persistence 新增 `JmcRunContext.TryGetCurrentRunIdentity()` 和 `JmcRunIdentity`，供本地偏好保存当前 run 身份并自行判断是否仍属于当前这一局。

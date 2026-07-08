@@ -6,6 +6,13 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.5.12] - 2026-7-8
+### Added
+- Added Persistence `[JmcClientRunData]` for current-client, current-run lifecycle data stored in a local sidecar. It survives Save and Quit, is not rolled back by SL, and is cleared when the run ends, is deleted, or a new run starts.
+
+### Changed
+- Removed the child-mod-facing `JmcRunContext` / `JmcRunIdentity` approach from the public API to avoid treating long-lived `LocalPreference` data as a current-run isolation tool.
+
 ## [1.5.11] - 2026-7-7
 ### Added
 - Added `JmcRunContext.TryGetCurrentRunIdentity()` and `JmcRunIdentity` so local preferences can store the current run identity and decide whether they still belong to this run.

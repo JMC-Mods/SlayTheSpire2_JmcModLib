@@ -53,9 +53,22 @@ internal static class PersistenceCanonicalizeRunSavePatch
 [HarmonyPatch(typeof(RunSaveManager), nameof(RunSaveManager.DeleteCurrentRun))]
 internal static class PersistenceDeleteCurrentRunPatch
 {
-    [HarmonyPostfix]
-    private static void Postfix()
+    [HarmonyPrefix]
+    private static void Prefix(RunSaveManager __instance, ref RunIdentity? __state)
     {
+        __state = RunPersistenceManager.TryResolveSaveRunIdentity(__instance, isMultiplayer: false, out RunIdentity identity)
+            ? identity
+            : null;
+    }
+
+    [HarmonyPostfix]
+    private static void Postfix(RunIdentity? __state)
+    {
+        if (__state.HasValue)
+        {
+            RunPersistenceManager.DeleteClientRunData(__state.Value);
+        }
+
         RunPersistenceManager.ClearRunContext();
     }
 }
@@ -63,9 +76,22 @@ internal static class PersistenceDeleteCurrentRunPatch
 [HarmonyPatch(typeof(RunSaveManager), nameof(RunSaveManager.DeleteCurrentMultiplayerRun))]
 internal static class PersistenceDeleteCurrentMultiplayerRunPatch
 {
-    [HarmonyPostfix]
-    private static void Postfix()
+    [HarmonyPrefix]
+    private static void Prefix(RunSaveManager __instance, ref RunIdentity? __state)
     {
+        __state = RunPersistenceManager.TryResolveSaveRunIdentity(__instance, isMultiplayer: true, out RunIdentity identity)
+            ? identity
+            : null;
+    }
+
+    [HarmonyPostfix]
+    private static void Postfix(RunIdentity? __state)
+    {
+        if (__state.HasValue)
+        {
+            RunPersistenceManager.DeleteClientRunData(__state.Value);
+        }
+
         RunPersistenceManager.ClearRunContext();
     }
 }

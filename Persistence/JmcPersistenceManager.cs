@@ -16,7 +16,8 @@ namespace JmcModLib.Persistence;
 /// </summary>
 /// <remarks>
 /// 子 MOD 通常只需要声明 <see cref="JmcLocalPreferenceAttribute"/>、
-/// <see cref="JmcGlobalDataAttribute"/>、<see cref="JmcProfileDataAttribute"/> 或 <see cref="JmcRunDataAttribute"/>。
+/// <see cref="JmcGlobalDataAttribute"/>、<see cref="JmcProfileDataAttribute"/>、
+/// <see cref="JmcClientRunDataAttribute"/> 或 <see cref="JmcRunDataAttribute"/>。
 /// 本类型主要用于需要立即写盘时手动调用 <see cref="Flush(Assembly?)"/>。
 /// </remarks>
 public static class JmcPersistenceManager
@@ -26,6 +27,7 @@ public static class JmcPersistenceManager
     private static readonly PersistenceAttributeHandler LocalPreferenceHandler = new(PersistenceScope.LocalPreference);
     private static readonly PersistenceAttributeHandler GlobalHandler = new(PersistenceScope.Global);
     private static readonly PersistenceAttributeHandler ProfileHandler = new(PersistenceScope.Profile);
+    private static readonly PersistenceAttributeHandler ClientRunHandler = new(PersistenceScope.ClientRun);
     private static readonly PersistenceAttributeHandler RunHandler = new(PersistenceScope.Run);
 
     private static int initialized;
@@ -50,6 +52,7 @@ public static class JmcPersistenceManager
         CoreAttributeRouter.RegisterHandler<JmcLocalPreferenceAttribute>(LocalPreferenceHandler);
         CoreAttributeRouter.RegisterHandler<JmcGlobalDataAttribute>(GlobalHandler);
         CoreAttributeRouter.RegisterHandler<JmcProfileDataAttribute>(ProfileHandler);
+        CoreAttributeRouter.RegisterHandler<JmcClientRunDataAttribute>(ClientRunHandler);
         CoreAttributeRouter.RegisterHandler<JmcRunDataAttribute>(RunHandler);
         ModRegistry.OnUnregistered += OnModUnregistered;
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
@@ -80,12 +83,13 @@ public static class JmcPersistenceManager
         _ = CoreAttributeRouter.UnregisterHandler(LocalPreferenceHandler);
         _ = CoreAttributeRouter.UnregisterHandler(GlobalHandler);
         _ = CoreAttributeRouter.UnregisterHandler(ProfileHandler);
+        _ = CoreAttributeRouter.UnregisterHandler(ClientRunHandler);
         _ = CoreAttributeRouter.UnregisterHandler(RunHandler);
         ModLogger.Debug("JmcPersistenceManager disposed.");
     }
 
     /// <summary>
-    /// 刷新当前调用方 MOD 的本地偏好、全局和 profile 数据。
+    /// 刷新当前调用方 MOD 的本地偏好、全局、profile 和客户端本局数据。
     /// </summary>
     /// <param name="assembly">目标程序集；留空时自动推断调用方程序集。</param>
     public static void Flush(Assembly? assembly = null)
@@ -94,6 +98,7 @@ public static class JmcPersistenceManager
         FlushAssembly(resolvedAssembly, PersistenceScope.LocalPreference);
         FlushAssembly(resolvedAssembly, PersistenceScope.Global);
         FlushAssembly(resolvedAssembly, PersistenceScope.Profile);
+        FlushAssembly(resolvedAssembly, PersistenceScope.ClientRun);
     }
 
     /// <summary>
@@ -107,7 +112,17 @@ public static class JmcPersistenceManager
     }
 
     /// <summary>
-    /// 刷新所有已注册 MOD 的本地偏好、全局和 profile 数据。
+    /// 刷新当前调用方 MOD 的客户端本局数据。
+    /// </summary>
+    /// <param name="assembly">目标程序集；留空时自动推断调用方程序集。</param>
+    public static void FlushClientRunData(Assembly? assembly = null)
+    {
+        Assembly resolvedAssembly = AssemblyResolver.Resolve(assembly, typeof(JmcPersistenceManager));
+        FlushAssembly(resolvedAssembly, PersistenceScope.ClientRun);
+    }
+
+    /// <summary>
+    /// 刷新所有已注册 MOD 的本地偏好、全局、profile 和客户端本局数据。
     /// </summary>
     public static void FlushAll()
     {
@@ -151,6 +166,14 @@ public static class JmcPersistenceManager
             return;
         }
 
+        if (scope == PersistenceScope.ClientRun)
+        {
+            ModLogger.Error(
+                $"JmcClientRunData 只能声明在 JmcRunDataSlot<T> 静态字段或属性上：{member.DeclaringType.FullName}.{member.Name}",
+                assembly);
+            return;
+        }
+
         if (!member.CanWrite)
         {
             ModLogger.Error($"裸静态 Persistence 成员必须可写：{member.DeclaringType.FullName}.{member.Name}", assembly);
@@ -174,6 +197,48 @@ public static class JmcPersistenceManager
         {
             FlushAssembly(assembly, PersistenceScope.Profile);
         }
+    }
+
+    internal static void LoadClientRunEntries()
+    {
+        foreach (Assembly assembly in Entries.Keys.ToArray())
+        {
+            LoadAssemblyScope(assembly, PersistenceScope.ClientRun);
+        }
+    }
+
+    internal static void FlushClientRunEntries()
+    {
+        foreach (Assembly assembly in Entries.Keys.ToArray())
+        {
+            FlushAssembly(assembly, PersistenceScope.ClientRun);
+        }
+    }
+
+    internal static void DeleteClientRunData(RunIdentity identity)
+    {
+        foreach (Assembly assembly in Entries.Keys.ToArray())
+        {
+            if (!PersistencePathProvider.TryGetClientRunFilePath(assembly, identity, out string filePath))
+            {
+                continue;
+            }
+
+            try
+            {
+                Storage.Drop(filePath);
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                ModLogger.Warn($"清理客户端本局 Persistence 文件失败：{filePath}", ex, assembly);
+            }
+        }
+
+        ResetClientRunEntriesToDefault();
     }
 
     internal static void LoadRunEntries(RunPersistenceDocument document)
@@ -205,6 +270,14 @@ public static class JmcPersistenceManager
         }
     }
 
+    internal static void ResetClientRunEntriesToDefault()
+    {
+        foreach (PersistenceEntry entry in GetEntriesByScope(PersistenceScope.ClientRun))
+        {
+            entry.ResetToDefault();
+        }
+    }
+
     private static bool TryRegisterSlot(
         Assembly assembly,
         MemberAccessor member,
@@ -213,7 +286,7 @@ public static class JmcPersistenceManager
     {
         Type? dataSlotType = TryGetGenericArgument(member.ValueType, typeof(JmcDataSlot<>));
         Type? runSlotType = TryGetGenericArgument(member.ValueType, typeof(JmcRunDataSlot<>));
-        Type? expectedSlotType = scope == PersistenceScope.Run
+        Type? expectedSlotType = scope is PersistenceScope.Run or PersistenceScope.ClientRun
             ? runSlotType
             : dataSlotType;
         if (expectedSlotType == null)
@@ -261,7 +334,7 @@ public static class JmcPersistenceManager
 
         JmcDataRegistration registration = CreateRegistration(assembly, member, scope, descriptor);
         PersistenceEntry entry;
-        if (scope == PersistenceScope.Run)
+        if (scope is PersistenceScope.Run or PersistenceScope.ClientRun)
         {
             entry = new PersistenceSlotEntry<T>(registration, (JmcRunDataSlot<T>)slot);
         }
@@ -340,6 +413,13 @@ public static class JmcPersistenceManager
         {
             RunPersistenceDocument? runDocument = RunPersistenceManager.CurrentDocument;
             entry.InitializeFromToken(runDocument?.GetValue(entry.ModId, entry.StorageKey));
+            return;
+        }
+
+        if (entry.Scope == PersistenceScope.ClientRun
+            && !RunPersistenceManager.HasClientRunContext)
+        {
+            entry.ResetToDefault();
             return;
         }
 

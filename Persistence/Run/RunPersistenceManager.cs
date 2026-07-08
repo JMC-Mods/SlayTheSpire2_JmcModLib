@@ -23,6 +23,7 @@ internal static class RunPersistenceManager
     private static readonly ConditionalWeakTable<SerializableRun, AttachedRunDocument> AttachedDocuments = new();
 
     private static RunPersistenceDocument? currentDocument;
+    private static RunIdentity? currentClientRunIdentity;
     private static int dirty;
 
     public static RunPersistenceDocument? CurrentDocument
@@ -51,37 +52,35 @@ internal static class RunPersistenceManager
         }
     }
 
-    public static bool TryGetCurrentRunIdentity(out JmcRunIdentity identity)
+    public static bool HasClientRunContext
     {
+        get
+        {
+            lock (SyncRoot)
+            {
+                return currentClientRunIdentity.HasValue;
+            }
+        }
+    }
+
+    public static bool TryGetCurrentClientRunIdentity(out RunIdentity identity)
+    {
+        lock (SyncRoot)
+        {
+            if (currentClientRunIdentity.HasValue)
+            {
+                identity = currentClientRunIdentity.Value;
+                return true;
+            }
+        }
+
         identity = default;
+        return false;
+    }
 
-        try
-        {
-            RunManager? runManager = RunManager.Instance;
-            if (runManager?.IsInProgress != true)
-            {
-                return false;
-            }
-
-            if (RunStartTimeField?.GetValue(runManager) is not long startTime || startTime <= 0)
-            {
-                return false;
-            }
-
-            if (runManager.NetService == null)
-            {
-                return false;
-            }
-
-            int profileId = SaveManager.Instance.CurrentProfileId;
-            bool isMultiplayer = runManager.NetService.Type.IsMultiplayer();
-            identity = new JmcRunIdentity(profileId, startTime, isMultiplayer);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+    public static bool TryResolveCurrentRunIdentity(out RunIdentity identity)
+    {
+        return TryCreateIdentityFromCurrentRun(out identity);
     }
 
     public static void MarkDirty()
@@ -91,24 +90,139 @@ internal static class RunPersistenceManager
 
     public static void StartNewRun()
     {
+        RunIdentity? previousClientRunIdentity;
         lock (SyncRoot)
         {
+            previousClientRunIdentity = currentClientRunIdentity;
             currentDocument = RunPersistenceDocument.Empty();
             Volatile.Write(ref dirty, 0);
         }
 
         JmcPersistenceManager.ResetRunEntriesToDefault();
+        if (previousClientRunIdentity.HasValue)
+        {
+            DeleteClientRunData(previousClientRunIdentity.Value);
+        }
+
+        if (TryCreateIdentityFromCurrentRun(out RunIdentity identity))
+        {
+            SetClientRunContext(identity, deleteExistingFile: true);
+        }
+        else
+        {
+            ClearClientRunContext(deleteFile: false);
+        }
     }
 
     public static void ClearRunContext()
     {
+        JmcPersistenceManager.FlushClientRunEntries();
+
         lock (SyncRoot)
         {
             currentDocument = null;
+            currentClientRunIdentity = null;
             Volatile.Write(ref dirty, 0);
         }
 
         JmcPersistenceManager.ResetRunEntriesToDefault();
+        JmcPersistenceManager.ResetClientRunEntriesToDefault();
+    }
+
+    public static void ActivateClientRunContextFromSave(SerializableRun save, bool isMultiplayer)
+    {
+        ArgumentNullException.ThrowIfNull(save);
+
+        if (TryCreateIdentityFromSave(save, isMultiplayer, out RunIdentity identity))
+        {
+            SetClientRunContext(identity, deleteExistingFile: false);
+        }
+        else
+        {
+            ClearClientRunContext(deleteFile: false);
+        }
+    }
+
+    public static async Task ActivateClientRunContextAfterSetupAsync(
+        Task originalSetupTask,
+        SerializableRun save,
+        bool isMultiplayer)
+    {
+        ArgumentNullException.ThrowIfNull(originalSetupTask);
+        await originalSetupTask;
+        ActivateClientRunContextFromSave(save, isMultiplayer);
+    }
+
+    public static void DeleteCurrentClientRunData()
+    {
+        if (TryCreateIdentityFromCurrentRun(out RunIdentity identity))
+        {
+            DeleteClientRunData(identity);
+            return;
+        }
+
+        lock (SyncRoot)
+        {
+            if (currentClientRunIdentity.HasValue)
+            {
+                identity = currentClientRunIdentity.Value;
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        DeleteClientRunData(identity);
+    }
+
+    public static void DeleteClientRunData(RunIdentity identity)
+    {
+        JmcPersistenceManager.DeleteClientRunData(identity);
+
+        lock (SyncRoot)
+        {
+            if (currentClientRunIdentity == identity)
+            {
+                currentClientRunIdentity = null;
+            }
+        }
+    }
+
+    public static bool TryResolveSaveRunIdentity(
+        RunSaveManager runSaveManager,
+        bool isMultiplayer,
+        out RunIdentity identity)
+    {
+        identity = default;
+
+        try
+        {
+            if (!TryGetSaveRuntime(runSaveManager, isMultiplayer, out ISaveStore? saveStore, out string savePath, out _)
+                || saveStore == null)
+            {
+                return false;
+            }
+
+            int? profileId = TryGetProfileId(runSaveManager);
+            if (!profileId.HasValue)
+            {
+                return false;
+            }
+
+            string? json = saveStore.FileExists(savePath) ? saveStore.ReadFile(savePath) : null;
+            if (TryReadStartTime(json, out long startTime))
+            {
+                identity = new RunIdentity(profileId.Value, startTime, isMultiplayer);
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            ModLogger.Warn("读取待删除 run save 的客户端本局数据身份失败。", ex);
+        }
+
+        return false;
     }
 
     public static void LoadRunDocumentFromSave(
@@ -299,6 +413,110 @@ internal static class RunPersistenceManager
         return false;
     }
 
+    private static void SetClientRunContext(RunIdentity identity, bool deleteExistingFile)
+    {
+        lock (SyncRoot)
+        {
+            currentClientRunIdentity = identity;
+        }
+
+        if (deleteExistingFile)
+        {
+            JmcPersistenceManager.DeleteClientRunData(identity);
+        }
+
+        JmcPersistenceManager.LoadClientRunEntries();
+    }
+
+    private static void ClearClientRunContext(bool deleteFile)
+    {
+        RunIdentity? identity;
+        lock (SyncRoot)
+        {
+            identity = currentClientRunIdentity;
+            currentClientRunIdentity = null;
+        }
+
+        if (deleteFile && identity.HasValue)
+        {
+            JmcPersistenceManager.DeleteClientRunData(identity.Value);
+        }
+        else
+        {
+            JmcPersistenceManager.ResetClientRunEntriesToDefault();
+        }
+    }
+
+    private static bool TryCreateIdentityFromCurrentRun(out RunIdentity identity)
+    {
+        identity = default;
+
+        try
+        {
+            RunManager? runManager = RunManager.Instance;
+            if (runManager?.IsInProgress != true)
+            {
+                return false;
+            }
+
+            if (RunStartTimeField?.GetValue(runManager) is not long startTime || startTime <= 0)
+            {
+                return false;
+            }
+
+            if (runManager.NetService == null)
+            {
+                return false;
+            }
+
+            int profileId = SaveManager.Instance.CurrentProfileId;
+            bool isMultiplayer = runManager.NetService.Type.IsMultiplayer();
+            identity = new RunIdentity(profileId, startTime, isMultiplayer);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool TryCreateIdentityFromSave(
+        SerializableRun save,
+        bool isMultiplayer,
+        out RunIdentity identity)
+    {
+        identity = default;
+
+        try
+        {
+            if (save.StartTime <= 0)
+            {
+                return false;
+            }
+
+            int profileId = SaveManager.Instance.CurrentProfileId;
+            identity = new RunIdentity(profileId, save.StartTime, isMultiplayer);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool TryReadStartTime(string? json, out long startTime)
+    {
+        startTime = 0;
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return false;
+        }
+
+        JObject root = JObject.Parse(json);
+        startTime = root["start_time"]?.Value<long?>() ?? 0;
+        return startTime > 0;
+    }
+
     private static RunPersistenceDocument? TryReadDocument(string? json, long? expectedStartTime)
     {
         if (string.IsNullOrWhiteSpace(json))
@@ -329,20 +547,26 @@ internal static class RunPersistenceManager
         forceSynchronous = ForceSynchronousField?.GetValue(runSaveManager) as bool? ?? false;
         savePath = string.Empty;
 
-        object? profileIdProvider = ProfileIdProviderField?.GetValue(runSaveManager);
-        object? profileValue = profileIdProvider?
-            .GetType()
-            .GetProperty(nameof(IProfileIdProvider.CurrentProfileId))?
-            .GetValue(profileIdProvider);
-        if (profileValue is not int profileId)
+        int? profileId = TryGetProfileId(runSaveManager);
+        if (!profileId.HasValue)
         {
             return false;
         }
 
         savePath = RunSaveManager.GetRunSavePath(
-            profileId,
+            profileId.Value,
             isMultiplayer ? RunSaveManager.multiplayerRunSaveFileName : RunSaveManager.runSaveFileName);
         return saveStore != null;
+    }
+
+    private static int? TryGetProfileId(RunSaveManager runSaveManager)
+    {
+        object? profileIdProvider = ProfileIdProviderField?.GetValue(runSaveManager);
+        object? profileValue = profileIdProvider?
+            .GetType()
+            .GetProperty(nameof(IProfileIdProvider.CurrentProfileId))?
+            .GetValue(profileIdProvider);
+        return profileValue is int profileId ? profileId : null;
     }
 
     private sealed class AttachedRunDocument(RunPersistenceDocument document)

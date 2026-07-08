@@ -1,4 +1,5 @@
 using Godot;
+using JmcModLib.Persistence.Run;
 using MegaCrit.Sts2.Core.Saves;
 using System.Reflection;
 
@@ -40,6 +41,14 @@ internal static class PersistencePathProvider
                     filePath = Globalize(profilePath);
                     return true;
 
+                case PersistenceScope.ClientRun:
+                    if (!RunPersistenceManager.TryGetCurrentClientRunIdentity(out RunIdentity identity))
+                    {
+                        return false;
+                    }
+
+                    return TryGetClientRunFilePath(assembly, identity, out filePath);
+
                 default:
                     return false;
             }
@@ -47,6 +56,32 @@ internal static class PersistencePathProvider
         catch (Exception ex)
         {
             ModLogger.Warn($"解析 Persistence 存储路径失败：{scope}", ex, assembly);
+            return false;
+        }
+    }
+
+    public static bool TryGetClientRunFilePath(Assembly assembly, RunIdentity identity, out string filePath)
+    {
+        filePath = string.Empty;
+
+        try
+        {
+            string modId = PersistenceIdentifier.SanitizePathSegment(ModRegistry.GetModId(assembly));
+            string profileId = PersistenceIdentifier.SanitizePathSegment(identity.ProfileId.ToString());
+            string runIdentity = PersistenceIdentifier.SanitizePathSegment(identity.FileStem);
+            filePath = Path.Combine(
+                GetLocalUserDataDir(),
+                "mods",
+                "persistence",
+                modId,
+                "client-runs",
+                profileId,
+                $"{runIdentity}.v1.json");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ModLogger.Warn("解析客户端本局 Persistence 存储路径失败。", ex, assembly);
             return false;
         }
     }

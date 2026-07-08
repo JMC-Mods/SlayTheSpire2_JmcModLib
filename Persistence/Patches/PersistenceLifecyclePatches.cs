@@ -1,5 +1,6 @@
 using HarmonyLib;
 using JmcModLib.Persistence.Run;
+using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves;
 
@@ -48,6 +49,42 @@ internal static class PersistenceNewMultiplayerRunPatch
     private static void Postfix()
     {
         RunPersistenceManager.StartNewRun();
+    }
+}
+
+[HarmonyPatch(typeof(RunManager), nameof(RunManager.SetUpSavedSingleplayer))]
+internal static class PersistenceSavedSingleplayerRunPatch
+{
+    [HarmonyPostfix]
+    private static void Postfix(SerializableRun save, ref Task __result)
+    {
+        __result = RunPersistenceManager.ActivateClientRunContextAfterSetupAsync(
+            __result,
+            save,
+            isMultiplayer: false);
+    }
+}
+
+[HarmonyPatch(typeof(RunManager), nameof(RunManager.SetUpSavedMultiplayer))]
+internal static class PersistenceSavedMultiplayerRunPatch
+{
+    [HarmonyPostfix]
+    private static void Postfix(LoadRunLobby lobby, ref Task __result)
+    {
+        __result = RunPersistenceManager.ActivateClientRunContextAfterSetupAsync(
+            __result,
+            lobby.Run,
+            isMultiplayer: true);
+    }
+}
+
+[HarmonyPatch(typeof(RunManager), nameof(RunManager.OnEnded))]
+internal static class PersistenceRunEndedPatch
+{
+    [HarmonyPostfix]
+    private static void Postfix()
+    {
+        RunPersistenceManager.DeleteCurrentClientRunData();
     }
 }
 

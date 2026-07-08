@@ -22,7 +22,12 @@ internal sealed class PersistenceSlotEntry<T> : PersistenceEntry, IJmcRunDataSlo
         runDataSlot.Bind(this);
     }
 
-    public bool CanAccess => Scope != PersistenceScope.Run || JmcModLib.Persistence.Run.RunPersistenceManager.CanAccessRunData;
+    public bool CanAccess => Scope switch
+    {
+        PersistenceScope.Run => JmcModLib.Persistence.Run.RunPersistenceManager.CanAccessRunData,
+        PersistenceScope.ClientRun => JmcModLib.Persistence.Run.RunPersistenceManager.HasClientRunContext,
+        _ => true,
+    };
 
     public T GetValue()
     {
@@ -31,7 +36,7 @@ internal sealed class PersistenceSlotEntry<T> : PersistenceEntry, IJmcRunDataSlo
 
     public JmcDataWriteResult SetValue(T nextValue)
     {
-        if (Scope == PersistenceScope.Run && !CanAccess)
+        if (Scope is PersistenceScope.Run or PersistenceScope.ClientRun && !CanAccess)
         {
             LogRunContextUnavailable();
             return JmcDataWriteResult.Failed("当前没有可写入的 run 上下文。");
@@ -45,6 +50,10 @@ internal sealed class PersistenceSlotEntry<T> : PersistenceEntry, IJmcRunDataSlo
         if (Scope == PersistenceScope.Run)
         {
             JmcModLib.Persistence.Run.RunPersistenceManager.MarkDirty();
+        }
+        else if (Scope == PersistenceScope.ClientRun)
+        {
+            JmcPersistenceManager.FlushClientRunData(Assembly);
         }
         else if (Scope == PersistenceScope.LocalPreference)
         {

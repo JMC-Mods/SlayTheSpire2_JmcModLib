@@ -470,7 +470,11 @@ internal sealed class PanelState
 {
     public string LastTab { get; set; } = "overview";
     public bool IsCollapsed { get; set; }
-    public JmcRunIdentity? RunIdentity { get; set; }
+}
+
+internal sealed class ClientRunUiState
+{
+    public bool OverlayPinned { get; set; }
     public ulong? LockedNetId { get; set; }
 }
 
@@ -478,6 +482,9 @@ internal static class DemoPersistence
 {
     [JmcLocalPreference("ui.panel_state")]
     internal static readonly JmcDataSlot<PanelState> PanelState = new(new PanelState());
+
+    [JmcClientRunData("ui.client_overlay_state")]
+    internal static readonly JmcRunDataSlot<ClientRunUiState> ClientOverlayState = new(new ClientRunUiState());
 
     [JmcGlobalData("stats.global_launches")]
     internal static int GlobalLaunches;
@@ -501,16 +508,19 @@ internal static class DemoPersistence
 
     public static void TogglePanel()
     {
-        bool hasRunIdentity = JmcRunContext.TryGetCurrentRunIdentity(out JmcRunIdentity identity);
-        PanelState.Modify(state =>
+        PanelState.Modify(static state =>
         {
             state.IsCollapsed = !state.IsCollapsed;
             state.LastTab = state.IsCollapsed ? "compact" : "overview";
-            if (hasRunIdentity)
-            {
-                state.RunIdentity = identity;
-                state.LockedNetId = 123;
-            }
+        });
+    }
+
+    public static void ToggleClientOverlay()
+    {
+        ClientOverlayState.Modify(static state =>
+        {
+            state.OverlayPinned = !state.OverlayPinned;
+            state.LockedNetId = 123;
         });
     }
 
@@ -527,7 +537,7 @@ Key points:
 - Use `Modify` for reference-type internal mutations, for example `Stats.Modify(static stats => stats.TotalRuns++)`.
 - Bare static values are good for simple types, such as `TotalRuns` above.
 - `[JmcLocalPreference]` saves to `OS.GetUserDataDir()/mods/persistence/<modId>/local-preferences.v1.json`. It does not use `SaveManager`, does not enter run saves, and does not cloud-sync, making it suitable for local non-gameplay UI preferences such as tabs, collapsed panels, and sort order. LocalPreference Slot `SetValue` / `Modify` writes immediately; bare static values can use `JmcPersistenceManager.FlushLocalPreferences()`.
-- For preferences that should be saved immediately on this machine but only apply to the current run, store the `JmcRunIdentity` returned by `JmcRunContext.TryGetCurrentRunIdentity()` together with the LocalPreference value and compare it before restoring. This only provides an isolation check; it does not replace `[JmcRunData]`.
+- `[JmcClientRunData]` saves to `OS.GetUserDataDir()/mods/persistence/<modId>/client-runs/<profileId>/<runIdentity>.v1.json`. It does not enter run saves, cloud-sync, or multiplayer sync. It survives Save and Quit, is not rolled back by loading an older run save, and is cleared when the run ends, is abandoned, is deleted, or a new run starts. It only supports `JmcRunDataSlot<T>`.
 - Profile data is flushed/reloaded automatically on profile switch. Call `JmcPersistenceManager.Flush()` when you need an immediate write.
 - First-phase run data is stored only in the local run save's `_jml` extension document and does not participate in multiplayer sync. JML preserves unknown MOD data and carries `_jml` forward after vanilla `RunManager.CanonicalizeSave`.
 

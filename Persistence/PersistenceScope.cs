@@ -5,5 +5,6 @@ internal enum PersistenceScope
     LocalPreference,
     Global,
     Profile,
+    ClientRun,
     Run,
 }

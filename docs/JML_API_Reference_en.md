@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 API Reference
 
-Source baseline: JML `1.5.11`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
+Source baseline: JML `1.5.12`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
 
 ```csharp
 using JmcModLib.Core;
@@ -83,8 +83,8 @@ Namespace: `JmcModLib.Core`
 | Member | Description |
 |---|---|
 | `const string Name = "JmcModLib"` | JML name |
-| `const string Version = "1.5.11"` | JML version |
-| `string Tag` | `"[JmcModLib v1.5.11]"` |
+| `const string Version = "1.5.12"` | JML version |
+| `string Tag` | `"[JmcModLib v1.5.12]"` |
 | `GetName(Assembly? assembly = null)` | Gets the specified assembly name; JML itself returns the fixed name |
 | `GetVersion(Assembly? assembly = null)` | Gets the specified assembly version; JML itself returns the fixed version |
 | `GetTag(Assembly? assembly = null)` | Builds a log tag |
@@ -575,7 +575,11 @@ internal sealed class PanelState
 {
     public string LastTab { get; set; } = "overview";
     public bool IsCollapsed { get; set; }
-    public JmcRunIdentity? RunIdentity { get; set; }
+}
+
+internal sealed class ClientRunUiState
+{
+    public bool OverlayPinned { get; set; }
     public ulong? LockedNetId { get; set; }
 }
 
@@ -583,6 +587,9 @@ internal static class DemoPersistence
 {
     [JmcLocalPreference("ui.panel_state")]
     internal static readonly JmcDataSlot<PanelState> PanelState = new(new PanelState());
+
+    [JmcClientRunData("ui.client_overlay_state")]
+    internal static readonly JmcRunDataSlot<ClientRunUiState> ClientOverlayState = new(new ClientRunUiState());
 
     [JmcGlobalData("stats.global_launches")]
     internal static int GlobalLaunches;
@@ -606,16 +613,19 @@ internal static class DemoPersistence
 
     public static void TogglePanel()
     {
-        bool hasRunIdentity = JmcRunContext.TryGetCurrentRunIdentity(out JmcRunIdentity identity);
-        PanelState.Modify(state =>
+        PanelState.Modify(static state =>
         {
             state.IsCollapsed = !state.IsCollapsed;
             state.LastTab = state.IsCollapsed ? "compact" : "overview";
-            if (hasRunIdentity)
-            {
-                state.RunIdentity = identity;
-                state.LockedNetId = 123;
-            }
+        });
+    }
+
+    public static void ToggleClientOverlay()
+    {
+        ClientOverlayState.Modify(static state =>
+        {
+            state.OverlayPinned = !state.OverlayPinned;
+            state.LockedNetId = 123;
         });
     }
 
@@ -631,17 +641,19 @@ Lifecycle:
 ```mermaid
 flowchart TD
     A[ModRegistry.EnsureDefaultServices] --> B[JmcPersistenceManager.Init]
-    B --> C[Register LocalPreference/Global/Profile/Run Attribute handlers]
+    B --> C[Register LocalPreference/Global/Profile/ClientRun/Run Attribute handlers]
     C --> D[AttributeRouter scans static fields/properties]
     D --> E{Data scope}
     E -- LocalPreference --> F[local-preferences.v1.json]
     E -- Global --> G[account scoped global.v1.json]
     E -- Profile --> H[current profile profile.v1.json]
-    E -- Run --> I[current run save root _jml]
+    E -- ClientRun --> I[client-runs profile/run sidecar]
+    E -- Run --> N[current run save root _jml]
     H --> J[flush before profile switch]
     J --> K[reload after profile switch]
-    I --> L[merge extension document at RunSaveManager save/load boundaries]
-    I --> M[preserve _jml after CanonicalizeSave]
+    I --> L[kept across Save and Quit, not rolled back by SL]
+    N --> M[merge extension document at RunSaveManager save/load boundaries]
+    N --> O[preserve _jml after CanonicalizeSave]
 ```
 
 Public API:
@@ -651,17 +663,17 @@ Public API:
 | `JmcLocalPreferenceAttribute` | Declares current-machine local preferences; does not switch with profile, does not enter run saves, and does not participate in cloud or multiplayer sync |
 | `JmcGlobalDataAttribute` | Declares account-scoped data that does not switch with profile |
 | `JmcProfileDataAttribute` | Declares current-profile-scoped data, flushed/reloaded on profile switch |
+| `JmcClientRunDataAttribute` | Declares current-client, current-run lifecycle data stored in a local sidecar; it does not enter run saves and is cleared when the run ends, is abandoned, is deleted, or a new run starts |
 | `JmcRunDataAttribute` | Declares current-run local non-synced data stored under `_jml` in the run save |
 | `JmcDataSlot<T>` | Local/global/profile slot exposing `IsBound`, `Key`, `Value`, `SetValue(T)`, and `Modify(Action<T>)` |
-| `JmcRunDataSlot<T>` | Run slot; outside a run context, reads return the default value and writes fail |
-| `JmcRunIdentity` | Current-run identity snapshot containing `ProfileId`, `StartTime`, and `IsMultiplayer` |
-| `JmcRunContext.TryGetCurrentRunIdentity(out JmcRunIdentity identity)` | Attempts to read the current run identity so LocalPreference data can decide whether it still belongs to this run |
+| `JmcRunDataSlot<T>` | Run/client-run slot; outside the corresponding context, reads return the default value and writes fail |
 | `JmcDataWritePolicy` | `WhenChanged` or `Always` |
 | `JmcDataWriteResult` | Result returned by `SetValue` / `Modify`, with `Success` and `Message` |
 | `JmcPersistenceManager.Init()` | Initializes Attribute handlers; normally called automatically by `ModRegistry` |
-| `JmcPersistenceManager.Flush(Assembly? assembly = null)` | Flushes the current MOD's local/global/profile data |
+| `JmcPersistenceManager.Flush(Assembly? assembly = null)` | Flushes the current MOD's local/global/profile/client-run data |
 | `JmcPersistenceManager.FlushLocalPreferences(Assembly? assembly = null)` | Flushes only the current MOD's local preferences |
-| `JmcPersistenceManager.FlushAll()` | Flushes local/global/profile data for all registered MODs |
+| `JmcPersistenceManager.FlushClientRunData(Assembly? assembly = null)` | Flushes only the current MOD's client-run data |
+| `JmcPersistenceManager.FlushAll()` | Flushes local/global/profile/client-run data for all registered MODs |
 
 Attribute parameters:
 
@@ -674,10 +686,10 @@ Attribute parameters:
 Usage notes:
 
 - Slots are best for complex objects. For reference-type internal mutations, wrap changes in `Modify`, or call `SetValue` after changing the object.
-- Bare static fields/properties are best for `int`, `bool`, `string`, `enum`, and simple JSON objects. Direct assignment to a bare static value does not dirty immediately; JML reads it at flush / save boundaries.
+- Bare static fields/properties are best for `int`, `bool`, `string`, `enum`, and simple JSON objects. Direct assignment to a bare static value does not dirty immediately; JML reads it at flush / save boundaries. `JmcClientRunData` does not support bare static values and must use `JmcRunDataSlot<T>`.
 - LocalPreference data is saved to `OS.GetUserDataDir()/mods/persistence/<modId>/local-preferences.v1.json`. It writes directly to a local file, does not use `SaveManager`, and is intended for non-gameplay UI state such as panel state, sort order, collapsed sections, window position, and the last opened tab.
 - LocalPreference `JmcDataSlot<T>.SetValue` / `Modify` immediately calls `FlushLocalPreferences()`. Bare static local preferences are written at least on explicit `FlushLocalPreferences()`, `Flush()`, MOD unregister, or process exit.
-- If a local preference needs run-level isolation, such as immediately saving a locked `NetId` on this machine but restoring it only for the current run, store `JmcRunIdentity` with the value and compare it with `JmcRunContext.TryGetCurrentRunIdentity()` before restoring. This API only provides the identity check; it does not write data and does not replace `[JmcRunData]`.
+- ClientRun data is saved to `OS.GetUserDataDir()/mods/persistence/<modId>/client-runs/<profileId>/<runIdentity>.v1.json`. It writes directly to a local file and does not use `SaveManager`, run saves, or cloud save stores. Slot writes flush immediately; the data survives Save and Quit, is not rolled back by loading an older run save, and is cleared when the run ends, is abandoned, is deleted, or a new run starts.
 - Global data is saved under account scope: `mods/persistence/<modId>/global.v1.json`.
 - Profile data is saved under current-profile scope: `mods/persistence/<modId>/profile.v1.json`.
 - Run data does not participate in multiplayer sync, rejoin sync, replay, or checksum semantics in the first phase. It is stored only in the local run save root `_jml` extension document. JML preserves unknown MOD data under `_jml` and carries the extension document forward when vanilla `RunManager.CanonicalizeSave` creates a new `SerializableRun`.

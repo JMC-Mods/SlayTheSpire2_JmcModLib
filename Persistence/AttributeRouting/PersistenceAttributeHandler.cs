@@ -50,6 +50,13 @@ internal sealed class PersistenceAttributeHandler(PersistenceScope scope) : IAtt
                 descriptor = new PersistenceAttributeDescriptor(profile.Key, profile.SchemaVersion, profile.WritePolicy);
                 return true;
 
+            case JmcClientRunDataAttribute clientRun:
+                descriptor = new PersistenceAttributeDescriptor(
+                    clientRun.Key,
+                    clientRun.SchemaVersion,
+                    clientRun.WritePolicy);
+                return true;
+
             case JmcRunDataAttribute run:
                 descriptor = new PersistenceAttributeDescriptor(run.Key, run.SchemaVersion, run.WritePolicy);
                 return true;
