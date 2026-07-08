@@ -35,6 +35,7 @@ internal sealed partial class ModSettingsPanel : NSettingsPanel
     private Callable? viewportSizeChangedCallable;
     private Control? layoutReferencePanel;
     private bool suppressControlEvents;
+    private bool restartRequiredConfigChanged;
 
     private sealed class DropdownEditorState(IReadOnlyList<string> options)
     {

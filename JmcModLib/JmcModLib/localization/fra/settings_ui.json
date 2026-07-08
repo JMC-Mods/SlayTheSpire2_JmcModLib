@@ -42,5 +42,15 @@
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_TITLE": "Clear Secret",
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_BODY": "Clear the saved Secret for {name}?",
   "EXTENSION.JMCMODLIB.UI.SECRET_SAVE_FAILED": "Failed to save Secret: {status}",
-  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}"
+  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}",
+  "EXTENSION.JMCMODLIB.UI.GROUP.JMCMODLIB": "JmcModLib",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.NAME": "Afficher le bouton de redémarrage dans le gestionnaire de mods",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.DESCRIPTION": "Lorsqu'activer ou désactiver des mods nécessite de redémarrer le jeu, affiche automatiquement un bouton de redémarrage à droite.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_TITLE": "Redémarrer le jeu ?",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BODY": "Le jeu va enregistrer les paramètres actuels, se fermer, puis se relancer.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BUTTON": "Redémarrer",
+  "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Annuler",
+  "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Fermer",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Redémarrage indisponible",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Le redémarrage automatique n'est pas pris en charge sur {platform}. Veuillez redémarrer le jeu manuellement."
 }

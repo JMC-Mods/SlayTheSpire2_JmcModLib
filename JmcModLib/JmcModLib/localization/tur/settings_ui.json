@@ -42,5 +42,15 @@
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_TITLE": "Clear Secret",
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_BODY": "Clear the saved Secret for {name}?",
   "EXTENSION.JMCMODLIB.UI.SECRET_SAVE_FAILED": "Failed to save Secret: {status}",
-  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}"
+  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}",
+  "EXTENSION.JMCMODLIB.UI.GROUP.JMCMODLIB": "JmcModLib",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.NAME": "Mod yöneticisinde yeniden başlat düğmesini göster",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.DESCRIPTION": "Modları açmak veya kapatmak oyunun yeniden başlatılmasını gerektirdiğinde sağ tarafta otomatik olarak yeniden başlat düğmesi gösterir.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_TITLE": "Oyun yeniden başlatılsın mı?",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BODY": "Oyun mevcut ayarları kaydedecek, kapanacak ve yeniden açılacak.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BUTTON": "Yeniden başlat",
+  "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "İptal",
+  "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Kapat",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Yeniden başlatma kullanılamıyor",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Otomatik yeniden başlatma {platform} üzerinde desteklenmiyor. Lütfen oyunu elle yeniden başlatın."
 }

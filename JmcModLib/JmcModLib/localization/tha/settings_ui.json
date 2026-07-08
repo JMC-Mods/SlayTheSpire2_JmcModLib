@@ -42,5 +42,15 @@
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_TITLE": "Clear Secret",
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_BODY": "Clear the saved Secret for {name}?",
   "EXTENSION.JMCMODLIB.UI.SECRET_SAVE_FAILED": "Failed to save Secret: {status}",
-  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}"
+  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}",
+  "EXTENSION.JMCMODLIB.UI.GROUP.JMCMODLIB": "JmcModLib",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.NAME": "แสดงปุ่มเริ่มเกมใหม่ในตัวจัดการม็อด",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.DESCRIPTION": "เมื่อการเปิดหรือปิดม็อดต้องเริ่มเกมใหม่ จะแสดงปุ่มเริ่มใหม่ทางด้านขวาโดยอัตโนมัติ",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_TITLE": "เริ่มเกมใหม่หรือไม่?",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BODY": "เกมจะบันทึกการตั้งค่าปัจจุบัน ออก แล้วเปิดขึ้นมาใหม่",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BUTTON": "เริ่มใหม่",
+  "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "ยกเลิก",
+  "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "ปิด",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "ไม่สามารถเริ่มใหม่อัตโนมัติได้",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "ไม่รองรับการเริ่มใหม่อัตโนมัติบน {platform} โปรดเริ่มเกมใหม่ด้วยตนเอง"
 }

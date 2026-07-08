@@ -10,6 +10,7 @@ public partial class MainFile : Node
 {
     public static void Initialize()
     {
+        GameRestart.MarkMainThread();
         ModRegistry.Register<MainFile>();
 
         ModLogger.Info("======================================");

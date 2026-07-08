@@ -42,5 +42,15 @@
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_TITLE": "Clear Secret",
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_BODY": "Clear the saved Secret for {name}?",
   "EXTENSION.JMCMODLIB.UI.SECRET_SAVE_FAILED": "Failed to save Secret: {status}",
-  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}"
+  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}",
+  "EXTENSION.JMCMODLIB.UI.GROUP.JMCMODLIB": "JmcModLib",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.NAME": "Показывать кнопку перезапуска в менеджере модов",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.DESCRIPTION": "Если включение или отключение модов требует перезапуска игры, справа автоматически появится кнопка перезапуска.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_TITLE": "Перезапустить игру?",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BODY": "Игра сохранит текущие настройки, завершится и запустится снова.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BUTTON": "Перезапуск",
+  "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Отмена",
+  "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Закрыть",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Перезапуск недоступен",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Автоматический перезапуск не поддерживается на {platform}. Перезапустите игру вручную."
 }

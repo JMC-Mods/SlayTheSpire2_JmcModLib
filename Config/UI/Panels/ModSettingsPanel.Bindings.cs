@@ -1,4 +1,5 @@
 using JmcModLib.Config.Entry;
+using JmcModLib.UI;
 
 namespace JmcModLib.Config.UI;
 
@@ -30,6 +31,23 @@ internal sealed partial class ModSettingsPanel
         _ = TryUpdateBinding(entry, value, logUnexpectedFailure: true);
         RefreshDynamicDropdownDependents(entry);
         RefreshDynamicVisibilityDependents(entry);
+        MarkRestartRequiredConfigChanged(entry);
+    }
+
+    private void MarkRestartRequiredConfigChanged(ConfigEntry entry)
+    {
+        if (!entry.Attribute.RestartRequired)
+        {
+            return;
+        }
+
+        restartRequiredConfigChanged = true;
+        RefreshRestartButtonVisibility();
+    }
+
+    private void RefreshRestartButtonVisibility()
+    {
+        RestartConfirmButtonUi.SetVisible(this, Visible && restartRequiredConfigChanged);
     }
 
     private bool TryUpdateBinding(ConfigEntry entry, object? value, bool logUnexpectedFailure)

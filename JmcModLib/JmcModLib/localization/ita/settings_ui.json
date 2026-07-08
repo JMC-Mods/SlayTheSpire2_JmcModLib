@@ -42,5 +42,15 @@
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_TITLE": "Clear Secret",
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_BODY": "Clear the saved Secret for {name}?",
   "EXTENSION.JMCMODLIB.UI.SECRET_SAVE_FAILED": "Failed to save Secret: {status}",
-  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}"
+  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}",
+  "EXTENSION.JMCMODLIB.UI.GROUP.JMCMODLIB": "JmcModLib",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.NAME": "Mostra il pulsante di riavvio nel gestore mod",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.DESCRIPTION": "Quando l'attivazione o la disattivazione dei mod richiede il riavvio del gioco, mostra automaticamente un pulsante di riavvio a destra.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_TITLE": "Riavviare il gioco?",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BODY": "Il gioco salverà le impostazioni correnti, si chiuderà e si avvierà di nuovo.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BUTTON": "Riavvia",
+  "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Annulla",
+  "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Chiudi",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Riavvio non disponibile",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Il riavvio automatico non è supportato su {platform}. Riavvia il gioco manualmente."
 }

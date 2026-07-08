@@ -42,5 +42,15 @@
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_TITLE": "Clear Secret",
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_BODY": "Clear the saved Secret for {name}?",
   "EXTENSION.JMCMODLIB.UI.SECRET_SAVE_FAILED": "Failed to save Secret: {status}",
-  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}"
+  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}",
+  "EXTENSION.JMCMODLIB.UI.GROUP.JMCMODLIB": "JmcModLib",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.NAME": "Show restart button in Mod Manager",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.DESCRIPTION": "When enabling or disabling mods requires a game restart, show a right-side restart button automatically.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_TITLE": "Restart game?",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BODY": "The game will save current settings, exit, and start again.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BUTTON": "Restart",
+  "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Cancel",
+  "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Close",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Restart unavailable",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Automatic restart is not supported on {platform}. Please restart the game manually."
 }

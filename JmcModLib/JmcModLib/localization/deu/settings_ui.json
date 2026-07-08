@@ -42,5 +42,15 @@
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_TITLE": "Clear Secret",
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_BODY": "Clear the saved Secret for {name}?",
   "EXTENSION.JMCMODLIB.UI.SECRET_SAVE_FAILED": "Failed to save Secret: {status}",
-  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}"
+  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}",
+  "EXTENSION.JMCMODLIB.UI.GROUP.JMCMODLIB": "JmcModLib",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.NAME": "Neustart-Schaltfläche im Mod-Manager anzeigen",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.DESCRIPTION": "Wenn das Aktivieren oder Deaktivieren von Mods einen Neustart erfordert, wird rechts automatisch eine Neustart-Schaltfläche angezeigt.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_TITLE": "Spiel neu starten?",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BODY": "Das Spiel speichert die aktuellen Einstellungen, beendet sich und startet erneut.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BUTTON": "Neu starten",
+  "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Abbrechen",
+  "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Schließen",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Neustart nicht verfügbar",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Automatischer Neustart wird auf {platform} nicht unterstützt. Bitte starte das Spiel manuell neu."
 }

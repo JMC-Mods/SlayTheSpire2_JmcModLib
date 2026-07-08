@@ -42,5 +42,15 @@
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_TITLE": "Clear Secret",
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_BODY": "Clear the saved Secret for {name}?",
   "EXTENSION.JMCMODLIB.UI.SECRET_SAVE_FAILED": "Failed to save Secret: {status}",
-  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}"
+  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}",
+  "EXTENSION.JMCMODLIB.UI.GROUP.JMCMODLIB": "JmcModLib",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.NAME": "Pokaż przycisk restartu w menedżerze modów",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.DESCRIPTION": "Gdy włączenie lub wyłączenie modów wymaga restartu gry, automatycznie pokazuje przycisk restartu po prawej stronie.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_TITLE": "Uruchomić grę ponownie?",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BODY": "Gra zapisze bieżące ustawienia, zamknie się i uruchomi ponownie.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BUTTON": "Restart",
+  "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Anuluj",
+  "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Zamknij",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Restart niedostępny",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Automatyczny restart nie jest obsługiwany na {platform}. Uruchom grę ponownie ręcznie."
 }

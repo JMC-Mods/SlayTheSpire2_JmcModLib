@@ -1,4 +1,5 @@
 using Godot;
+using JmcModLib.UI;
 
 namespace JmcModLib.Config.UI;
 
@@ -45,6 +46,7 @@ internal sealed partial class ModSettingsPanel
         descriptionLabel = null;
         nativeTemplates = null;
         layoutReferencePanel = null;
+        RestartConfirmButtonUi.Remove(this);
         base._ExitTree();
     }
 
@@ -85,11 +87,13 @@ internal sealed partial class ModSettingsPanel
         {
             listeningKeybind?.CancelListening();
             listeningKeybind = null;
+            RefreshRestartButtonVisibility();
             return;
         }
 
         RebuildContent();
         RefreshPanelSizeAfterLayout();
+        RefreshRestartButtonVisibility();
 
         Tween tween = CreateTween().SetParallel();
         tween.TweenProperty(this, "modulate", Colors.White, 0.35).From(Colors.Transparent)

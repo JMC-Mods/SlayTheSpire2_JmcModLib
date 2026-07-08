@@ -42,5 +42,15 @@
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_TITLE": "Clear Secret",
   "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_BODY": "Clear the saved Secret for {name}?",
   "EXTENSION.JMCMODLIB.UI.SECRET_SAVE_FAILED": "Failed to save Secret: {status}",
-  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}"
+  "EXTENSION.JMCMODLIB.UI.SECRET_CLEAR_FAILED": "Failed to clear Secret: {status}",
+  "EXTENSION.JMCMODLIB.UI.GROUP.JMCMODLIB": "JmcModLib",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.NAME": "Mostrar botão de reiniciar no gerenciador de mods",
+  "EXTENSION.JMCMODLIB.UI.AUTO_MOD_MANAGER_RESTART_BUTTON.DESCRIPTION": "Quando ativar ou desativar mods exigir reiniciar o jogo, mostra automaticamente um botão de reiniciar à direita.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_TITLE": "Reiniciar o jogo?",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BODY": "O jogo salvará as configurações atuais, sairá e iniciará novamente.",
+  "EXTENSION.JMCMODLIB.RESTART.CONFIRM_BUTTON": "Reiniciar",
+  "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Cancelar",
+  "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Fechar",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Reinício indisponível",
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Reinício automático não é compatível com {platform}. Reinicie o jogo manualmente."
 }

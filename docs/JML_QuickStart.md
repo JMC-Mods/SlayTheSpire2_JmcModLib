@@ -860,6 +860,23 @@ if (JmcConfirmationPopup.IsAvailable)
 }
 ```
 
+### 确认后重启游戏
+
+需要提供“重启游戏”入口时，优先使用 `GameRestart.ShowRestartConfirmationAsync`。它会先显示 JML 确认弹窗，用户确认后通过游戏原生退出流程保存数据，并在支持的平台上自动重启。Android、iOS 等不支持自动重启的平台会返回 `false` 并显示回退提示。
+
+```csharp
+using JmcModLib.Config.UI;
+using JmcModLib.Utils;
+using MegaCrit.Sts2.Core.Helpers;
+
+[UIButton("重启游戏", "重启", Key = "button.restart_game", Color = UIButtonColor.Blue)]
+public static void RestartGameButton()
+{
+    TaskHelper.RunSafely(GameRestart.ShowRestartConfirmationAsync(
+        assembly: typeof(MainFile).Assembly));
+}
+```
+
 ### 可滚动报告弹窗
 
 日志摘要、诊断报告或调试输出较长时，使用 `JmcReportPopup`：

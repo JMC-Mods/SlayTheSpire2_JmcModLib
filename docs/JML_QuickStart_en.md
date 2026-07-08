@@ -858,6 +858,23 @@ if (JmcConfirmationPopup.IsAvailable)
 }
 ```
 
+### Restarting the Game After Confirmation
+
+When you need a "restart game" entry point, prefer `GameRestart.ShowRestartConfirmationAsync`. It shows the JML confirmation popup first; after the user confirms, it exits through the game's native quit flow so saves still run, and automatically restarts on supported platforms. On unsupported platforms such as Android and iOS, it returns `false` and shows the fallback message.
+
+```csharp
+using JmcModLib.Config.UI;
+using JmcModLib.Utils;
+using MegaCrit.Sts2.Core.Helpers;
+
+[UIButton("Restart Game", "Restart", Key = "button.restart_game", Color = UIButtonColor.Blue)]
+public static void RestartGameButton()
+{
+    TaskHelper.RunSafely(GameRestart.ShowRestartConfirmationAsync(
+        assembly: typeof(MainFile).Assembly));
+}
+```
+
 ### Scrollable Report Popup
 
 Use `JmcReportPopup` for long log summaries, diagnostic reports, or debug output:

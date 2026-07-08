@@ -1263,6 +1263,26 @@ flowchart TD
 | `GetOrCreateAccessors<T>(Expression<Func<T>> expr, out bool cacheHit, Assembly? assembly = null)` | 带 cache hit 输出 |
 | `ClearAssemblyCache(Assembly? assembly = null)` | 清理指定 Assembly 缓存 |
 
+### 11.7 `GameRestart`
+
+命名空间：`JmcModLib.Utils`。源码文件在 `Utils/GameRestart.cs`。
+
+`GameRestart` 用于请求游戏重启。桌面平台会调用 Godot `OS.SetRestartOnExit` 安排退出后重启，并通过游戏原生 `NGame.Quit()` 退出，以保留设置、进度和档案保存流程。Android、iOS 等 Godot 当前不支持自动重启的平台会返回 `false`，调用方应提示用户手动重启。
+
+| 成员 | 说明 |
+|---|---|
+| `IsRestartSupported` | 当前平台是否支持由 JML 请求自动重启 |
+| `TryScheduleRestart(bool preserveCommandLineArguments = true, Assembly? assembly = null)` | 只安排下次正常退出后重启，不主动退出 |
+| `RequestRestart(bool preserveCommandLineArguments = true, Assembly? assembly = null)` | 安排重启并请求原生退出流程 |
+| `ShowRestartConfirmationAsync(bool preserveCommandLineArguments = true, Assembly? assembly = null)` | 使用 JML 确认弹窗询问用户；确认后请求重启 |
+
+```csharp
+using JmcModLib.Utils;
+
+bool requested = await GameRestart.ShowRestartConfirmationAsync(
+    assembly: typeof(MainFile).Assembly);
+```
+
 ---
 
 ## 12. Prefabs：弹窗

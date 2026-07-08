@@ -1257,6 +1257,26 @@ Namespace: `JmcModLib.Utils`. The source file is `Utils/ExprHelper.cs`; function
 | `GetOrCreateAccessors<T>(Expression<Func<T>> expr, out bool cacheHit, Assembly? assembly = null)` | Includes cache-hit output |
 | `ClearAssemblyCache(Assembly? assembly = null)` | Clears cache for the specified Assembly |
 
+### 11.7 `GameRestart`
+
+Namespace: `JmcModLib.Utils`. The source file is `Utils/GameRestart.cs`.
+
+`GameRestart` requests a game restart. On desktop platforms it uses Godot `OS.SetRestartOnExit` to schedule relaunch after exit, then calls the game's native `NGame.Quit()` so settings, progress, and profile saves still run. On platforms where Godot does not support automatic restart, such as Android and iOS, it returns `false`; callers should tell the user to restart manually.
+
+| Member | Description |
+|---|---|
+| `IsRestartSupported` | Whether the current platform supports automatic restart through JML |
+| `TryScheduleRestart(bool preserveCommandLineArguments = true, Assembly? assembly = null)` | Schedules restart on the next normal exit without quitting |
+| `RequestRestart(bool preserveCommandLineArguments = true, Assembly? assembly = null)` | Schedules restart and requests the native quit flow |
+| `ShowRestartConfirmationAsync(bool preserveCommandLineArguments = true, Assembly? assembly = null)` | Shows the JML confirmation popup; requests restart after confirmation |
+
+```csharp
+using JmcModLib.Utils;
+
+bool requested = await GameRestart.ShowRestartConfirmationAsync(
+    assembly: typeof(MainFile).Assembly);
+```
+
 ---
 
 ## 12. Prefabs: Popups

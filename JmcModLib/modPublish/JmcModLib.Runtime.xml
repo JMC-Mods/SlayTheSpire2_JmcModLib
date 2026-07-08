@@ -3215,6 +3215,45 @@
             清理所有缓存
             </summary>
         </member>
+        <member name="T:JmcModLib.Utils.GameRestart">
+            <summary>
+            提供跨平台安全回退的游戏重启工具。
+            </summary>
+            <remarks>
+            桌面平台会优先使用 Godot 的 <see cref="M:Godot.OS.SetRestartOnExit(System.Boolean,System.String[])"/>，
+            并通过游戏自身的 <see cref="M:MegaCrit.Sts2.Core.Nodes.NGame.Quit"/> 退出流程保存设置和进度。Android、iOS 等
+            Godot 当前不支持自动重启的平台会返回失败，并保留给调用方显示提示。
+            </remarks>
+        </member>
+        <member name="P:JmcModLib.Utils.GameRestart.IsRestartSupported">
+            <summary>
+            获取当前平台是否支持由 JML 请求自动重启游戏。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Utils.GameRestart.RequestRestart(System.Boolean,System.Reflection.Assembly)">
+            <summary>
+            安排游戏在正常退出后自动重启，并请求游戏执行原生退出流程。
+            </summary>
+            <param name="preserveCommandLineArguments">是否沿用当前进程的命令行参数启动新进程。</param>
+            <param name="assembly">日志归属程序集；留空时自动推断调用方程序集。</param>
+            <returns>成功安排重启并发出退出请求时返回 <see langword="true"/>；当前平台不支持或安排失败时返回 <see langword="false"/>。</returns>
+        </member>
+        <member name="M:JmcModLib.Utils.GameRestart.ShowRestartConfirmationAsync(System.Boolean,System.Reflection.Assembly)">
+            <summary>
+            显示 JML 原生确认弹窗；用户确认后安排自动重启并退出游戏。
+            </summary>
+            <param name="preserveCommandLineArguments">是否沿用当前进程的命令行参数启动新进程。</param>
+            <param name="assembly">日志归属程序集；留空时自动推断调用方程序集。</param>
+            <returns>用户确认且重启请求已发出时返回 <see langword="true"/>；用户取消或当前平台不支持时返回 <see langword="false"/>。</returns>
+        </member>
+        <member name="M:JmcModLib.Utils.GameRestart.TryScheduleRestart(System.Boolean,System.Reflection.Assembly)">
+            <summary>
+            仅安排游戏在下次正常退出后自动重启，不主动退出游戏。
+            </summary>
+            <param name="preserveCommandLineArguments">是否沿用当前进程的命令行参数启动新进程。</param>
+            <param name="assembly">日志归属程序集；留空时自动推断调用方程序集。</param>
+            <returns>成功写入重启计划时返回 <see langword="true"/>；当前平台不支持或写入失败时返回 <see langword="false"/>。</returns>
+        </member>
         <member name="T:JmcModLib.Utils.L10n">
              <summary>
              STS2 localization helpers.
