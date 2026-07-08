@@ -22,6 +22,20 @@ internal static class ModdingScreenRestartButtonPatch
         Refresh(__instance);
     }
 
+    [HarmonyPostfix]
+    [HarmonyPatch(nameof(NModdingScreen.OnSubmenuOpened))]
+    private static void AfterSubmenuOpened(NModdingScreen __instance)
+    {
+        Refresh(__instance);
+    }
+
+    [HarmonyPrefix]
+    [HarmonyPatch(nameof(NModdingScreen.OnSubmenuClosed))]
+    private static void BeforeSubmenuClosed(NModdingScreen __instance)
+    {
+        RestartConfirmButtonUi.Remove(__instance);
+    }
+
     [HarmonyPrefix]
     [HarmonyPatch(nameof(NModdingScreen._ExitTree))]
     private static void BeforeExitTree(NModdingScreen __instance)

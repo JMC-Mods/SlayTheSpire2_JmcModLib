@@ -91,10 +91,6 @@ internal static class RestartConfirmButtonUi
     private static void ConfigureButton(NConfirmButton button)
     {
         button.OverrideHotkeys([]);
-        button.Released += _button =>
-        {
-            _ = GameRestart.ShowRestartConfirmationAsync(assembly: typeof(RestartConfirmButtonUi).Assembly);
-        };
         ApplyRestartIcon(button);
         HideControllerHotkeyIcon(button);
     }
@@ -265,6 +261,9 @@ internal static class RestartConfirmButtonUi
         private readonly Node owner;
         private readonly NConfirmButton button;
         private readonly Callable ownerTreeExitingCallable;
+        private readonly Callable? ownerVisibilityChangedCallable;
+        private bool requestedVisible;
+        private bool suppressedByModal;
         private bool disposed;
 
         private RestartButtonHandle(Node owner, NConfirmButton button)
@@ -273,6 +272,16 @@ internal static class RestartConfirmButtonUi
             this.button = button;
             ownerTreeExitingCallable = Callable.From(() => Remove(owner));
             owner.Connect(Node.SignalName.TreeExiting, ownerTreeExitingCallable);
+            button.Released += _button =>
+            {
+                _ = ShowRestartConfirmationAsync();
+            };
+
+            if (owner is CanvasItem)
+            {
+                ownerVisibilityChangedCallable = Callable.From(ApplyVisualState);
+                owner.Connect(CanvasItem.SignalName.VisibilityChanged, ownerVisibilityChangedCallable.Value);
+            }
         }
 
         public bool IsValid => !disposed && RestartConfirmButtonUi.IsValid(button);
@@ -304,14 +313,61 @@ internal static class RestartConfirmButtonUi
                 return;
             }
 
-            if (visible)
+            requestedVisible = visible;
+            ApplyVisualState();
+        }
+
+        private async Task ShowRestartConfirmationAsync()
+        {
+            if (suppressedByModal)
             {
+                return;
+            }
+
+            try
+            {
+                suppressedByModal = true;
+                ApplyVisualState();
+                await GameRestart.ShowRestartConfirmationAsync(assembly: typeof(RestartConfirmButtonUi).Assembly);
+            }
+            finally
+            {
+                suppressedByModal = false;
+                ApplyVisualState();
+            }
+        }
+
+        private void ApplyVisualState()
+        {
+            if (!IsValid)
+            {
+                return;
+            }
+
+            bool ownerVisible = IsOwnerVisible();
+            bool shouldShow = requestedVisible && ownerVisible && !suppressedByModal;
+            if (shouldShow)
+            {
+                button.Visible = true;
                 button.Enable();
+                return;
             }
-            else
+
+            button.Disable();
+            if (!ownerVisible || suppressedByModal)
             {
-                button.Disable();
+                button.Visible = false;
             }
+        }
+
+        private bool IsOwnerVisible()
+        {
+            if (owner is not CanvasItem canvasItem)
+            {
+                return true;
+            }
+
+            return RestartConfirmButtonUi.IsValid(canvasItem) && canvasItem.IsVisibleInTree();
         }
 
         public void Dispose()
@@ -328,6 +384,20 @@ internal static class RestartConfirmButtonUi
                     && owner.IsConnected(Node.SignalName.TreeExiting, ownerTreeExitingCallable))
                 {
                     owner.Disconnect(Node.SignalName.TreeExiting, ownerTreeExitingCallable);
+                }
+            }
+            catch
+            {
+                // 场景销毁阶段信号连接可能已经失效，忽略即可。
+            }
+
+            try
+            {
+                if (RestartConfirmButtonUi.IsValid(owner)
+                    && ownerVisibilityChangedCallable is { } callable
+                    && owner.IsConnected(CanvasItem.SignalName.VisibilityChanged, callable))
+                {
+                    owner.Disconnect(CanvasItem.SignalName.VisibilityChanged, callable);
                 }
             }
             catch
