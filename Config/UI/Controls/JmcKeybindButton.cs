@@ -9,15 +9,20 @@ namespace JmcModLib.Config.UI;
 internal sealed class JmcKeybindButton : NButton
 {
     private const float RowWidth = 1040f;
+    private const float MinimumRowWidth = 520f;
     private const float RowHeight = 58f;
     private const float InputLabelWidth = 600f;
+    private const float MinimumInputLabelWidth = 220f;
     private const float KeyLabelWidth = 280f;
+    private const float MinimumKeyLabelWidth = 150f;
     private const float ControllerIconWidth = 84f;
+    private const float MinimumControllerIconWidth = 42f;
     private const int FontSize = 24;
 
     private string labelText = string.Empty;
     private JmcKeyBinding value;
     private UIKeybindAttribute attribute = new();
+    private float responsiveRowWidth = RowWidth;
     private Action<JmcKeybindButton>? onListeningStarted;
     private Action<JmcKeyBinding>? onChanged;
     private bool isListening;
@@ -64,6 +69,18 @@ internal sealed class JmcKeybindButton : NButton
         button.SizeFlagsVertical = SizeFlags.ShrinkCenter;
         button.CustomMinimumSize = new Vector2(RowWidth, Math.Max(RowHeight, template.CustomMinimumSize.Y));
         return button;
+    }
+
+    public void SetResponsiveWidth(float availableWidth)
+    {
+        float width = Math.Clamp(availableWidth, MinimumRowWidth, RowWidth);
+        if (Mathf.IsEqualApprox(responsiveRowWidth, width))
+        {
+            return;
+        }
+
+        responsiveRowWidth = width;
+        NormalizeLayout();
     }
 
     public override void _Ready()
@@ -281,21 +298,25 @@ internal sealed class JmcKeybindButton : NButton
     {
         SizeFlagsHorizontal = SizeFlags.ExpandFill;
         SizeFlagsVertical = SizeFlags.ShrinkCenter;
-        CustomMinimumSize = new Vector2(RowWidth, Math.Max(RowHeight, CustomMinimumSize.Y));
+        float rowWidth = Math.Clamp(responsiveRowWidth, MinimumRowWidth, RowWidth);
+        CustomMinimumSize = new Vector2(rowWidth, Math.Max(RowHeight, CustomMinimumSize.Y));
+        float controllerIconWidth = Math.Clamp(rowWidth * 0.08f, MinimumControllerIconWidth, ControllerIconWidth);
+        float keyLabelWidth = Math.Clamp(rowWidth * 0.26f, MinimumKeyLabelWidth, KeyLabelWidth);
+        float inputLabelWidth = Math.Max(MinimumInputLabelWidth, rowWidth - keyLabelWidth - controllerIconWidth - 80f);
 
         if (inputLabel != null)
         {
-            NormalizeLabel(inputLabel, InputLabelWidth, HorizontalAlignment.Left);
+            NormalizeLabel(inputLabel, Math.Min(InputLabelWidth, inputLabelWidth), HorizontalAlignment.Left);
         }
 
         if (keyBindingLabel != null)
         {
-            NormalizeLabel(keyBindingLabel, KeyLabelWidth, HorizontalAlignment.Center);
+            NormalizeLabel(keyBindingLabel, Math.Min(KeyLabelWidth, keyLabelWidth), HorizontalAlignment.Center);
         }
 
         if (controllerBindingIcon != null)
         {
-            controllerBindingIcon.CustomMinimumSize = new Vector2(ControllerIconWidth, RowHeight);
+            controllerBindingIcon.CustomMinimumSize = new Vector2(controllerIconWidth, RowHeight);
             controllerBindingIcon.SizeFlagsHorizontal = SizeFlags.ShrinkCenter;
             controllerBindingIcon.SizeFlagsVertical = SizeFlags.ShrinkCenter;
             controllerBindingIcon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;

@@ -18,7 +18,7 @@ internal sealed partial class ModSettingsPanel
         ConfigManager.AssemblyRegistered += OnAssemblyChanged;
         ConfigManager.AssemblyUnregistered += OnAssemblyChanged;
         L10n.SubscribeToLocaleChange(OnLocaleChanged);
-        RefreshPanelSize();
+        RefreshPanelSizeAfterLayout();
         RebuildContent();
     }
 
@@ -44,6 +44,7 @@ internal sealed partial class ModSettingsPanel
         titleLabel = null;
         descriptionLabel = null;
         nativeTemplates = null;
+        layoutReferencePanel = null;
         base._ExitTree();
     }
 
@@ -88,7 +89,7 @@ internal sealed partial class ModSettingsPanel
         }
 
         RebuildContent();
-        RefreshPanelSize();
+        RefreshPanelSizeAfterLayout();
 
         Tween tween = CreateTween().SetParallel();
         tween.TweenProperty(this, "modulate", Colors.White, 0.35).From(Colors.Transparent)
@@ -104,7 +105,7 @@ internal sealed partial class ModSettingsPanel
             return;
         }
 
-        Callable callable = Callable.From(RefreshPanelSize);
+        Callable callable = Callable.From(RefreshPanelSizeAfterLayout);
         connectedViewport = viewport;
         viewportSizeChangedCallable = callable;
         if (!viewport.IsConnected(Viewport.SignalName.SizeChanged, callable))

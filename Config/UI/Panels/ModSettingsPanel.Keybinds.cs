@@ -79,8 +79,6 @@ internal sealed partial class ModSettingsPanel
             enableTickbox.SizeFlagsVertical = SizeFlags.ShrinkCenter;
             focusableControls.Add(enableTickbox);
 
-            keybind.CustomMinimumSize = new Vector2(KeybindButtonWithToggleWidth, keybind.CustomMinimumSize.Y);
-
             var row = new HBoxContainer
             {
                 SizeFlagsHorizontal = SizeFlags.ExpandFill,

@@ -15,13 +15,13 @@ internal sealed partial class ModSettingsPanel : NSettingsPanel
     private readonly Dictionary<string, DynamicVisibilityBinding> dynamicVisibilityBindings = new(StringComparer.Ordinal);
     private readonly Dictionary<string, List<string>> dynamicVisibilityDependents = new(StringComparer.Ordinal);
 
-    private const float ContentWidth = 1120f;
+    private const float PreferredContentWidth = 1120f;
+    private const float ScrollbarContentGap = 40f;
     private const int IntroFontSize = 24;
     private const float CollapseButtonWidth = 240f;
     private const float GlobalButtonWidth = 260f;
     private const float ActionButtonHeight = 56f;
     private const float KeybindEnableToggleWidth = 64f;
-    private const float KeybindButtonWithToggleWidth = 1000f;
 
     private CenterContainer? centerRoot;
     private VBoxContainer? root;
@@ -33,6 +33,7 @@ internal sealed partial class ModSettingsPanel : NSettingsPanel
     private JmcKeybindButton? listeningKeybind;
     private Viewport? connectedViewport;
     private Callable? viewportSizeChangedCallable;
+    private Control? layoutReferencePanel;
     private bool suppressControlEvents;
 
     private sealed class DropdownEditorState(IReadOnlyList<string> options)

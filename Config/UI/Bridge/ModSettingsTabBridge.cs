@@ -27,7 +27,7 @@ internal static class ModSettingsTabBridge
 
         NSettingsTabManager? manager = screen.GetNodeOrNull<NSettingsTabManager>("%SettingsTabManager");
         NSettingsTab? templateTab = manager?.GetNodeOrNull<NSettingsTab>("Input");
-        NSettingsPanel? templatePanel = screen.GetNodeOrNull<NSettingsPanel>("%InputSettings");
+        NSettingsPanel? templatePanel = screen.GetNodeOrNull<NSettingsPanel>("%GeneralSettings");
 
         if (manager == null || templateTab == null || templatePanel == null)
         {
@@ -61,6 +61,7 @@ internal static class ModSettingsTabBridge
         ModSettingsPanel newPanel = ModSettingsPanel.Create();
         templatePanel.GetParent().AddChild(newPanel);
         CopyPanelLayout(templatePanel, newPanel);
+        newPanel.SetLayoutReference(templatePanel);
         newPanel.Visible = false;
 
         tabs.Add(newTab, newPanel);
