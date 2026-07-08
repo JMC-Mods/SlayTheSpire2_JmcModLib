@@ -113,7 +113,6 @@ internal sealed partial class ModSettingsPanel
         label.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         label.FitContent = true;
         label.ScrollActive = false;
-        label.AutoSizeEnabled = false;
         label.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         label.CustomMinimumSize = new Vector2(0f, label.CustomMinimumSize.Y);
         label.Text = text;
