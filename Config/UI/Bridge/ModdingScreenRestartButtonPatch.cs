@@ -1,6 +1,7 @@
 using Godot;
 using HarmonyLib;
 using JmcModLib.UI;
+using MegaCrit.Sts2.Core.Nodes.Screens.MainMenu;
 using MegaCrit.Sts2.Core.Nodes.Screens.ModdingScreen;
 
 namespace JmcModLib.Config.UI;
@@ -30,13 +31,6 @@ internal static class ModdingScreenRestartButtonPatch
     }
 
     [HarmonyPrefix]
-    [HarmonyPatch(nameof(NModdingScreen.OnSubmenuClosed))]
-    private static void BeforeSubmenuClosed(NModdingScreen __instance)
-    {
-        RestartConfirmButtonUi.Remove(__instance);
-    }
-
-    [HarmonyPrefix]
     [HarmonyPatch(nameof(NModdingScreen._ExitTree))]
     private static void BeforeExitTree(NModdingScreen __instance)
     {
@@ -54,5 +48,19 @@ internal static class ModdingScreenRestartButtonPatch
         Control? pendingChangesWarning = screen.GetNodeOrNull<Control>("%PendingChangesLabel");
         bool shouldShow = pendingChangesWarning?.Visible == true;
         RestartConfirmButtonUi.SetVisible(screen, shouldShow);
+    }
+}
+
+[HarmonyPatch(typeof(NSubmenuStack))]
+internal static class ModdingScreenRestartButtonStackPatch
+{
+    [HarmonyPrefix]
+    [HarmonyPatch(nameof(NSubmenuStack.Pop))]
+    private static void BeforePop(NSubmenuStack __instance)
+    {
+        if (__instance.Peek() is NModdingScreen moddingScreen)
+        {
+            RestartConfirmButtonUi.Remove(moddingScreen);
+        }
     }
 }
