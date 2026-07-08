@@ -6,8 +6,8 @@
 <!-- code-stats:start -->
   <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="C# 行数" src=".github/badges/code-lines-csharp.svg"></a>
   <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="JSON 行数" src=".github/badges/code-lines-json.svg"></a>
-  <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="MSBuild script 行数" src=".github/badges/code-lines-msbuild-script.svg"></a>
   <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="XML 行数" src=".github/badges/code-lines-xml.svg"></a>
+  <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="MSBuild script 行数" src=".github/badges/code-lines-msbuild-script.svg"></a>
   <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="YAML 行数" src=".github/badges/code-lines-yaml.svg"></a>
   <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="Visual Studio Solution 行数" src=".github/badges/code-lines-visual-studio-solution.svg"></a>
   <a href="https://github.com/JMC-Mods/SlayTheSpire2_JmcModLib/actions/workflows/code-lines.yml"><img alt="总代码行数" src=".github/badges/code-lines-total.svg"></a>
