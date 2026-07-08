@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 API 文档
 
-源码基准：JML `1.5.9`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
+源码基准：JML `1.5.11`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
 
 ```csharp
 using JmcModLib.Core;
@@ -83,8 +83,8 @@ flowchart TD
 | 成员 | 说明 |
 |---|---|
 | `const string Name = "JmcModLib"` | JML 名称 |
-| `const string Version = "1.5.9"` | JML 版本 |
-| `string Tag` | `"[JmcModLib v1.5.9]"` |
+| `const string Version = "1.5.11"` | JML 版本 |
+| `string Tag` | `"[JmcModLib v1.5.11]"` |
 | `GetName(Assembly? assembly = null)` | 获取指定程序集名称，JML 自身返回固定名称 |
 | `GetVersion(Assembly? assembly = null)` | 获取指定程序集版本，JML 自身返回固定版本 |
 | `GetTag(Assembly? assembly = null)` | 生成日志标签 |
@@ -561,7 +561,7 @@ bool ok = JmcSecretStore.TryRead(
 
 命名空间：`JmcModLib.Persistence`
 
-Persistence 是独立于 `ConfigManager` 的数据持久化模块，用于保存“不是设置项”的数据：跨 profile 的全局数据、当前 profile 数据，以及当前 run 的本地非同步数据。它复用 `AttributeRouter` 扫描静态字段/属性，但不生成设置 UI。
+Persistence 是独立于 `ConfigManager` 的数据持久化模块，用于保存“不是设置项”的数据：当前机器本地偏好、跨 profile 的全局数据、当前 profile 数据，以及当前 run 的本地非同步数据。它复用 `AttributeRouter` 扫描静态字段/属性，但不生成设置 UI。
 
 ```csharp
 using JmcModLib.Persistence;
@@ -577,8 +577,22 @@ internal sealed class RunState
     public int RoomsVisited { get; set; }
 }
 
+internal sealed class PanelState
+{
+    public string LastTab { get; set; } = "overview";
+    public bool IsCollapsed { get; set; }
+    public JmcRunIdentity? RunIdentity { get; set; }
+    public ulong? LockedNetId { get; set; }
+}
+
 internal static class DemoPersistence
 {
+    [JmcLocalPreference("ui.panel_state")]
+    internal static readonly JmcDataSlot<PanelState> PanelState = new(new PanelState());
+
+    [JmcGlobalData("stats.global_launches")]
+    internal static int GlobalLaunches;
+
     [JmcProfileData("stats")]
     internal static readonly JmcDataSlot<Stats> Stats = new(new Stats());
 
@@ -590,9 +604,25 @@ internal static class DemoPersistence
 
     public static void RecordRunStart()
     {
+        GlobalLaunches++;
         TotalRuns++;
         Stats.Modify(static stats => stats.TotalRuns++);
         JmcPersistenceManager.Flush();
+    }
+
+    public static void TogglePanel()
+    {
+        bool hasRunIdentity = JmcRunContext.TryGetCurrentRunIdentity(out JmcRunIdentity identity);
+        PanelState.Modify(state =>
+        {
+            state.IsCollapsed = !state.IsCollapsed;
+            state.LastTab = state.IsCollapsed ? "compact" : "overview";
+            if (hasRunIdentity)
+            {
+                state.RunIdentity = identity;
+                state.LockedNetId = 123;
+            }
+        });
     }
 
     public static void RecordRoomVisited()
@@ -607,31 +637,37 @@ internal static class DemoPersistence
 ```mermaid
 flowchart TD
     A[ModRegistry.EnsureDefaultServices] --> B[JmcPersistenceManager.Init]
-    B --> C[注册 Global/Profile/Run Attribute handlers]
+    B --> C[注册 LocalPreference/Global/Profile/Run Attribute handlers]
     C --> D[AttributeRouter 扫描 static 字段/属性]
     D --> E{数据范围}
-    E -- Global --> F[account scoped global.v1.json]
-    E -- Profile --> G[当前 profile profile.v1.json]
-    E -- Run --> H[当前 run save 根节点 _jml]
-    G --> I[切 profile 前 flush]
-    I --> J[切 profile 后 reload]
-    H --> K[RunSaveManager 保存/读取时合并扩展文档]
+    E -- LocalPreference --> F[local-preferences.v1.json]
+    E -- Global --> G[account scoped global.v1.json]
+    E -- Profile --> H[当前 profile profile.v1.json]
+    E -- Run --> I[当前 run save 根节点 _jml]
+    H --> J[切 profile 前 flush]
+    J --> K[切 profile 后 reload]
+    I --> L[RunSaveManager 保存/读取时合并扩展文档]
+    I --> M[CanonicalizeSave 后保留 _jml]
 ```
 
 公开 API：
 
 | 类型 / 成员 | 说明 |
 |---|---|
+| `JmcLocalPreferenceAttribute` | 声明当前机器本地偏好数据；不随 profile 切换，不进入 run save，不参与云同步或多人同步 |
 | `JmcGlobalDataAttribute` | 声明账号范围数据，不随 profile 切换 |
 | `JmcProfileDataAttribute` | 声明当前 profile 范围数据，切 profile 时 flush/reload |
 | `JmcRunDataAttribute` | 声明当前 run 本地非同步数据，写入 run save 的 `_jml` 扩展文档 |
-| `JmcDataSlot<T>` | global/profile 槽位；提供 `IsBound`、`Key`、`Value`、`SetValue(T)`、`Modify(Action<T>)` |
+| `JmcDataSlot<T>` | local/global/profile 槽位；提供 `IsBound`、`Key`、`Value`、`SetValue(T)`、`Modify(Action<T>)` |
 | `JmcRunDataSlot<T>` | run 槽位；无 run 上下文时读取默认值，写入返回失败结果 |
+| `JmcRunIdentity` | 当前 run 身份快照，包含 `ProfileId`、`StartTime` 和 `IsMultiplayer` |
+| `JmcRunContext.TryGetCurrentRunIdentity(out JmcRunIdentity identity)` | 尝试读取当前 run 身份，用于 LocalPreference 自行判断数据是否仍属于当前这一局 |
 | `JmcDataWritePolicy` | `WhenChanged` 或 `Always` |
 | `JmcDataWriteResult` | `SetValue` / `Modify` 的结果，包含 `Success` 和 `Message` |
 | `JmcPersistenceManager.Init()` | 初始化 Attribute handler，通常由 `ModRegistry` 自动调用 |
-| `JmcPersistenceManager.Flush(Assembly? assembly = null)` | 刷新当前 MOD 的 global/profile 数据 |
-| `JmcPersistenceManager.FlushAll()` | 刷新所有已注册 MOD 的 global/profile 数据 |
+| `JmcPersistenceManager.Flush(Assembly? assembly = null)` | 刷新当前 MOD 的 local/global/profile 数据 |
+| `JmcPersistenceManager.FlushLocalPreferences(Assembly? assembly = null)` | 只刷新当前 MOD 的本地偏好数据 |
+| `JmcPersistenceManager.FlushAll()` | 刷新所有已注册 MOD 的 local/global/profile 数据 |
 
 Attribute 参数：
 
@@ -645,9 +681,13 @@ Attribute 参数：
 
 - Slot 适合复杂对象；引用类型内部变化必须通过 `Modify` 包裹，或修改后调用 `SetValue`。
 - 裸静态字段/属性适合 `int`、`bool`、`string`、`enum` 和简单 JSON 对象。裸静态值不会在直接赋值时即时 dirty，只会在 flush / 保存边界读取当前值。
+- LocalPreference 数据保存到 `OS.GetUserDataDir()/mods/persistence/<modId>/local-preferences.v1.json`，直接本地写盘，不走 `SaveManager`，适合 UI 面板状态、排序、折叠、窗口位置、上次打开页签等不影响玩法结果的数据。
+- LocalPreference 的 `JmcDataSlot<T>.SetValue` / `Modify` 会立即调用 `FlushLocalPreferences()`；裸静态本地偏好至少会在显式 `FlushLocalPreferences()`、`Flush()`、MOD 注销或进程退出时写盘。
+- 若本地偏好需要 run 级隔离，例如“本机即时保存一个锁定的 `NetId`，但只在当前这一局恢复”，应把 `JmcRunIdentity` 一起保存，并在恢复前与 `JmcRunContext.TryGetCurrentRunIdentity()` 的当前结果比对。该 API 只提供身份判断，不负责写入数据，也不替代 `[JmcRunData]`。
 - Global 数据保存到账号范围 `mods/persistence/<modId>/global.v1.json`。
 - Profile 数据保存到当前 profile 范围 `mods/persistence/<modId>/profile.v1.json`。
-- Run 数据第一阶段不参与多人同步、重连同步、回放或一致性校验，只在本地 run save 的 `_jml` 根扩展文档中保存；JML 会保留未知 MOD 的 `_jml` 数据。
+- Run 数据第一阶段不参与多人同步、重连同步、回放或一致性校验，只在本地 run save 的 `_jml` 根扩展文档中保存；JML 会保留未知 MOD 的 `_jml` 数据，并在原版 `RunManager.CanonicalizeSave` 生成新 `SerializableRun` 后继续携带扩展文档。
+- Run save 写入不跳过原版 `RunSaveManager.SaveRun`，而是在原版保存成功后追加 `_jml`；原版异常会继续向外传播，JML 附加写入失败只记录 warning。若 JML 或子 MOD 卸载，已存在的 `_jml` 是按 MOD ID 分区的惰性扩展 JSON，不会参与原版玩法逻辑。
 
 ---
 

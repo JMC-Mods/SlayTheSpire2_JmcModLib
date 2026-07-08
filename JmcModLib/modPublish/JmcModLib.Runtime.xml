@@ -1301,7 +1301,7 @@
         </member>
         <member name="T:JmcModLib.Persistence.JmcDataSlot`1">
             <summary>
-            子 MOD 用于读写全局或 profile 持久化数据的槽位句柄。
+            子 MOD 用于读写本地偏好、全局或 profile 持久化数据的槽位句柄。
             </summary>
             <typeparam name="T">槽位保存的数据类型。</typeparam>
             <remarks>
@@ -1337,14 +1337,14 @@
         </member>
         <member name="M:JmcModLib.Persistence.JmcDataSlot`1.SetValue(`0)">
             <summary>
-            设置槽位值并标记为待保存。
+            设置槽位值并标记为待保存；本地偏好槽位会立即刷新到磁盘。
             </summary>
             <param name="newValue">新的槽位值。</param>
             <returns>写入请求结果。</returns>
         </member>
         <member name="M:JmcModLib.Persistence.JmcDataSlot`1.Modify(System.Action{`0})">
             <summary>
-            修改当前槽位值并标记为待保存。
+            修改当前槽位值并标记为待保存；本地偏好槽位会立即刷新到磁盘。
             </summary>
             <param name="update">对当前值执行的修改逻辑。</param>
             <returns>写入请求结果。</returns>
@@ -1425,13 +1425,44 @@
             刷新时的写入策略。
             </summary>
         </member>
+        <member name="T:JmcModLib.Persistence.JmcLocalPreferenceAttribute">
+            <summary>
+            将静态字段或静态属性注册为当前机器本地的 JML 客户端偏好数据。
+            </summary>
+            <remarks>
+            本地偏好不进入游戏存档、不随 profile 切换、不参与云同步或多人同步，
+            适合保存 UI 面板状态、排序方式、折叠状态、窗口位置和上次打开页签等不影响玩法结果的数据。
+            成员可以是 <see cref="T:JmcModLib.Persistence.JmcDataSlot`1"/>，也可以是简单裸静态值。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcLocalPreferenceAttribute.#ctor(System.String)">
+            <summary>
+            创建本地偏好数据声明。
+            </summary>
+            <param name="key">当前 MOD 内稳定的数据键。</param>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcLocalPreferenceAttribute.Key">
+            <summary>
+            当前 MOD 内稳定的数据键。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcLocalPreferenceAttribute.SchemaVersion">
+            <summary>
+            数据结构版本；第一阶段仅写入文档，不自动执行迁移。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcLocalPreferenceAttribute.WritePolicy">
+            <summary>
+            刷新时的写入策略。
+            </summary>
+        </member>
         <member name="T:JmcModLib.Persistence.JmcPersistenceManager">
             <summary>
             JML Persistence 的统一初始化与刷新入口。
             </summary>
             <remarks>
-            子 MOD 通常只需要声明 <see cref="T:JmcModLib.Persistence.JmcGlobalDataAttribute"/>、
-            <see cref="T:JmcModLib.Persistence.JmcProfileDataAttribute"/> 或 <see cref="T:JmcModLib.Persistence.JmcRunDataAttribute"/>。
+            子 MOD 通常只需要声明 <see cref="T:JmcModLib.Persistence.JmcLocalPreferenceAttribute"/>、
+            <see cref="T:JmcModLib.Persistence.JmcGlobalDataAttribute"/>、<see cref="T:JmcModLib.Persistence.JmcProfileDataAttribute"/> 或 <see cref="T:JmcModLib.Persistence.JmcRunDataAttribute"/>。
             本类型主要用于需要立即写盘时手动调用 <see cref="M:JmcModLib.Persistence.JmcPersistenceManager.Flush(System.Reflection.Assembly)"/>。
             </remarks>
         </member>
@@ -1452,13 +1483,19 @@
         </member>
         <member name="M:JmcModLib.Persistence.JmcPersistenceManager.Flush(System.Reflection.Assembly)">
             <summary>
-            刷新当前调用方 MOD 的全局和 profile 数据。
+            刷新当前调用方 MOD 的本地偏好、全局和 profile 数据。
+            </summary>
+            <param name="assembly">目标程序集；留空时自动推断调用方程序集。</param>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcPersistenceManager.FlushLocalPreferences(System.Reflection.Assembly)">
+            <summary>
+            刷新当前调用方 MOD 的本地偏好数据。
             </summary>
             <param name="assembly">目标程序集；留空时自动推断调用方程序集。</param>
         </member>
         <member name="M:JmcModLib.Persistence.JmcPersistenceManager.FlushAll">
             <summary>
-            刷新所有已注册 MOD 的全局和 profile 数据。
+            刷新所有已注册 MOD 的本地偏好、全局和 profile 数据。
             </summary>
         </member>
         <member name="T:JmcModLib.Persistence.JmcProfileDataAttribute">
@@ -1490,6 +1527,25 @@
             <summary>
             刷新时的写入策略。
             </summary>
+        </member>
+        <member name="T:JmcModLib.Persistence.JmcRunContext">
+            <summary>
+            提供当前 run 的轻量上下文查询能力。
+            </summary>
+            <remarks>
+            <para>
+            该入口用于辅助本地偏好做 run 级隔离，例如把 <see cref="T:JmcModLib.Persistence.JmcRunIdentity"/> 与
+            <see cref="T:JmcModLib.Persistence.JmcLocalPreferenceAttribute"/> 保存的数据一起写入，再在恢复时确认它仍属于当前这一局。
+            它不是持久化入口，也不会替调用方写入或清理数据。
+            </para>
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcRunContext.TryGetCurrentRunIdentity(JmcModLib.Persistence.JmcRunIdentity@)">
+            <summary>
+            尝试获取当前 run 的本地身份快照。
+            </summary>
+            <param name="identity">成功时返回当前 run 身份；失败时返回默认值。</param>
+            <returns>当前存在可识别的 run 上下文时返回 <see langword="true"/>；否则返回 <see langword="false"/>。</returns>
         </member>
         <member name="T:JmcModLib.Persistence.JmcRunDataAttribute">
             <summary>
@@ -1570,6 +1626,41 @@
             </summary>
             <param name="update">对当前值执行的修改逻辑。</param>
             <returns>写入请求结果。</returns>
+        </member>
+        <member name="T:JmcModLib.Persistence.JmcRunIdentity">
+            <summary>
+            表示当前 run 的本地身份快照，可用于判断一条本地偏好是否仍属于当前这一局。
+            </summary>
+            <remarks>
+            <para>
+            该类型只用于本机本地隔离判断，不会参与多人同步，也不代表 JML 会替调用方保存任何数据。
+            常见用法是在 <see cref="T:JmcModLib.Persistence.JmcLocalPreferenceAttribute"/> 数据中保存此值，恢复时与
+            <see cref="M:JmcModLib.Persistence.JmcRunContext.TryGetCurrentRunIdentity(JmcModLib.Persistence.JmcRunIdentity@)"/> 的结果比较。
+            </para>
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Persistence.JmcRunIdentity.#ctor(System.Int32,System.Int64,System.Boolean)">
+            <summary>
+            创建一个当前 run 身份快照。
+            </summary>
+            <param name="profileId">当前游戏 profile ID。</param>
+            <param name="startTime">当前 run 的开始时间戳，单位为 Unix 秒。</param>
+            <param name="isMultiplayer">当前 run 是否为多人 run。</param>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcRunIdentity.ProfileId">
+            <summary>
+            当前游戏 profile ID。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcRunIdentity.StartTime">
+            <summary>
+            当前 run 的开始时间戳，单位为 Unix 秒。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Persistence.JmcRunIdentity.IsMultiplayer">
+            <summary>
+            当前 run 是否为多人 run。
+            </summary>
         </member>
         <member name="T:JmcModLib.Prefabs.JmcConfirmationPopup">
             <summary>

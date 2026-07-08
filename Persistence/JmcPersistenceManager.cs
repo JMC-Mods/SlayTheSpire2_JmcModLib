@@ -15,14 +15,15 @@ namespace JmcModLib.Persistence;
 /// JML Persistence 的统一初始化与刷新入口。
 /// </summary>
 /// <remarks>
-/// 子 MOD 通常只需要声明 <see cref="JmcGlobalDataAttribute"/>、
-/// <see cref="JmcProfileDataAttribute"/> 或 <see cref="JmcRunDataAttribute"/>。
+/// 子 MOD 通常只需要声明 <see cref="JmcLocalPreferenceAttribute"/>、
+/// <see cref="JmcGlobalDataAttribute"/>、<see cref="JmcProfileDataAttribute"/> 或 <see cref="JmcRunDataAttribute"/>。
 /// 本类型主要用于需要立即写盘时手动调用 <see cref="Flush(Assembly?)"/>。
 /// </remarks>
 public static class JmcPersistenceManager
 {
     private static readonly ConcurrentDictionary<Assembly, List<PersistenceEntry>> Entries = new();
     private static readonly NewtonsoftPersistenceStorage Storage = new();
+    private static readonly PersistenceAttributeHandler LocalPreferenceHandler = new(PersistenceScope.LocalPreference);
     private static readonly PersistenceAttributeHandler GlobalHandler = new(PersistenceScope.Global);
     private static readonly PersistenceAttributeHandler ProfileHandler = new(PersistenceScope.Profile);
     private static readonly PersistenceAttributeHandler RunHandler = new(PersistenceScope.Run);
@@ -46,6 +47,7 @@ public static class JmcPersistenceManager
         }
 
         CoreAttributeRouter.Init();
+        CoreAttributeRouter.RegisterHandler<JmcLocalPreferenceAttribute>(LocalPreferenceHandler);
         CoreAttributeRouter.RegisterHandler<JmcGlobalDataAttribute>(GlobalHandler);
         CoreAttributeRouter.RegisterHandler<JmcProfileDataAttribute>(ProfileHandler);
         CoreAttributeRouter.RegisterHandler<JmcRunDataAttribute>(RunHandler);
@@ -75,6 +77,7 @@ public static class JmcPersistenceManager
             UnregisterAssembly(assembly, flushBeforeRemove: false);
         }
 
+        _ = CoreAttributeRouter.UnregisterHandler(LocalPreferenceHandler);
         _ = CoreAttributeRouter.UnregisterHandler(GlobalHandler);
         _ = CoreAttributeRouter.UnregisterHandler(ProfileHandler);
         _ = CoreAttributeRouter.UnregisterHandler(RunHandler);
@@ -82,18 +85,29 @@ public static class JmcPersistenceManager
     }
 
     /// <summary>
-    /// 刷新当前调用方 MOD 的全局和 profile 数据。
+    /// 刷新当前调用方 MOD 的本地偏好、全局和 profile 数据。
     /// </summary>
     /// <param name="assembly">目标程序集；留空时自动推断调用方程序集。</param>
     public static void Flush(Assembly? assembly = null)
     {
         Assembly resolvedAssembly = AssemblyResolver.Resolve(assembly, typeof(JmcPersistenceManager));
+        FlushAssembly(resolvedAssembly, PersistenceScope.LocalPreference);
         FlushAssembly(resolvedAssembly, PersistenceScope.Global);
         FlushAssembly(resolvedAssembly, PersistenceScope.Profile);
     }
 
     /// <summary>
-    /// 刷新所有已注册 MOD 的全局和 profile 数据。
+    /// 刷新当前调用方 MOD 的本地偏好数据。
+    /// </summary>
+    /// <param name="assembly">目标程序集；留空时自动推断调用方程序集。</param>
+    public static void FlushLocalPreferences(Assembly? assembly = null)
+    {
+        Assembly resolvedAssembly = AssemblyResolver.Resolve(assembly, typeof(JmcPersistenceManager));
+        FlushAssembly(resolvedAssembly, PersistenceScope.LocalPreference);
+    }
+
+    /// <summary>
+    /// 刷新所有已注册 MOD 的本地偏好、全局和 profile 数据。
     /// </summary>
     public static void FlushAll()
     {

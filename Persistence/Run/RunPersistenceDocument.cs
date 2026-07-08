@@ -33,6 +33,11 @@ internal sealed class RunPersistenceDocument
         return Empty(startTime);
     }
 
+    public RunPersistenceDocument Clone(long? startTime = null)
+    {
+        return new RunPersistenceDocument((JObject)root.DeepClone(), startTime ?? StartTime);
+    }
+
     public JToken? GetValue(string modId, string storageKey)
     {
         string modKey = PersistenceIdentifier.SanitizeKey(modId);

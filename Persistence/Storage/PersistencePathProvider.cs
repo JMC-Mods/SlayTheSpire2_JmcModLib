@@ -15,6 +15,15 @@ internal static class PersistencePathProvider
             string modId = PersistenceIdentifier.SanitizePathSegment(ModRegistry.GetModId(assembly));
             switch (scope)
             {
+                case PersistenceScope.LocalPreference:
+                    filePath = Path.Combine(
+                        GetLocalUserDataDir(),
+                        "mods",
+                        "persistence",
+                        modId,
+                        "local-preferences.v1.json");
+                    return true;
+
                 case PersistenceScope.Global:
                     string globalBase = UserDataPathProvider.GetAccountScopedBasePath($"mods/persistence/{modId}");
                     filePath = Path.Combine(Globalize(globalBase), "global.v1.json");
@@ -42,6 +51,25 @@ internal static class PersistencePathProvider
         }
     }
 
+    private static string GetLocalUserDataDir()
+    {
+        try
+        {
+            string userData = OS.GetUserDataDir();
+            if (!string.IsNullOrWhiteSpace(userData))
+            {
+                return userData;
+            }
+        }
+        catch
+        {
+        }
+
+        return Path.Combine(
+            System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData),
+            "SlayTheSpire2");
+    }
+
     private static string Globalize(string path)
     {
         try
@@ -58,21 +86,7 @@ internal static class PersistencePathProvider
             // Godot 尚未完全可用时走后备路径。
         }
 
-        string userData = string.Empty;
-        try
-        {
-            userData = OS.GetUserDataDir();
-        }
-        catch
-        {
-        }
-
-        if (string.IsNullOrWhiteSpace(userData))
-        {
-            userData = Path.Combine(
-                System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData),
-                "SlayTheSpire2");
-        }
+        string userData = GetLocalUserDataDir();
 
         if (path.StartsWith("user://", StringComparison.Ordinal))
         {

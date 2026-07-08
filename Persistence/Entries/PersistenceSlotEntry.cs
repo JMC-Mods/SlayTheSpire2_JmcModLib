@@ -46,6 +46,10 @@ internal sealed class PersistenceSlotEntry<T> : PersistenceEntry, IJmcRunDataSlo
         {
             JmcModLib.Persistence.Run.RunPersistenceManager.MarkDirty();
         }
+        else if (Scope == PersistenceScope.LocalPreference)
+        {
+            JmcPersistenceManager.FlushLocalPreferences(Assembly);
+        }
 
         return JmcDataWriteResult.Succeeded();
     }

@@ -1,7 +1,7 @@
 namespace JmcModLib.Persistence;
 
 /// <summary>
-/// 子 MOD 用于读写全局或 profile 持久化数据的槽位句柄。
+/// 子 MOD 用于读写本地偏好、全局或 profile 持久化数据的槽位句柄。
 /// </summary>
 /// <typeparam name="T">槽位保存的数据类型。</typeparam>
 /// <remarks>
@@ -46,7 +46,7 @@ public sealed class JmcDataSlot<T>
     public T Value => binding == null ? value! : binding.GetValue();
 
     /// <summary>
-    /// 设置槽位值并标记为待保存。
+    /// 设置槽位值并标记为待保存；本地偏好槽位会立即刷新到磁盘。
     /// </summary>
     /// <param name="newValue">新的槽位值。</param>
     /// <returns>写入请求结果。</returns>
@@ -62,7 +62,7 @@ public sealed class JmcDataSlot<T>
     }
 
     /// <summary>
-    /// 修改当前槽位值并标记为待保存。
+    /// 修改当前槽位值并标记为待保存；本地偏好槽位会立即刷新到磁盘。
     /// </summary>
     /// <param name="update">对当前值执行的修改逻辑。</param>
     /// <returns>写入请求结果。</returns>

@@ -35,6 +35,13 @@ internal sealed class PersistenceAttributeHandler(PersistenceScope scope) : IAtt
         descriptor = default;
         switch (attribute)
         {
+            case JmcLocalPreferenceAttribute localPreference:
+                descriptor = new PersistenceAttributeDescriptor(
+                    localPreference.Key,
+                    localPreference.SchemaVersion,
+                    localPreference.WritePolicy);
+                return true;
+
             case JmcGlobalDataAttribute global:
                 descriptor = new PersistenceAttributeDescriptor(global.Key, global.SchemaVersion, global.WritePolicy);
                 return true;

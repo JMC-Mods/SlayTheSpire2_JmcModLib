@@ -1,5 +1,6 @@
 using HarmonyLib;
 using JmcModLib.Persistence.Run;
+using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves;
 using MegaCrit.Sts2.Core.Saves.Managers;
 
@@ -36,6 +37,16 @@ internal static class PersistenceLoadMultiplayerRunSavePatch
     private static void Postfix(RunSaveManager __instance, ReadSaveResult<SerializableRun> __result)
     {
         RunPersistenceManager.LoadRunDocumentFromSave(__instance, isMultiplayer: true, __result);
+    }
+}
+
+[HarmonyPatch(typeof(RunManager), nameof(RunManager.CanonicalizeSave), new[] { typeof(SerializableRun), typeof(ulong) })]
+internal static class PersistenceCanonicalizeRunSavePatch
+{
+    [HarmonyPostfix]
+    private static void Postfix(SerializableRun save, SerializableRun __result)
+    {
+        RunPersistenceManager.CopyAttachedDocument(save, __result);
     }
 }
 

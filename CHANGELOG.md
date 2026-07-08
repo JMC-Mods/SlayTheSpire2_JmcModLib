@@ -6,6 +6,17 @@
 
 版本号规则： 主版本号.次版本号.修订号，其中主版本号涉及到大功能完善，次版本号原则上Steam创意工坊发布新版本后进行更新，修订号每次涉及代码的commit后更新（从0开始）。
 
+## [1.5.11] - 2026-7-7
+### Added
+- Persistence 新增 `JmcRunContext.TryGetCurrentRunIdentity()` 和 `JmcRunIdentity`，供本地偏好保存当前 run 身份并自行判断是否仍属于当前这一局。
+
+## [1.5.10] - 2026-7-7
+### Added
+- Persistence 新增 `[JmcLocalPreference]`，用于保存当前机器本地 UI 偏好等不影响玩法的数据，并提供 `JmcPersistenceManager.FlushLocalPreferences()`。
+
+### Changed
+- Run save `_jml` 扩展数据会在原版 `RunManager.CanonicalizeSave` 后继续保留，降低多人存档整理流程丢失 JML 数据的风险。
+
 ## [1.5.9] - 2026-7-7
 ### Changed
 - 调整 Persistence run save 写入策略：不再用 Harmony Prefix 跳过原版 `RunSaveManager.SaveRun`，改为原版保存成功后附加写入 `_jml` 扩展数据，以降低兼容性风险。

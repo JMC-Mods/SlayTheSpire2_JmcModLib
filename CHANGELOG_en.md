@@ -6,6 +6,17 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.5.11] - 2026-7-7
+### Added
+- Added `JmcRunContext.TryGetCurrentRunIdentity()` and `JmcRunIdentity` so local preferences can store the current run identity and decide whether they still belong to this run.
+
+## [1.5.10] - 2026-7-7
+### Added
+- Added Persistence `[JmcLocalPreference]` for current-machine local UI preferences and other non-gameplay data, plus `JmcPersistenceManager.FlushLocalPreferences()`.
+
+### Changed
+- Run-save `_jml` extension data is preserved after vanilla `RunManager.CanonicalizeSave`, reducing the risk of losing JML data during multiplayer save canonicalization.
+
 ## [1.5.9] - 2026-7-7
 ### Changed
 - Changed Persistence run-save writes to stop skipping vanilla `RunSaveManager.SaveRun` with a Harmony Prefix. JML now appends `_jml` extension data after the vanilla save succeeds, reducing compatibility risk.

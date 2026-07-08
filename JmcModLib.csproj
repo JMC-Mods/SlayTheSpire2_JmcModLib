@@ -175,7 +175,7 @@ texture_format/etc2=false
     <RemoveDir Directories="$(PublishDir)\dispatch" Condition="Exists('$(PublishDir)\dispatch')" />
     <RemoveDir Directories="$(PublishDir)\BuildTools" Condition="Exists('$(PublishDir)\BuildTools')" />
     <Delete Files="$(PublishDir)\JmcModLib.Dispatch.targets" Condition="Exists('$(PublishDir)\JmcModLib.Dispatch.targets')" />
-    <Exec Command="&quot;$(GodotExe)&quot; --headless --export-pack &quot;Windows Desktop&quot; &quot;modPublish\$(ModName).pck&quot;" WorkingDirectory="$(ModLocalDir)" StdOutEncoding="utf-8" StdErrEncoding="utf-8" EnvironmentVariables="NO_COLOR=1" Condition="Exists('$(GodotExe)') And Exists('$(ModLocalDir)\export_presets.cfg')" />
+    <Exec Command="&quot;$(GodotExe)&quot; --headless --export-pack &quot;Windows Desktop&quot; &quot;modPublish\$(ModName).pck&quot;" WorkingDirectory="$(ModLocalDir)" StdOutEncoding="utf-8" StdErrEncoding="utf-8" EnvironmentVariables="NO_COLOR=1" IgnoreStandardErrorWarningFormat="true" Condition="Exists('$(GodotExe)') And Exists('$(ModLocalDir)\export_presets.cfg')" />
 
     <Message Text="[2.5/4] 准备 Dispatch 工具链..." Importance="High" />
     <MakeDir Directories="$(PublishDir)\dispatch" />

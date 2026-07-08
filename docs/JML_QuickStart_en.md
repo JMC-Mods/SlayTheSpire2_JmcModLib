@@ -450,7 +450,7 @@ The first Windows backend uses current-user DPAPI and reports `UserProfileProtec
 
 ## 7.6 Persistence: Non-Config Data Persistence
 
-For data that is not a settings-page option, use `JmcModLib.Persistence`. It supports account-scoped global data, current-profile data, and local non-synced current-run data.
+For data that is not a settings-page option, use `JmcModLib.Persistence`. It supports current-machine local preferences, account-scoped global data, current-profile data, and local non-synced current-run data.
 
 ```csharp
 using JmcModLib.Persistence;
@@ -466,8 +466,22 @@ internal sealed class RunState
     public int RoomsVisited { get; set; }
 }
 
+internal sealed class PanelState
+{
+    public string LastTab { get; set; } = "overview";
+    public bool IsCollapsed { get; set; }
+    public JmcRunIdentity? RunIdentity { get; set; }
+    public ulong? LockedNetId { get; set; }
+}
+
 internal static class DemoPersistence
 {
+    [JmcLocalPreference("ui.panel_state")]
+    internal static readonly JmcDataSlot<PanelState> PanelState = new(new PanelState());
+
+    [JmcGlobalData("stats.global_launches")]
+    internal static int GlobalLaunches;
+
     [JmcProfileData("stats")]
     internal static readonly JmcDataSlot<Stats> Stats = new(new Stats());
 
@@ -479,9 +493,25 @@ internal static class DemoPersistence
 
     public static void RecordRunStart()
     {
+        GlobalLaunches++;
         TotalRuns++;
         Stats.Modify(static stats => stats.TotalRuns++);
         JmcPersistenceManager.Flush();
+    }
+
+    public static void TogglePanel()
+    {
+        bool hasRunIdentity = JmcRunContext.TryGetCurrentRunIdentity(out JmcRunIdentity identity);
+        PanelState.Modify(state =>
+        {
+            state.IsCollapsed = !state.IsCollapsed;
+            state.LastTab = state.IsCollapsed ? "compact" : "overview";
+            if (hasRunIdentity)
+            {
+                state.RunIdentity = identity;
+                state.LockedNetId = 123;
+            }
+        });
     }
 
     public static void RecordRoomVisited()
@@ -493,11 +523,13 @@ internal static class DemoPersistence
 
 Key points:
 
-- `JmcDataSlot<T>` is for global/profile data; `JmcRunDataSlot<T>` is for the current run.
+- `JmcDataSlot<T>` is for local/global/profile data; `JmcRunDataSlot<T>` is for the current run.
 - Use `Modify` for reference-type internal mutations, for example `Stats.Modify(static stats => stats.TotalRuns++)`.
 - Bare static values are good for simple types, such as `TotalRuns` above.
+- `[JmcLocalPreference]` saves to `OS.GetUserDataDir()/mods/persistence/<modId>/local-preferences.v1.json`. It does not use `SaveManager`, does not enter run saves, and does not cloud-sync, making it suitable for local non-gameplay UI preferences such as tabs, collapsed panels, and sort order. LocalPreference Slot `SetValue` / `Modify` writes immediately; bare static values can use `JmcPersistenceManager.FlushLocalPreferences()`.
+- For preferences that should be saved immediately on this machine but only apply to the current run, store the `JmcRunIdentity` returned by `JmcRunContext.TryGetCurrentRunIdentity()` together with the LocalPreference value and compare it before restoring. This only provides an isolation check; it does not replace `[JmcRunData]`.
 - Profile data is flushed/reloaded automatically on profile switch. Call `JmcPersistenceManager.Flush()` when you need an immediate write.
-- First-phase run data is stored only in the local run save's `_jml` extension document and does not participate in multiplayer sync.
+- First-phase run data is stored only in the local run save's `_jml` extension document and does not participate in multiplayer sync. JML preserves unknown MOD data and carries `_jml` forward after vanilla `RunManager.CanonicalizeSave`.
 
 ## 8. Sliders
 ```cs

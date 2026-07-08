@@ -452,7 +452,7 @@ Windows 第一版使用 current-user DPAPI，保护等级为 `UserProfileProtect
 
 ## 7.6 Persistence：非配置数据持久化
 
-如果要保存的内容不是“设置页选项”，使用 `JmcModLib.Persistence`。它支持账号范围 global、当前 profile 范围 profile，以及当前 run 的本地非同步数据。
+如果要保存的内容不是“设置页选项”，使用 `JmcModLib.Persistence`。它支持当前机器本地偏好 local preference、账号范围 global、当前 profile 范围 profile，以及当前 run 的本地非同步数据。
 
 ```csharp
 using JmcModLib.Persistence;
@@ -468,8 +468,22 @@ internal sealed class RunState
     public int RoomsVisited { get; set; }
 }
 
+internal sealed class PanelState
+{
+    public string LastTab { get; set; } = "overview";
+    public bool IsCollapsed { get; set; }
+    public JmcRunIdentity? RunIdentity { get; set; }
+    public ulong? LockedNetId { get; set; }
+}
+
 internal static class DemoPersistence
 {
+    [JmcLocalPreference("ui.panel_state")]
+    internal static readonly JmcDataSlot<PanelState> PanelState = new(new PanelState());
+
+    [JmcGlobalData("stats.global_launches")]
+    internal static int GlobalLaunches;
+
     [JmcProfileData("stats")]
     internal static readonly JmcDataSlot<Stats> Stats = new(new Stats());
 
@@ -481,9 +495,25 @@ internal static class DemoPersistence
 
     public static void RecordRunStart()
     {
+        GlobalLaunches++;
         TotalRuns++;
         Stats.Modify(static stats => stats.TotalRuns++);
         JmcPersistenceManager.Flush();
+    }
+
+    public static void TogglePanel()
+    {
+        bool hasRunIdentity = JmcRunContext.TryGetCurrentRunIdentity(out JmcRunIdentity identity);
+        PanelState.Modify(state =>
+        {
+            state.IsCollapsed = !state.IsCollapsed;
+            state.LastTab = state.IsCollapsed ? "compact" : "overview";
+            if (hasRunIdentity)
+            {
+                state.RunIdentity = identity;
+                state.LockedNetId = 123;
+            }
+        });
     }
 
     public static void RecordRoomVisited()
@@ -495,11 +525,13 @@ internal static class DemoPersistence
 
 要点：
 
-- `JmcDataSlot<T>` 用于 global/profile；`JmcRunDataSlot<T>` 用于当前 run。
+- `JmcDataSlot<T>` 用于 local/global/profile；`JmcRunDataSlot<T>` 用于当前 run。
 - 引用类型内部修改推荐使用 `Modify`，例如 `Stats.Modify(static stats => stats.TotalRuns++)`。
 - 裸静态值适合简单类型，例如上面的 `TotalRuns`。
+- `[JmcLocalPreference]` 保存到 `OS.GetUserDataDir()/mods/persistence/<modId>/local-preferences.v1.json`，不走 `SaveManager`、不进 run save、不云同步，适合 UI 页签、折叠状态、排序等不影响玩法的本地偏好。LocalPreference Slot 的 `SetValue` / `Modify` 会立即写盘；裸静态值可调用 `JmcPersistenceManager.FlushLocalPreferences()`。
+- 需要“本机即时保存，但只对当前这一局有效”的偏好时，可把 `JmcRunContext.TryGetCurrentRunIdentity()` 返回的 `JmcRunIdentity` 一起保存到 LocalPreference，恢复时先与当前 identity 比对；这只提供隔离判断，不会替代 `[JmcRunData]`。
 - Profile 数据会在切换 profile 时自动 flush/reload；需要立刻写盘时调用 `JmcPersistenceManager.Flush()`。
-- Run data 第一阶段只保存到本地 run save 的 `_jml` 扩展文档，不参与多人同步。
+- Run data 第一阶段只保存到本地 run save 的 `_jml` 扩展文档，不参与多人同步；JML 会保留未知 MOD 数据，并在原版 `RunManager.CanonicalizeSave` 后继续携带 `_jml`。
 
 ## 8. 滑动条
 ```cs
