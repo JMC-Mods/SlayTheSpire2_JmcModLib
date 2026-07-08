@@ -1,11 +1,10 @@
-using HarmonyLib;
+using JmcModLib.Reflection;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves;
 using MegaCrit.Sts2.Core.Saves.Managers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -13,10 +12,13 @@ namespace JmcModLib.Persistence.Run;
 
 internal static class RunPersistenceManager
 {
-    private static readonly FieldInfo? SaveStoreField = AccessTools.Field(typeof(RunSaveManager), "_saveStore");
-    private static readonly FieldInfo? ForceSynchronousField = AccessTools.Field(typeof(RunSaveManager), "_forceSynchronous");
-    private static readonly FieldInfo? ProfileIdProviderField = AccessTools.Field(typeof(RunSaveManager), "_profileIdProvider");
-    private static readonly FieldInfo? RunStartTimeField = AccessTools.Field(typeof(RunManager), "_startTime");
+    private static readonly MemberAccessor? SaveStoreAccessor = TryGetMemberAccessor(typeof(RunSaveManager), "_saveStore");
+    private static readonly MemberAccessor? ForceSynchronousAccessor = TryGetMemberAccessor(typeof(RunSaveManager), "_forceSynchronous");
+    private static readonly MemberAccessor? ProfileIdProviderAccessor = TryGetMemberAccessor(typeof(RunSaveManager), "_profileIdProvider");
+    private static readonly MemberAccessor? RunStartTimeAccessor = TryGetMemberAccessor(typeof(RunManager), "_startTime");
+    private static readonly MethodAccessor? GetRunSavePathAccessor = ResolveGetRunSavePathAccessor();
+    private static readonly MemberAccessor? CurrentRunSavePathAccessor = TryGetMemberAccessor(typeof(RunSaveManager), "CurrentRunSavePath");
+    private static readonly MemberAccessor? CurrentMultiplayerRunSavePathAccessor = TryGetMemberAccessor(typeof(RunSaveManager), "CurrentMultiplayerRunSavePath");
 
     private static readonly UTF8Encoding Utf8NoBom = new(false);
     private static readonly object SyncRoot = new();
@@ -459,7 +461,7 @@ internal static class RunPersistenceManager
                 return false;
             }
 
-            if (RunStartTimeField?.GetValue(runManager) is not long startTime || startTime <= 0)
+            if (RunStartTimeAccessor?.GetValue(runManager) is not long startTime || startTime <= 0)
             {
                 return false;
             }
@@ -543,25 +545,105 @@ internal static class RunPersistenceManager
         out string savePath,
         out bool forceSynchronous)
     {
-        saveStore = SaveStoreField?.GetValue(runSaveManager) as ISaveStore;
-        forceSynchronous = ForceSynchronousField?.GetValue(runSaveManager) as bool? ?? false;
+        saveStore = SaveStoreAccessor?.GetValue(runSaveManager) as ISaveStore;
+        forceSynchronous = ForceSynchronousAccessor?.GetValue(runSaveManager) is bool forceSynchronousValue
+            && forceSynchronousValue;
         savePath = string.Empty;
 
-        int? profileId = TryGetProfileId(runSaveManager);
-        if (!profileId.HasValue)
+        string? resolvedSavePath = TryGetSavePath(runSaveManager, isMultiplayer);
+        if (string.IsNullOrWhiteSpace(resolvedSavePath))
         {
             return false;
         }
 
-        savePath = RunSaveManager.GetRunSavePath(
-            profileId.Value,
-            isMultiplayer ? RunSaveManager.multiplayerRunSaveFileName : RunSaveManager.runSaveFileName);
+        savePath = resolvedSavePath;
         return saveStore != null;
+    }
+
+    private static string? TryGetSavePath(RunSaveManager runSaveManager, bool isMultiplayer)
+    {
+        int? profileId = TryGetProfileId(runSaveManager);
+        if (!profileId.HasValue)
+        {
+            return null;
+        }
+
+        string fileName = isMultiplayer
+            ? RunSaveManager.multiplayerRunSaveFileName
+            : RunSaveManager.runSaveFileName;
+        if (TryInvokeGetRunSavePath(profileId.Value, fileName, out string? reflectedPath)
+            && !string.IsNullOrWhiteSpace(reflectedPath))
+        {
+            return reflectedPath;
+        }
+
+        MemberAccessor? property = isMultiplayer
+            ? CurrentMultiplayerRunSavePathAccessor
+            : CurrentRunSavePathAccessor;
+        if (property?.GetValue(runSaveManager) is string path
+            && !string.IsNullOrWhiteSpace(path))
+        {
+            return path;
+        }
+
+        return Path.Combine(
+            UserDataPathProvider.GetProfileDir(profileId.Value),
+            UserDataPathProvider.SavesDir,
+            fileName);
+    }
+
+    private static MemberAccessor? TryGetMemberAccessor(Type type, string memberName)
+    {
+        try
+        {
+            return MemberAccessor.Get(type, memberName);
+        }
+        catch (Exception ex)
+        {
+            ModLogger.Warn($"解析运行时成员失败：{type.FullName}.{memberName}", ex);
+            return null;
+        }
+    }
+
+    private static MethodAccessor? ResolveGetRunSavePathAccessor()
+    {
+        try
+        {
+            return MethodAccessor.Get(
+                typeof(RunSaveManager),
+                "GetRunSavePath",
+                [typeof(int), typeof(string)]);
+        }
+        catch (Exception ex)
+        {
+            ModLogger.Warn("解析 RunSaveManager.GetRunSavePath 失败，将使用后备路径。", ex);
+            return null;
+        }
+    }
+
+    private static bool TryInvokeGetRunSavePath(int profileId, string fileName, out string? savePath)
+    {
+        savePath = null;
+        if (GetRunSavePathAccessor == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            savePath = GetRunSavePathAccessor.InvokeStatic<int, string, string>(profileId, fileName);
+            return !string.IsNullOrWhiteSpace(savePath);
+        }
+        catch (Exception ex)
+        {
+            ModLogger.Warn("反射调用 RunSaveManager.GetRunSavePath 失败，将使用后备路径。", ex);
+            return false;
+        }
     }
 
     private static int? TryGetProfileId(RunSaveManager runSaveManager)
     {
-        object? profileIdProvider = ProfileIdProviderField?.GetValue(runSaveManager);
+        object? profileIdProvider = ProfileIdProviderAccessor?.GetValue(runSaveManager);
         object? profileValue = profileIdProvider?
             .GetType()
             .GetProperty(nameof(IProfileIdProvider.CurrentProfileId))?
