@@ -1,4 +1,5 @@
 using Godot;
+using JmcModLib.Compat;
 using JmcModLib.Config.Entry;
 using MegaCrit.Sts2.Core.Modding;
 using System.Globalization;
@@ -42,9 +43,10 @@ internal sealed partial class ModSettingsPanel
 
     private static string GetSectionKey(Mod mod)
     {
-        return mod.manifest?.id
-            ?? mod.manifest?.name
-            ?? ModAssemblyCompat.GetPrimaryAssembly(mod)?.FullName
+        ModManifest? manifest = ModCompat.GetManifest(mod);
+        return ModCompat.GetManifestId(manifest)
+            ?? ModCompat.GetManifestName(manifest)
+            ?? ModCompat.GetPrimaryAssembly(mod)?.FullName
             ?? "unknown";
     }
 

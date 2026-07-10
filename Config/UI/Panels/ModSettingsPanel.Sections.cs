@@ -1,4 +1,5 @@
 using Godot;
+using JmcModLib.Compat;
 using JmcModLib.Config.Entry;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Modding;
@@ -29,9 +30,14 @@ internal sealed partial class ModSettingsPanel
         listeningKeybind = null;
         _firstControl = null;
 
-        List<Mod> modsWithConfig = [.. ModManagerCompat.GetSettingsMods()
+        List<Mod> modsWithConfig = [.. ModCompat.GetKnownMods()
             .Where(ModConfigUiBridge.HasConfig)
-            .OrderBy(static mod => mod.manifest?.name ?? mod.manifest?.id ?? string.Empty, StringComparer.OrdinalIgnoreCase)];
+            .OrderBy(
+                static mod =>
+                    ModCompat.GetManifestName(ModCompat.GetManifest(mod))
+                    ?? ModCompat.GetManifestId(ModCompat.GetManifest(mod))
+                    ?? string.Empty,
+                StringComparer.OrdinalIgnoreCase)];
 
         var focusableControls = new List<Control>();
         RefreshTitleActions(modsWithConfig, focusableControls);
@@ -53,8 +59,9 @@ internal sealed partial class ModSettingsPanel
     }
     private VBoxContainer BuildModSection(Mod mod, List<Control> focusableControls)
     {
-        string name = mod.manifest?.name ?? mod.manifest?.id ?? "Unknown Mod";
-        string version = mod.manifest?.version ?? "unknown";
+        ModManifest? manifest = ModCompat.GetManifest(mod);
+        string name = ModCompat.GetManifestName(manifest) ?? ModCompat.GetManifestId(manifest) ?? "Unknown Mod";
+        string version = ModCompat.GetManifestVersion(manifest) ?? "unknown";
         string author = mod.manifest?.author ?? "unknown";
         string? description = mod.manifest?.description;
         bool isCollapsed = IsSectionCollapsed(mod);

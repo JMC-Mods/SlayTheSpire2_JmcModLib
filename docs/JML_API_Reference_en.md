@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 API Reference
 
-Source baseline: JML `1.6.1`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
+Source baseline: JML `1.6.6`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
 
 ```csharp
 using JmcModLib.Core;
@@ -16,6 +16,7 @@ using JmcModLib.Reflection;
 using JmcModLib.Utils;
 using JmcModLib.Prefabs;
 using JmcModLib.Multiplayer;
+using JmcModLib.Compat;
 ```
 
 `ExprHelper` is now in the `JmcModLib.Utils` namespace and is usually brought in automatically by `global using JmcModLib.Utils;`.
@@ -160,6 +161,22 @@ Namespace: `JmcModLib.Core`
 | `GetLoadedVersion(Assembly? assembly = null)` | Manifest version or Assembly version |
 | `FindModById(string modId)` | Finds by exact manifest id |
 | `FindLoadedMod(string modId)` | Finds by id/pck/name/assembly name |
+
+### 2.7 `ModCompat` / `MultiplayerCompat`
+
+Namespace: `JmcModLib.Compat`. This layer centralizes confirmed STS2 member differences and is available to both JML internals and child MODs.
+
+| Type | Member | Purpose |
+|---|---|---|
+| `ModCompat` | `GetKnownMods()` | Reads a compatible snapshot of MODs known by the game |
+| `ModCompat` | `GetLoadedMods()` / `IsLoaded(Mod?)` | Reads or identifies loaded MODs |
+| `ModCompat` | `GetAssemblies(Mod?)` / `GetPrimaryAssembly(Mod?)` / `ContainsAssembly(Mod?, Assembly)` | Bridges single-assembly and multi-assembly layouts |
+| `ModCompat` | `GetManifest(Mod?)` / `GetPckName(Mod?)` | Reads the MOD manifest and PCK name |
+| `ModCompat` | `GetManifestId/Name/Version(ModManifest?)` | Reads compatible manifest metadata |
+| `MultiplayerCompat` | `TryGetConnectionExtraInfo(NetErrorInfo, out ConnectionFailureExtraInfo?)` | Bridges the private 0.107.1 field and public 0.108+ property |
+| `MultiplayerCompat` | `TryGetJoinFlowNetService(JoinFlow, out INetGameService?)` | Reads the join-flow network service |
+
+See the [game-version compatibility guide](JML_Compatibility_en.md) for the complete matrix, examples, and maintenance rules.
 
 ---
 

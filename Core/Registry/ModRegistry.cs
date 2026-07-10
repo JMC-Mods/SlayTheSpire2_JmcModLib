@@ -1,4 +1,5 @@
 // 文件用途：维护子 MOD 注册表，负责注册生命周期、上下文查询与注册事件分发。
+using JmcModLib.Compat;
 using JmcModLib.Config;
 using JmcModLib.Persistence;
 using JmcModLib.Reflection;
@@ -386,13 +387,14 @@ public static class ModRegistry
     {
         string resolvedModId = ResolveModId(assembly, modId);
         var mod = ModRuntime.FindModById(resolvedModId);
+        MegaCrit.Sts2.Core.Modding.ModManifest? manifest = ModCompat.GetManifest(mod);
 
         string resolvedDisplayName = string.IsNullOrWhiteSpace(displayName)
-            ? mod?.manifest?.name ?? assembly.GetName().Name ?? resolvedModId
+            ? ModCompat.GetManifestName(manifest) ?? assembly.GetName().Name ?? resolvedModId
             : displayName.Trim();
 
         string resolvedVersion = string.IsNullOrWhiteSpace(version)
-            ? mod?.manifest?.version
+            ? ModCompat.GetManifestVersion(manifest)
                 ?? assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
                 ?? assembly.GetName().Version?.ToString()
                 ?? "0.0.0"
@@ -410,6 +412,7 @@ public static class ModRegistry
     {
         string resolvedModId = ResolveModId(assembly, modId);
         var mod = ModRuntime.FindModById(resolvedModId);
+        MegaCrit.Sts2.Core.Modding.ModManifest? manifest = ModCompat.GetManifest(mod);
 
         existing.ModId = resolvedModId;
         existing.DisplayName = string.IsNullOrWhiteSpace(displayName)
@@ -421,12 +424,12 @@ public static class ModRegistry
 
         if (string.IsNullOrWhiteSpace(existing.DisplayName))
         {
-            existing.DisplayName = mod?.manifest?.name ?? assembly.GetName().Name ?? resolvedModId;
+            existing.DisplayName = ModCompat.GetManifestName(manifest) ?? assembly.GetName().Name ?? resolvedModId;
         }
 
         if (string.IsNullOrWhiteSpace(existing.Version))
         {
-            existing.Version = mod?.manifest?.version
+            existing.Version = ModCompat.GetManifestVersion(manifest)
                 ?? assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
                 ?? assembly.GetName().Version?.ToString()
                 ?? "0.0.0";

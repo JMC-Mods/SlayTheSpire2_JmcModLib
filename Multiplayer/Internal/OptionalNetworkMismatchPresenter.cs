@@ -1,3 +1,4 @@
+using JmcModLib.Compat;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
@@ -11,13 +12,17 @@ internal static class OptionalNetworkMismatchPresenter
     internal static bool TryCreatePopup(NetErrorInfo info, out NErrorPopup? popup)
     {
         popup = null;
-        if (info.GetReason() != NetError.ModMismatch || info.ConnectionExtraInfo == null)
+        if (info.GetReason() != NetError.ModMismatch
+            || !MultiplayerCompat.TryGetConnectionExtraInfo(
+                info,
+                out ConnectionFailureExtraInfo? extraInfo)
+            || extraInfo == null)
         {
             return false;
         }
 
-        List<string> missingOnHost = [.. info.ConnectionExtraInfo.missingModsOnHost ?? []];
-        List<string> missingOnLocal = [.. info.ConnectionExtraInfo.missingModsOnLocal ?? []];
+        List<string> missingOnHost = [.. extraInfo.missingModsOnHost ?? []];
+        List<string> missingOnLocal = [.. extraInfo.missingModsOnLocal ?? []];
         List<OptionalNetworkFeatureIdentity> localOnly = ExtractFeatureIdentities(missingOnHost);
         List<OptionalNetworkFeatureIdentity> hostOnly = ExtractFeatureIdentities(missingOnLocal);
         if (localOnly.Count == 0 && hostOnly.Count == 0)

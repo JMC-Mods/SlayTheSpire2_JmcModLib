@@ -1,5 +1,6 @@
 using Godot;
 using HarmonyLib;
+using JmcModLib.Compat;
 using JmcModLib.Multiplayer.Internal;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Helpers;
@@ -9,7 +10,6 @@ using MegaCrit.Sts2.Core.Multiplayer.Connection;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Multiplayer.Serialization;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
-using System.Reflection;
 
 namespace JmcModLib.Multiplayer.Patches;
 
@@ -95,9 +95,6 @@ internal static class OptionalNetworkMismatchPopupPatch
     [typeof(IClientConnectionInitializer), typeof(SceneTree)])]
 internal static class OptionalNetworkJoinFlowPatch
 {
-    private static readonly MethodInfo? NetServiceGetter =
-        AccessTools.PropertyGetter(typeof(JoinFlow), "NetService");
-
     [HarmonyPrefix]
     private static void Prefix(JoinFlow __instance, ref INetGameService? __state)
     {
@@ -139,23 +136,13 @@ internal static class OptionalNetworkJoinFlowPatch
 
     private static INetGameService? ResolveService(JoinFlow flow)
     {
-        if (NetServiceGetter == null)
+        if (!MultiplayerCompat.TryGetJoinFlowNetService(flow, out INetGameService? service))
         {
             OptionalNetworkActivityTracker.MarkUnreliable("当前游戏版本缺少 JoinFlow.NetService，无法安全热重建网络协议。");
             return null;
         }
 
-        try
-        {
-            return NetServiceGetter.Invoke(flow, null) as INetGameService;
-        }
-        catch (Exception ex)
-        {
-            OptionalNetworkActivityTracker.MarkUnreliable(
-                "读取 JoinFlow 网络服务失败，将保留旧协议直到重启。",
-                ex);
-            return null;
-        }
+        return service;
     }
 
     private static async Task<JoinResult> ObserveJoinAsync(

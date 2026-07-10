@@ -1,7 +1,6 @@
 // 文件用途：封装 STS2 运行时 MOD/manifest 查询，帮助 JML 从游戏加载状态推断 MOD 信息。
-using JmcModLib.Reflection;
+using JmcModLib.Compat;
 using MegaCrit.Sts2.Core.Modding;
-using System.Collections;
 using System.Reflection;
 
 namespace JmcModLib.Core;
@@ -11,23 +10,23 @@ public static class ModRuntime
     public static Mod? TryGetLoadedMod(Assembly? assembly = null)
     {
         assembly = ResolveAssembly(assembly);
-        return GetKnownMods().FirstOrDefault(mod => ModAssemblyCompat.ContainsAssembly(mod, assembly));
+        return ModCompat.GetLoadedMods().FirstOrDefault(mod => ModCompat.ContainsAssembly(mod, assembly));
     }
 
     public static ModManifest? TryGetManifest(Assembly? assembly = null)
     {
-        return GetManifest(TryGetLoadedMod(assembly));
+        return ModCompat.GetManifest(TryGetLoadedMod(assembly));
     }
 
     public static string? GetManifestId(Assembly? assembly = null)
     {
-        return GetManifestId(TryGetManifest(assembly));
+        return ModCompat.GetManifestId(TryGetManifest(assembly));
     }
 
     public static string GetPckName(Assembly? assembly = null)
     {
         assembly = ResolveAssembly(assembly);
-        return GetPckName(TryGetLoadedMod(assembly))
+        return ModCompat.GetPckName(TryGetLoadedMod(assembly))
             ?? assembly.GetName().Name
             ?? VersionInfo.Name;
     }
@@ -35,7 +34,7 @@ public static class ModRuntime
     public static string GetDisplayName(Assembly? assembly = null)
     {
         assembly = ResolveAssembly(assembly);
-        return GetManifestName(TryGetManifest(assembly))
+        return ModCompat.GetManifestName(TryGetManifest(assembly))
             ?? assembly.GetName().Name
             ?? VersionInfo.Name;
     }
@@ -43,7 +42,7 @@ public static class ModRuntime
     public static Version? GetLoadedVersion(Assembly? assembly = null)
     {
         assembly = ResolveAssembly(assembly);
-        string? rawVersion = GetManifestVersion(TryGetManifest(assembly));
+        string? rawVersion = ModCompat.GetManifestVersion(TryGetManifest(assembly));
         if (Version.TryParse(rawVersion, out Version? parsed))
         {
             return parsed;
@@ -59,8 +58,11 @@ public static class ModRuntime
             return null;
         }
 
-        return GetKnownMods().FirstOrDefault(mod =>
-            string.Equals(GetManifestId(GetManifest(mod)), modId, StringComparison.OrdinalIgnoreCase));
+        return ModCompat.GetLoadedMods().FirstOrDefault(mod =>
+            string.Equals(
+                ModCompat.GetManifestId(ModCompat.GetManifest(mod)),
+                modId,
+                StringComparison.OrdinalIgnoreCase));
     }
 
     public static Mod? FindLoadedMod(string modId)
@@ -70,113 +72,17 @@ public static class ModRuntime
             return null;
         }
 
-        return GetKnownMods().FirstOrDefault(mod =>
+        return ModCompat.GetLoadedMods().FirstOrDefault(mod =>
         {
-            Assembly? modAssembly = GetAssembly(mod);
-            return string.Equals(GetManifestId(GetManifest(mod)), modId, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(GetPckName(mod), modId, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(GetManifestName(GetManifest(mod)), modId, StringComparison.OrdinalIgnoreCase)
+            Assembly? modAssembly = ModCompat.GetPrimaryAssembly(mod);
+            ModManifest? manifest = ModCompat.GetManifest(mod);
+            return string.Equals(ModCompat.GetManifestId(manifest), modId, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(ModCompat.GetPckName(mod), modId, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(ModCompat.GetManifestName(manifest), modId, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(modAssembly?.GetName().Name, modId, StringComparison.OrdinalIgnoreCase)
-                || ModAssemblyCompat.GetAssemblies(mod).Any(candidate =>
+                || ModCompat.GetAssemblies(mod).Any(candidate =>
                     string.Equals(candidate.GetName().Name, modId, StringComparison.OrdinalIgnoreCase));
         });
-    }
-
-    private static IEnumerable<Mod> GetKnownMods()
-    {
-        object? value = GetStaticMemberValue(typeof(ModManager), "LoadedMods", "AllMods", "Mods");
-        if (value is not IEnumerable enumerable)
-        {
-            yield break;
-        }
-
-        foreach (object? item in enumerable)
-        {
-            if (item is Mod mod)
-            {
-                yield return mod;
-            }
-        }
-    }
-
-    private static Assembly? GetAssembly(Mod? mod)
-    {
-        return ModAssemblyCompat.GetPrimaryAssembly(mod);
-    }
-
-    private static ModManifest? GetManifest(Mod? mod)
-    {
-        return GetInstanceMemberValue(mod, "manifest", "Manifest") as ModManifest;
-    }
-
-    private static string? GetPckName(Mod? mod)
-    {
-        return GetInstanceMemberValue(mod, "pckName", "PckName") as string;
-    }
-
-    private static string? GetManifestId(ModManifest? manifest)
-    {
-        return GetInstanceMemberValue(manifest, "id", "Id") as string;
-    }
-
-    private static string? GetManifestName(ModManifest? manifest)
-    {
-        return GetInstanceMemberValue(manifest, "name", "Name") as string;
-    }
-
-    private static string? GetManifestVersion(ModManifest? manifest)
-    {
-        return GetInstanceMemberValue(manifest, "version", "Version") as string;
-    }
-
-    private static object? GetStaticMemberValue(Type type, params string[] memberNames)
-    {
-        foreach (string memberName in memberNames)
-        {
-            MemberAccessor? accessor = TryGetMember(type, memberName);
-            if (accessor is { IsStatic: true })
-            {
-                return accessor.GetValue(null);
-            }
-        }
-
-        return null;
-    }
-
-    private static object? GetInstanceMemberValue(object? instance, params string[] memberNames)
-    {
-        if (instance == null)
-        {
-            return null;
-        }
-
-        Type type = instance.GetType();
-        foreach (string memberName in memberNames)
-        {
-            MemberAccessor? accessor = TryGetMember(type, memberName);
-            if (accessor is { IsStatic: false })
-            {
-                return accessor.GetValue(instance);
-            }
-        }
-
-        return null;
-    }
-
-    private static MemberAccessor? TryGetMember(Type type, string memberName)
-    {
-        for (Type? current = type; current != null; current = current.BaseType)
-        {
-            try
-            {
-                return MemberAccessor.Get(current, memberName);
-            }
-            catch (MissingMemberException)
-            {
-            }
-        }
-
-        return null;
     }
 
     private static Assembly ResolveAssembly(Assembly? assembly)

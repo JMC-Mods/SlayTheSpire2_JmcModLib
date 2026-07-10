@@ -1,4 +1,5 @@
 using Godot;
+using JmcModLib.Compat;
 using JmcModLib.Config;
 using JmcModLib.Config.Entry;
 using JmcModLib.Core.AttributeRouter;
@@ -228,7 +229,7 @@ internal static class OptionalNetworkFeatureManager
 
         string modId = ModRegistry.GetModId(assembly);
         Mod? mod = ModRuntime.FindModById(modId);
-        ModManifest manifest = mod?.manifest
+        ModManifest manifest = ModCompat.GetManifest(mod)
             ?? throw new InvalidOperationException($"无法找到可选网络功能 {id} 所属 MOD 的 manifest。");
 
         bool requestedEnabled = (bool)(member.GetValue(null)
@@ -568,10 +569,11 @@ internal static class OptionalNetworkFeatureManager
             {
                 string modId = ModRegistry.GetModId(assembly);
                 Mod? mod = ModRuntime.FindModById(modId);
-                if (mod?.manifest != null)
+                ModManifest? manifest = ModCompat.GetManifest(mod);
+                if (manifest != null)
                 {
-                    UnsafeManifests[assembly] = mod.manifest;
-                    mod.manifest.affectsGameplay = true;
+                    UnsafeManifests[assembly] = manifest;
+                    manifest.affectsGameplay = true;
                 }
             }
         }

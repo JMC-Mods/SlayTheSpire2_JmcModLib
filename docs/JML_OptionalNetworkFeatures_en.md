@@ -174,6 +174,8 @@ JML never swaps the protocol inside an active session because current and later-
 
 When a room join fails because optional multiplayer switches differ, JML recognizes its compatibility identities and replaces raw `JML-ONF1:...` tokens with a dedicated localized explanation. It distinguishes features enabled only locally from features enabled only by the host, while preserving details about any unrelated ordinary MOD mismatches.
 
+The dedicated prompt uses `MultiplayerCompat.TryGetConnectionExtraInfo` to support both the private `_connectionExtraInfo` field in game `0.107.1` and the public `ConnectionExtraInfo` property introduced in `0.108`. If a future game version exposes neither recognizable member, JML safely falls back to the game's original prompt. See the [game-version compatibility layer](JML_Compatibility_en.md) for the complete matrix.
+
 ---
 
 ## 6. Public API Quick Reference

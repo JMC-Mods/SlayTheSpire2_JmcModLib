@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 API 文档
 
-源码基准：JML `1.6.1`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
+源码基准：JML `1.6.6`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
 
 ```csharp
 using JmcModLib.Core;
@@ -16,6 +16,7 @@ using JmcModLib.Reflection;
 using JmcModLib.Utils;
 using JmcModLib.Prefabs;
 using JmcModLib.Multiplayer;
+using JmcModLib.Compat;
 ```
 
 `ExprHelper` 已位于 `JmcModLib.Utils` 命名空间，通常由 `global using JmcModLib.Utils;` 自动引入。
@@ -160,6 +161,22 @@ flowchart TD
 | `GetLoadedVersion(Assembly? assembly = null)` | manifest version 或 Assembly version |
 | `FindModById(string modId)` | 按 manifest id 精确查找 |
 | `FindLoadedMod(string modId)` | 按 id/pck/name/assembly 名查找 |
+
+### 2.7 `ModCompat` / `MultiplayerCompat`
+
+命名空间：`JmcModLib.Compat`。该层集中封装已经确认的 STS2 版本成员差异，JML 与子 MOD 都可以调用。
+
+| 类型 | 成员 | 说明 |
+|---|---|---|
+| `ModCompat` | `GetKnownMods()` | 兼容读取游戏已识别的 MOD 快照 |
+| `ModCompat` | `GetLoadedMods()` / `IsLoaded(Mod?)` | 兼容读取或判断已经加载的 MOD |
+| `ModCompat` | `GetAssemblies(Mod?)` / `GetPrimaryAssembly(Mod?)` / `ContainsAssembly(Mod?, Assembly)` | 兼容单程序集与多程序集成员布局 |
+| `ModCompat` | `GetManifest(Mod?)` / `GetPckName(Mod?)` | 兼容读取 MOD manifest 与 PCK 名称 |
+| `ModCompat` | `GetManifestId/Name/Version(ModManifest?)` | 兼容读取 manifest 元数据 |
+| `MultiplayerCompat` | `TryGetConnectionExtraInfo(NetErrorInfo, out ConnectionFailureExtraInfo?)` | 兼容 0.107.1 私有字段与 0.108+ 公开属性 |
+| `MultiplayerCompat` | `TryGetJoinFlowNetService(JoinFlow, out INetGameService?)` | 兼容读取加入流程网络服务 |
+
+完整版本矩阵、调用示例与维护约定见[游戏版本兼容层专题](JML_Compatibility.md)。
 
 ---
 

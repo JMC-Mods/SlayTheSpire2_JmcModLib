@@ -1,3 +1,4 @@
+using JmcModLib.Compat;
 using MegaCrit.Sts2.Core.Modding;
 using System.Reflection;
 
@@ -12,14 +13,14 @@ internal static class ModConfigUiBridge
 
     internal static Assembly? GetConfigAssembly(Mod? mod)
     {
-        Assembly? directAssembly = ModAssemblyCompat.GetAssemblies(mod)
+        Assembly? directAssembly = ModCompat.GetAssemblies(mod)
             .FirstOrDefault(static assembly => ConfigManager.GetEntries(assembly).Count > 0);
         if (directAssembly != null)
         {
             return directAssembly;
         }
 
-        string? modId = mod?.manifest?.id;
+        string? modId = ModCompat.GetManifestId(ModCompat.GetManifest(mod));
         if (ModRegistry.TryGetContextByModId(modId, out ModContext? context)
             && context != null
             && context.IsCompleted

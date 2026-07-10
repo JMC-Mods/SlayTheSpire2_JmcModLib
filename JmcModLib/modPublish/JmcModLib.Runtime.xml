@@ -4,6 +4,139 @@
         <name>JmcModLib</name>
     </assembly>
     <members>
+        <member name="T:JmcModLib.Compat.ModCompat">
+            <summary>
+            封装不同 STS2 版本中的 MOD 列表、程序集与 manifest 成员差异。
+            </summary>
+            <remarks>
+            已归档的游戏 DLL 中，0.99.1 至 0.107.1 的 <see cref="T:MegaCrit.Sts2.Core.Modding.Mod"/> 使用单个
+            <c>assembly</c> 字段；0.108 将其改为 <c>assemblies</c> 列表，以支持一个 MOD
+            关联多个托管程序集。0.99.1 的 MOD 列表与加载状态分别由
+            <c>AllMods</c>/<c>LoadedMods</c> 和 <c>wasLoaded</c> 表示；0.103 起改为
+            <c>Mods</c>/<c>GetLoadedMods()</c> 和 <c>state</c>。其他 PascalCase 候选名用于
+            防御性兼容，不表示已确认它们存在于上述归档版本。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Compat.ModCompat.GetKnownMods">
+            <summary>
+            获取当前游戏已识别的 MOD 快照。
+            </summary>
+            <returns>当前可从游戏 MOD 管理器读取的 MOD；无法识别当前版本入口时返回空集合。</returns>
+        </member>
+        <member name="M:JmcModLib.Compat.ModCompat.GetLoadedMods">
+            <summary>
+            获取当前已经加载的 MOD 快照。
+            </summary>
+            <returns>
+            0.99.1 中位于 <c>LoadedMods</c> 的 MOD，或 0.103 起加载状态为
+            <see cref="F:MegaCrit.Sts2.Core.Modding.ModLoadState.Loaded"/> 的 MOD。
+            </returns>
+        </member>
+        <member name="M:JmcModLib.Compat.ModCompat.IsLoaded(MegaCrit.Sts2.Core.Modding.Mod)">
+            <summary>
+            判断一个游戏 MOD 当前是否已经完成加载。
+            </summary>
+            <param name="mod">目标游戏 MOD。</param>
+            <returns>
+            0.99.1 的 <c>wasLoaded</c> 为真，或 0.103 起加载状态为
+            <see cref="F:MegaCrit.Sts2.Core.Modding.ModLoadState.Loaded"/> 时返回 <see langword="true"/>。
+            </returns>
+        </member>
+        <member name="M:JmcModLib.Compat.ModCompat.GetAssemblies(MegaCrit.Sts2.Core.Modding.Mod)">
+            <summary>
+            获取一个游戏 MOD 关联的全部托管程序集。
+            </summary>
+            <param name="mod">目标游戏 MOD。</param>
+            <returns>去重后的托管程序集快照；<paramref name="mod"/> 为空时返回空集合。</returns>
+        </member>
+        <member name="M:JmcModLib.Compat.ModCompat.GetPrimaryAssembly(MegaCrit.Sts2.Core.Modding.Mod)">
+            <summary>
+            获取一个游戏 MOD 的首个托管程序集。
+            </summary>
+            <param name="mod">目标游戏 MOD。</param>
+            <returns>首个托管程序集；无法读取时返回 <see langword="null"/>。</returns>
+        </member>
+        <member name="M:JmcModLib.Compat.ModCompat.ContainsAssembly(MegaCrit.Sts2.Core.Modding.Mod,System.Reflection.Assembly)">
+            <summary>
+            判断一个游戏 MOD 是否关联指定托管程序集。
+            </summary>
+            <param name="mod">目标游戏 MOD。</param>
+            <param name="assembly">需要查找的程序集。</param>
+            <returns>存在同一程序集实例时返回 <see langword="true"/>。</returns>
+        </member>
+        <member name="M:JmcModLib.Compat.ModCompat.GetManifest(MegaCrit.Sts2.Core.Modding.Mod)">
+            <summary>
+            获取游戏 MOD 的 manifest。
+            </summary>
+            <param name="mod">目标游戏 MOD。</param>
+            <returns>manifest；无法读取时返回 <see langword="null"/>。</returns>
+            <remarks>
+            0.99.1–0.107.1 的 <c>ModManifest</c> 是 class，0.108 改为 record；
+            <see cref="T:MegaCrit.Sts2.Core.Modding.Mod"/> 持有它的 <c>manifest</c> 字段名在归档版本中没有变化。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Compat.ModCompat.GetPckName(MegaCrit.Sts2.Core.Modding.Mod)">
+            <summary>
+            获取游戏 MOD 的 PCK 名称。
+            </summary>
+            <param name="mod">目标游戏 MOD。</param>
+            <returns>PCK 名称；无法读取时返回 <see langword="null"/>。</returns>
+            <remarks>
+            归档的 0.99.1–0.108 <see cref="T:MegaCrit.Sts2.Core.Modding.Mod"/> 中未发现 <c>pckName</c> 成员；
+            此候选名是为历史非归档构建和未来构建保留的防御性兼容。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Compat.ModCompat.GetManifestId(MegaCrit.Sts2.Core.Modding.ModManifest)">
+            <summary>
+            获取 manifest 的稳定 MOD 标识。
+            </summary>
+            <param name="manifest">目标 manifest。</param>
+            <returns>MOD 标识；无法读取时返回 <see langword="null"/>。</returns>
+        </member>
+        <member name="M:JmcModLib.Compat.ModCompat.GetManifestName(MegaCrit.Sts2.Core.Modding.ModManifest)">
+            <summary>
+            获取 manifest 的显示名称。
+            </summary>
+            <param name="manifest">目标 manifest。</param>
+            <returns>显示名称；无法读取时返回 <see langword="null"/>。</returns>
+        </member>
+        <member name="M:JmcModLib.Compat.ModCompat.GetManifestVersion(MegaCrit.Sts2.Core.Modding.ModManifest)">
+            <summary>
+            获取 manifest 的版本字符串。
+            </summary>
+            <param name="manifest">目标 manifest。</param>
+            <returns>版本字符串；无法读取时返回 <see langword="null"/>。</returns>
+        </member>
+        <member name="T:JmcModLib.Compat.MultiplayerCompat">
+            <summary>
+            封装不同 STS2 版本中的多人错误信息与加入流程成员差异。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Compat.MultiplayerCompat.TryGetConnectionExtraInfo(MegaCrit.Sts2.Core.Entities.Multiplayer.NetErrorInfo,MegaCrit.Sts2.Core.Entities.Multiplayer.ConnectionFailureExtraInfo@)">
+            <summary>
+            尝试读取联机错误携带的 MOD 不匹配等附加信息。
+            </summary>
+            <param name="info">游戏联机错误信息。</param>
+            <param name="extraInfo">成功时返回附加信息。</param>
+            <returns>当前游戏版本存在可识别成员且附加信息非空时返回 <see langword="true"/>。</returns>
+            <remarks>
+            游戏 0.99.1–0.107.1 使用私有 <c>_connectionExtraInfo</c> 字段，0.108 起使用公开
+            <c>ConnectionExtraInfo</c> 属性。调用方不应自行依赖这些版本成员名称。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Compat.MultiplayerCompat.TryGetJoinFlowNetService(MegaCrit.Sts2.Core.Multiplayer.Game.JoinFlow,MegaCrit.Sts2.Core.Multiplayer.Game.INetGameService@)">
+            <summary>
+            尝试读取加入流程当前使用的网络服务。
+            </summary>
+            <param name="flow">游戏加入流程实例。</param>
+            <param name="service">成功时返回网络服务。</param>
+            <returns>当前游戏版本存在可识别成员且网络服务非空时返回 <see langword="true"/>。</returns>
+            <remarks>
+            游戏 0.99.1–0.107.1 返回可空的具体类型 <c>NetClientGameService</c>；0.108 改为构造函数
+            注入的 <c>INetClientGameService</c>。本方法以两者共同的 <see cref="T:MegaCrit.Sts2.Core.Multiplayer.Game.INetGameService"/>
+            对外暴露稳定语义。
+            </remarks>
+        </member>
         <member name="T:JmcModLib.Config.ConfigAttribute">
             <summary>
             Marks a static field or property as a configuration entry.
