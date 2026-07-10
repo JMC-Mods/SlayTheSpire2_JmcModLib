@@ -52,5 +52,11 @@
   "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "キャンセル",
   "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "閉じる",
   "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "再起動できません",
-  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "{platform} では自動再起動に対応していません。手動でゲームを再起動してください。"
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "{platform} では自動再起動に対応していません。手動でゲームを再起動してください。",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.TITLE": "任意のマルチプレイ機能が一致しません",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.INTRO": "あなたとホストで有効な JML の任意マルチプレイ機能が異なるため、接続できませんでした。",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.LOCAL_ONLY": "ローカルでは有効ですが、ホスト側では無効または未導入です：\n{features}\n\nこれらの機能を無効にして再試行するか、ホストに対応 MOD の導入と同じ機能の有効化を依頼してください。",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.HOST_ONLY": "ホスト側では有効ですが、ローカルでは無効または未導入です：\n{features}\n\n対応 MOD を導入して同じ機能を有効にするか、ホストにこれらの機能を無効にするよう依頼してください。",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.OTHER_MISMATCH": "通常の MOD にも不一致があります：\n{details}",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.FEATURE_LINE": "• {name}（{modId} / {featureId}、プロトコル {version}）"
 }

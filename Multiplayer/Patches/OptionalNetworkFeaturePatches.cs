@@ -8,6 +8,7 @@ using MegaCrit.Sts2.Core.Multiplayer;
 using MegaCrit.Sts2.Core.Multiplayer.Connection;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Multiplayer.Serialization;
+using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using System.Reflection;
 
 namespace JmcModLib.Multiplayer.Patches;
@@ -60,6 +61,30 @@ internal static class OptionalNetworkCompatibilityPatch
             {
                 __result.Add(token);
             }
+        }
+    }
+}
+
+[HarmonyPatch(typeof(NErrorPopup), nameof(NErrorPopup.Create), [typeof(NetErrorInfo)])]
+internal static class OptionalNetworkMismatchPopupPatch
+{
+    [HarmonyPrefix]
+    private static bool Prefix(NetErrorInfo info, ref NErrorPopup? __result)
+    {
+        try
+        {
+            if (!OptionalNetworkMismatchPresenter.TryCreatePopup(info, out NErrorPopup? popup))
+            {
+                return true;
+            }
+
+            __result = popup;
+            return false;
+        }
+        catch (Exception ex)
+        {
+            ModLogger.Warn("生成可选联机功能不匹配提示失败，将使用游戏原始提示。", ex);
+            return true;
         }
     }
 }

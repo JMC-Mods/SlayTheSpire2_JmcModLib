@@ -13,6 +13,8 @@ namespace JmcModLib.Multiplayer.Internal;
 
 internal static class OptionalNetworkFeatureManager
 {
+    internal const string CompatibilityTokenPrefix = "JML-ONF1";
+
     private static readonly object Gate = new();
     private static readonly OptionalNetworkFeatureAttributeHandler AttributeHandler = new();
     private static readonly Dictionary<Assembly, List<PendingDeclaration>> PendingDeclarations = [];
@@ -103,6 +105,34 @@ internal static class OptionalNetworkFeatureManager
                 .Select(static registration => BuildCompatibilityToken(registration))
                 .Order(StringComparer.Ordinal)];
         }
+    }
+
+    internal static bool TryGetFeatureDescriptor(
+        OptionalNetworkFeatureIdentity identity,
+        out OptionalNetworkFeatureDescriptor descriptor)
+    {
+        lock (Gate)
+        {
+            FeatureRegistration? registration = GetAllFeaturesUnsafe().FirstOrDefault(candidate =>
+                string.Equals(candidate.Handle.ModId, identity.ModId, StringComparison.Ordinal)
+                && string.Equals(candidate.Handle.Id, identity.FeatureId, StringComparison.Ordinal)
+                && string.Equals(
+                    candidate.Handle.CompatibilityVersion,
+                    identity.CompatibilityVersion,
+                    StringComparison.Ordinal));
+            if (registration != null)
+            {
+                descriptor = new OptionalNetworkFeatureDescriptor(
+                    identity,
+                    ConfigLocalization.GetDisplayName(registration.ConfigEntry),
+                    ModRegistry.GetVersion(registration.Assembly),
+                    registration.EffectiveEnabled);
+                return true;
+            }
+        }
+
+        descriptor = default;
+        return false;
     }
 
     internal static void OnNetworkBecameIdle()
@@ -624,7 +654,7 @@ internal static class OptionalNetworkFeatureManager
     {
         return string.Join(
             ":",
-            "JML-ONF1",
+            CompatibilityTokenPrefix,
             Uri.EscapeDataString(registration.Handle.ModId),
             Uri.EscapeDataString(registration.Handle.Id),
             Uri.EscapeDataString(registration.Handle.CompatibilityVersion));
@@ -679,3 +709,9 @@ internal static class OptionalNetworkFeatureManager
         }
     }
 }
+
+internal readonly record struct OptionalNetworkFeatureDescriptor(
+    OptionalNetworkFeatureIdentity Identity,
+    string DisplayName,
+    string? ModVersion,
+    bool EffectiveEnabled);

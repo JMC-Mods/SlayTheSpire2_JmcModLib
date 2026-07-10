@@ -52,5 +52,11 @@
   "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Annulla",
   "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Chiudi",
   "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Riavvio non disponibile",
-  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Il riavvio automatico non è supportato su {platform}. Riavvia il gioco manualmente."
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Il riavvio automatico non è supportato su {platform}. Riavvia il gioco manualmente.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.TITLE": "Le funzionalità multigiocatore opzionali non corrispondono",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.INTRO": "La connessione non è riuscita perché tu e l'host avete attivato funzionalità multigiocatore opzionali JML diverse.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.LOCAL_ONLY": "Attivate localmente, ma non attivate o installate dall'host:\n{features}\n\nDisattiva queste funzionalità e riprova, oppure chiedi all'host di installare mod compatibili e attivare le stesse funzionalità.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.HOST_ONLY": "Attivate dall'host, ma non attivate o installate localmente:\n{features}\n\nInstalla mod compatibili e attiva le stesse funzionalità, oppure chiedi all'host di disattivarle.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.OTHER_MISMATCH": "Sono presenti anche normali mod non corrispondenti:\n{details}",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.FEATURE_LINE": "• {name} ({modId} / {featureId}, protocollo {version})"
 }

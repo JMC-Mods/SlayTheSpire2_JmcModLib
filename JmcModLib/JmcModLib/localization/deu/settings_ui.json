@@ -52,5 +52,11 @@
   "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Abbrechen",
   "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Schließen",
   "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Neustart nicht verfügbar",
-  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Automatischer Neustart wird auf {platform} nicht unterstützt. Bitte starte das Spiel manuell neu."
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Automatischer Neustart wird auf {platform} nicht unterstützt. Bitte starte das Spiel manuell neu.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.TITLE": "Optionale Mehrspielerfunktionen stimmen nicht überein",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.INTRO": "Die Verbindung ist fehlgeschlagen, weil du und der Host unterschiedliche optionale JML-Mehrspielerfunktionen aktiviert haben.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.LOCAL_ONLY": "Lokal aktiviert, aber beim Host nicht aktiviert oder installiert:\n{features}\n\nDeaktiviere diese Funktionen und versuche es erneut, oder bitte den Host, kompatible Mods zu installieren und dieselben Funktionen zu aktivieren.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.HOST_ONLY": "Beim Host aktiviert, aber lokal nicht aktiviert oder installiert:\n{features}\n\nInstalliere kompatible Mods und aktiviere dieselben Funktionen, oder bitte den Host, sie zu deaktivieren.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.OTHER_MISMATCH": "Zusätzlich stimmen gewöhnliche Mods nicht überein:\n{details}",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.FEATURE_LINE": "• {name} ({modId} / {featureId}, Protokoll {version})"
 }

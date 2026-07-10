@@ -52,5 +52,11 @@
   "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Cancelar",
   "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Cerrar",
   "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Reinicio no disponible",
-  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "El reinicio automático no es compatible con {platform}. Reinicia el juego manualmente."
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "El reinicio automático no es compatible con {platform}. Reinicia el juego manualmente.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.TITLE": "Las funciones multijugador opcionales no coinciden",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.INTRO": "La conexión falló porque tú y el anfitrión habéis activado funciones multijugador opcionales de JML diferentes.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.LOCAL_ONLY": "Activadas localmente, pero no activadas o instaladas por el anfitrión:\n{features}\n\nDesactiva estas funciones e inténtalo de nuevo, o pide al anfitrión que instale mods compatibles y active las mismas funciones.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.HOST_ONLY": "Activadas por el anfitrión, pero no activadas o instaladas localmente:\n{features}\n\nInstala mods compatibles y activa las mismas funciones, o pide al anfitrión que las desactive.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.OTHER_MISMATCH": "También hay mods normales que no coinciden:\n{details}",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.FEATURE_LINE": "• {name} ({modId} / {featureId}, protocolo {version})"
 }

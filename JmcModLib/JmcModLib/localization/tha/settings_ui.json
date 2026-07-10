@@ -52,5 +52,11 @@
   "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "ยกเลิก",
   "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "ปิด",
   "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "ไม่สามารถเริ่มใหม่อัตโนมัติได้",
-  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "ไม่รองรับการเริ่มใหม่อัตโนมัติบน {platform} โปรดเริ่มเกมใหม่ด้วยตนเอง"
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "ไม่รองรับการเริ่มใหม่อัตโนมัติบน {platform} โปรดเริ่มเกมใหม่ด้วยตนเอง",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.TITLE": "ฟีเจอร์ผู้เล่นหลายคนแบบเลือกใช้ไม่ตรงกัน",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.INTRO": "เชื่อมต่อไม่สำเร็จเพราะคุณและโฮสต์เปิดใช้ฟีเจอร์ผู้เล่นหลายคนแบบเลือกใช้ของ JML ต่างกัน",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.LOCAL_ONLY": "เปิดใช้ในเครื่องนี้ แต่โฮสต์ไม่ได้เปิดใช้หรือไม่ได้ติดตั้ง:\n{features}\n\nปิดฟีเจอร์เหล่านี้แล้วลองใหม่ หรือขอให้โฮสต์ติดตั้งม็อดที่เข้ากันได้และเปิดใช้ฟีเจอร์เดียวกัน",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.HOST_ONLY": "โฮสต์เปิดใช้ แต่เครื่องนี้ไม่ได้เปิดใช้หรือไม่ได้ติดตั้ง:\n{features}\n\nติดตั้งม็อดที่เข้ากันได้และเปิดใช้ฟีเจอร์เดียวกัน หรือขอให้โฮสต์ปิดฟีเจอร์เหล่านี้",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.OTHER_MISMATCH": "ยังมีม็อดทั่วไปที่ไม่ตรงกันด้วย:\n{details}",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.FEATURE_LINE": "• {name} ({modId} / {featureId}, โปรโตคอล {version})"
 }

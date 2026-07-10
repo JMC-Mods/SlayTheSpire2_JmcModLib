@@ -52,5 +52,11 @@
   "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Отмена",
   "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Закрыть",
   "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Перезапуск недоступен",
-  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Автоматический перезапуск не поддерживается на {platform}. Перезапустите игру вручную."
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Автоматический перезапуск не поддерживается на {platform}. Перезапустите игру вручную.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.TITLE": "Дополнительные сетевые функции не совпадают",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.INTRO": "Не удалось подключиться, потому что у вас и у хоста включены разные дополнительные сетевые функции JML.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.LOCAL_ONLY": "Включено локально, но не включено или не установлено у хоста:\n{features}\n\nОтключите эти функции и повторите попытку либо попросите хоста установить совместимые моды и включить те же функции.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.HOST_ONLY": "Включено у хоста, но не включено или не установлено локально:\n{features}\n\nУстановите совместимые моды и включите те же функции либо попросите хоста отключить их.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.OTHER_MISMATCH": "Также есть обычные несовпадения модов:\n{details}",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.FEATURE_LINE": "• {name} ({modId} / {featureId}, протокол {version})"
 }

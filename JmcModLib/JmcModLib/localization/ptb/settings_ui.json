@@ -52,5 +52,11 @@
   "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Cancelar",
   "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Fechar",
   "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Reinício indisponível",
-  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Reinício automático não é compatível com {platform}. Reinicie o jogo manualmente."
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Reinício automático não é compatível com {platform}. Reinicie o jogo manualmente.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.TITLE": "Os recursos multijogador opcionais não correspondem",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.INTRO": "A conexão falhou porque você e o anfitrião ativaram recursos multijogador opcionais diferentes do JML.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.LOCAL_ONLY": "Ativados localmente, mas não ativados ou instalados pelo anfitrião:\n{features}\n\nDesative esses recursos e tente novamente, ou peça ao anfitrião para instalar mods compatíveis e ativar os mesmos recursos.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.HOST_ONLY": "Ativados pelo anfitrião, mas não ativados ou instalados localmente:\n{features}\n\nInstale mods compatíveis e ative os mesmos recursos, ou peça ao anfitrião para desativá-los.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.OTHER_MISMATCH": "Também existem mods comuns incompatíveis:\n{details}",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.FEATURE_LINE": "• {name} ({modId} / {featureId}, protocolo {version})"
 }

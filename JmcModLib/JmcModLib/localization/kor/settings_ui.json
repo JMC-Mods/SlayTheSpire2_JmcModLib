@@ -52,5 +52,11 @@
   "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "취소",
   "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "닫기",
   "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "다시 시작할 수 없음",
-  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "{platform}에서는 자동 다시 시작을 지원하지 않습니다. 게임을 직접 다시 시작해 주세요."
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "{platform}에서는 자동 다시 시작을 지원하지 않습니다. 게임을 직접 다시 시작해 주세요.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.TITLE": "선택적 멀티플레이 기능이 일치하지 않습니다",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.INTRO": "나와 호스트가 활성화한 JML 선택적 멀티플레이 기능이 달라 연결하지 못했습니다.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.LOCAL_ONLY": "로컬에서는 활성화되었지만 호스트에서는 비활성화되었거나 설치되지 않았습니다:\n{features}\n\n이 기능을 끄고 다시 시도하거나, 호스트에게 호환 MOD를 설치하고 같은 기능을 켜 달라고 요청하세요.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.HOST_ONLY": "호스트에서는 활성화되었지만 로컬에서는 비활성화되었거나 설치되지 않았습니다:\n{features}\n\n호환 MOD를 설치하고 같은 기능을 켜거나, 호스트에게 이 기능을 꺼 달라고 요청하세요.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.OTHER_MISMATCH": "일반 MOD도 일치하지 않습니다:\n{details}",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.FEATURE_LINE": "• {name} ({modId} / {featureId}, 프로토콜 {version})"
 }

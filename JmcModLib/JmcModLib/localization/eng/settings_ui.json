@@ -52,5 +52,11 @@
   "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Cancel",
   "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Close",
   "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Restart unavailable",
-  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Automatic restart is not supported on {platform}. Please restart the game manually."
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Automatic restart is not supported on {platform}. Please restart the game manually.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.TITLE": "Optional multiplayer features do not match",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.INTRO": "The connection failed because you and the host enabled different JML optional multiplayer features.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.LOCAL_ONLY": "Enabled locally, but not enabled or installed by the host:\n{features}\n\nDisable these features and retry, or ask the host to install compatible MODs and enable the same features.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.HOST_ONLY": "Enabled by the host, but not enabled or installed locally:\n{features}\n\nInstall compatible MODs and enable the same features, or ask the host to disable them.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.OTHER_MISMATCH": "There are also ordinary MOD mismatches:\n{details}",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.FEATURE_LINE": "• {name} ({modId} / {featureId}, protocol {version})"
 }

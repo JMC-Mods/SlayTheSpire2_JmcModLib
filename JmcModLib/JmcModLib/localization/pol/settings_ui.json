@@ -52,5 +52,11 @@
   "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Anuluj",
   "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Zamknij",
   "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Restart niedostępny",
-  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Automatyczny restart nie jest obsługiwany na {platform}. Uruchom grę ponownie ręcznie."
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Automatyczny restart nie jest obsługiwany na {platform}. Uruchom grę ponownie ręcznie.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.TITLE": "Opcjonalne funkcje wieloosobowe nie są zgodne",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.INTRO": "Połączenie nie powiodło się, ponieważ ty i host macie włączone różne opcjonalne funkcje wieloosobowe JML.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.LOCAL_ONLY": "Włączone lokalnie, ale niewłączone lub niezainstalowane u hosta:\n{features}\n\nWyłącz te funkcje i spróbuj ponownie albo poproś hosta o zainstalowanie zgodnych modów i włączenie tych samych funkcji.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.HOST_ONLY": "Włączone u hosta, ale niewłączone lub niezainstalowane lokalnie:\n{features}\n\nZainstaluj zgodne mody i włącz te same funkcje albo poproś hosta o ich wyłączenie.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.OTHER_MISMATCH": "Występują też zwykłe niezgodności modów:\n{details}",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.FEATURE_LINE": "• {name} ({modId} / {featureId}, protokół {version})"
 }

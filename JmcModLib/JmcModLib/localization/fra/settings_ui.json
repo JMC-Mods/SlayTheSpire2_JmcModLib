@@ -52,5 +52,11 @@
   "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "Annuler",
   "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Fermer",
   "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Redémarrage indisponible",
-  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Le redémarrage automatique n'est pas pris en charge sur {platform}. Veuillez redémarrer le jeu manuellement."
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Le redémarrage automatique n'est pas pris en charge sur {platform}. Veuillez redémarrer le jeu manuellement.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.TITLE": "Les fonctionnalités multijoueur optionnelles ne correspondent pas",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.INTRO": "La connexion a échoué, car vous et l'hôte avez activé des fonctionnalités multijoueur optionnelles JML différentes.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.LOCAL_ONLY": "Activées localement, mais non activées ou installées chez l'hôte :\n{features}\n\nDésactivez ces fonctionnalités et réessayez, ou demandez à l'hôte d'installer des mods compatibles et d'activer les mêmes fonctionnalités.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.HOST_ONLY": "Activées chez l'hôte, mais non activées ou installées localement :\n{features}\n\nInstallez des mods compatibles et activez les mêmes fonctionnalités, ou demandez à l'hôte de les désactiver.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.OTHER_MISMATCH": "D'autres mods ordinaires ne correspondent également pas :\n{details}",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.FEATURE_LINE": "• {name} ({modId} / {featureId}, protocole {version})"
 }

@@ -52,5 +52,11 @@
   "EXTENSION.JMCMODLIB.RESTART.CANCEL_BUTTON": "İptal",
   "EXTENSION.JMCMODLIB.RESTART.CLOSE_BUTTON": "Kapat",
   "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_TITLE": "Yeniden başlatma kullanılamıyor",
-  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Otomatik yeniden başlatma {platform} üzerinde desteklenmiyor. Lütfen oyunu elle yeniden başlatın."
+  "EXTENSION.JMCMODLIB.RESTART.UNSUPPORTED_BODY": "Otomatik yeniden başlatma {platform} üzerinde desteklenmiyor. Lütfen oyunu elle yeniden başlatın.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.TITLE": "İsteğe bağlı çok oyunculu özellikler eşleşmiyor",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.INTRO": "Bağlantı, siz ve sunucu farklı JML isteğe bağlı çok oyunculu özelliklerini etkinleştirdiğiniz için başarısız oldu.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.LOCAL_ONLY": "Yerelde etkin, ancak sunucuda etkin değil veya kurulu değil:\n{features}\n\nBu özellikleri kapatıp yeniden deneyin ya da sunucudan uyumlu modları kurup aynı özellikleri etkinleştirmesini isteyin.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.HOST_ONLY": "Sunucuda etkin, ancak yerelde etkin değil veya kurulu değil:\n{features}\n\nUyumlu modları kurup aynı özellikleri etkinleştirin ya da sunucudan bu özellikleri kapatmasını isteyin.",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.OTHER_MISMATCH": "Ayrıca normal mod uyuşmazlıkları da var:\n{details}",
+  "EXTENSION.JMCMODLIB.OPTIONAL_NETWORK_MISMATCH.FEATURE_LINE": "• {name} ({modId} / {featureId}, protokol {version})"
 }

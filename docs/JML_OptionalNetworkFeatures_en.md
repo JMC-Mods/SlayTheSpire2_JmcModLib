@@ -172,6 +172,8 @@ JML never swaps the protocol inside an active session because current and later-
 
 `RestartRequired` means hot apply failed; it does not mean ordinary changes always require a restart. The runtime keeps the previous `EffectiveEnabled` value after failure, so business code remains safe when it follows the handle.
 
+When a room join fails because optional multiplayer switches differ, JML recognizes its compatibility identities and replaces raw `JML-ONF1:...` tokens with a dedicated localized explanation. It distinguishes features enabled only locally from features enabled only by the host, while preserving details about any unrelated ordinary MOD mismatches.
+
 ---
 
 ## 6. Public API Quick Reference
