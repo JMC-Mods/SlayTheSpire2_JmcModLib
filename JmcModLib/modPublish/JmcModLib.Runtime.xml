@@ -1299,6 +1299,153 @@
             Steam Input 初始化补丁：在游戏调用 SteamInput.Init 前准备 manifest，并补全缺失的原生手柄映射。
             </summary>
         </member>
+        <member name="T:JmcModLib.Multiplayer.OptionalNetworkFeatureApplyState">
+            <summary>
+            表示可选网络功能的配置状态如何应用到当前运行时协议。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Multiplayer.OptionalNetworkFeatureApplyState.Applied">
+            <summary>
+            配置状态已经应用到当前运行时协议。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Multiplayer.OptionalNetworkFeatureApplyState.PendingNetworkIdle">
+            <summary>
+            配置已经保存，但正在等待当前网络活动完整结束后应用。
+            </summary>
+        </member>
+        <member name="F:JmcModLib.Multiplayer.OptionalNetworkFeatureApplyState.RestartRequired">
+            <summary>
+            运行时协议重建失败，需要通过重启游戏完成应用。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Multiplayer.OptionalNetworkFeatureAttribute">
+            <summary>
+            将一个静态布尔配置声明为可选网络功能，并指定该功能独占的网络消息标记接口。
+            </summary>
+            <remarks>
+            <para>目标成员必须同时使用 <c>ConfigAttribute</c> 注册为静态 <see cref="T:System.Boolean"/> 配置。</para>
+            <para>
+            <paramref name="messageMarkerType"/> 必须是继承游戏 <c>INetMessage</c> 的接口，且只能标记当前功能拥有的消息类型。
+            所属 MOD 的 manifest 初始值必须声明 <c>affects_gameplay=false</c>。
+            </para>
+            <para>声明必须在常规 MOD 初始化阶段通过 <c>ModRegistry.Register</c> 完成扫描，不能在游戏基础协议初始化后延迟注册。</para>
+            </remarks>
+            <param name="id">功能在所属 MOD 内的稳定标识。</param>
+            <param name="messageMarkerType">继承游戏 <c>INetMessage</c>、且由该功能独占的消息标记接口。</param>
+        </member>
+        <member name="M:JmcModLib.Multiplayer.OptionalNetworkFeatureAttribute.#ctor(System.String,System.Type)">
+            <summary>
+            将一个静态布尔配置声明为可选网络功能，并指定该功能独占的网络消息标记接口。
+            </summary>
+            <remarks>
+            <para>目标成员必须同时使用 <c>ConfigAttribute</c> 注册为静态 <see cref="T:System.Boolean"/> 配置。</para>
+            <para>
+            <paramref name="messageMarkerType"/> 必须是继承游戏 <c>INetMessage</c> 的接口，且只能标记当前功能拥有的消息类型。
+            所属 MOD 的 manifest 初始值必须声明 <c>affects_gameplay=false</c>。
+            </para>
+            <para>声明必须在常规 MOD 初始化阶段通过 <c>ModRegistry.Register</c> 完成扫描，不能在游戏基础协议初始化后延迟注册。</para>
+            </remarks>
+            <param name="id">功能在所属 MOD 内的稳定标识。</param>
+            <param name="messageMarkerType">继承游戏 <c>INetMessage</c>、且由该功能独占的消息标记接口。</param>
+        </member>
+        <member name="P:JmcModLib.Multiplayer.OptionalNetworkFeatureAttribute.Id">
+            <summary>
+            获取功能在所属 MOD 内的稳定标识。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Multiplayer.OptionalNetworkFeatureAttribute.MessageMarkerType">
+            <summary>
+            获取该功能独占的网络消息标记接口。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Multiplayer.OptionalNetworkFeatureAttribute.CompatibilityVersion">
+            <summary>
+            获取或设置网络协议兼容版本；消息布局或交互流程发生不兼容变化时应递增。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Multiplayer.OptionalNetworkFeatureHandle">
+            <summary>
+            提供可选网络功能的配置意图、当前生效状态和应用进度。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Multiplayer.OptionalNetworkFeatureHandle.Id">
+            <summary>
+            获取功能在所属 MOD 内的稳定标识。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Multiplayer.OptionalNetworkFeatureHandle.ModId">
+            <summary>
+            获取所属 MOD 的稳定标识。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Multiplayer.OptionalNetworkFeatureHandle.CompatibilityVersion">
+            <summary>
+            获取参与多人兼容性校验的网络协议兼容版本。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Multiplayer.OptionalNetworkFeatureHandle.RequestedEnabled">
+            <summary>
+            获取用户配置所请求的状态；该值可能尚未应用到当前网络协议。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Multiplayer.OptionalNetworkFeatureHandle.EffectiveEnabled">
+            <summary>
+            获取当前运行时协议真正生效的状态；网络消息注册、发送和业务入口必须以此值为准。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Multiplayer.OptionalNetworkFeatureHandle.ApplyState">
+            <summary>
+            获取当前配置的应用状态。
+            </summary>
+        </member>
+        <member name="P:JmcModLib.Multiplayer.OptionalNetworkFeatureHandle.HasPendingApply">
+            <summary>
+            获取是否仍有尚未应用到运行时协议的配置变化。
+            </summary>
+        </member>
+        <member name="E:JmcModLib.Multiplayer.OptionalNetworkFeatureHandle.StateChanged">
+            <summary>
+            当任意公开状态发生变化时触发。
+            </summary>
+        </member>
+        <member name="E:JmcModLib.Multiplayer.OptionalNetworkFeatureHandle.EffectiveEnabledChanged">
+            <summary>
+            当当前运行时协议真正生效的启用状态发生变化时触发。
+            </summary>
+        </member>
+        <member name="T:JmcModLib.Multiplayer.OptionalNetworkFeatures">
+            <summary>
+            提供可选网络功能运行时句柄的查询入口。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Multiplayer.OptionalNetworkFeatures.Get(System.String,System.Reflection.Assembly)">
+            <summary>
+            获取指定程序集已声明的可选网络功能句柄。
+            </summary>
+            <param name="id">功能在所属 MOD 内的稳定标识。</param>
+            <param name="assembly">所属程序集；留空时自动解析调用方程序集。</param>
+            <returns>对应的运行时句柄。</returns>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">功能尚未注册、声明无效或标识不存在。</exception>
+        </member>
+        <member name="M:JmcModLib.Multiplayer.OptionalNetworkFeatures.Get``1(System.String)">
+            <summary>
+            使用类型所在程序集获取已声明的可选网络功能句柄。
+            </summary>
+            <typeparam name="TOwner">位于目标 MOD 程序集中的非静态类型，通常使用入口 <c>MainFile</c>。</typeparam>
+            <param name="id">功能在所属 MOD 内的稳定标识。</param>
+            <returns>对应的运行时句柄。</returns>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">功能尚未注册、声明无效或标识不存在。</exception>
+        </member>
+        <member name="M:JmcModLib.Multiplayer.OptionalNetworkFeatures.TryGet(System.String,JmcModLib.Multiplayer.OptionalNetworkFeatureHandle@,System.Reflection.Assembly)">
+            <summary>
+            尝试获取指定程序集已声明的可选网络功能句柄。
+            </summary>
+            <param name="id">功能在所属 MOD 内的稳定标识。</param>
+            <param name="handle">成功时返回对应的运行时句柄。</param>
+            <param name="assembly">所属程序集；留空时自动解析调用方程序集。</param>
+            <returns>找到有效声明时返回 <see langword="true"/>。</returns>
+        </member>
         <member name="T:JmcModLib.Persistence.JmcClientRunDataAttribute">
             <summary>
             将静态 <see cref="T:JmcModLib.Persistence.JmcRunDataSlot`1"/> 字段或属性注册为当前客户端、当前 run 生命周期内的数据。

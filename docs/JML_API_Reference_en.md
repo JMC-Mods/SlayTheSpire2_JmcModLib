@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 API Reference
 
-Source baseline: JML `1.5.12`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
+Source baseline: JML `1.6.1`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
 
 ```csharp
 using JmcModLib.Core;
@@ -15,6 +15,7 @@ using JmcModLib.UI.PauseMenu;
 using JmcModLib.Reflection;
 using JmcModLib.Utils;
 using JmcModLib.Prefabs;
+using JmcModLib.Multiplayer;
 ```
 
 `ExprHelper` is now in the `JmcModLib.Utils` namespace and is usually brought in automatically by `global using JmcModLib.Utils;`.
@@ -83,8 +84,8 @@ Namespace: `JmcModLib.Core`
 | Member | Description |
 |---|---|
 | `const string Name = "JmcModLib"` | JML name |
-| `const string Version = "1.5.12"` | JML version |
-| `string Tag` | `"[JmcModLib v1.5.12]"` |
+| `const string Version = "1.6.1"` | JML version |
+| `string Tag` | `"[JmcModLib v1.6.1]"` |
 | `GetName(Assembly? assembly = null)` | Gets the specified assembly name; JML itself returns the fixed name |
 | `GetVersion(Assembly? assembly = null)` | Gets the specified assembly version; JML itself returns the fixed version |
 | `GetTag(Assembly? assembly = null)` | Builds a log tag |
@@ -1619,8 +1620,74 @@ flowchart LR
     UI --> L10n[L10n]
     UI --> Prefabs[Prefabs]
     UI --> PauseMenu[Pause Menu Buttons]
+    Config --> Multiplayer[Optional Network Features]
+    Multiplayer --> Logger
     Logger --> Core
     Reflection --> Logger
 ```
 
 The most important architectural direction is to keep `Core` light, `Config` stable, and `Input/UI` replaceable. Game UI and Steam Input are both externally volatile areas, so hard-coded selectors and manifest merging logic should be isolated in internal layers.
+
+---
+
+## 17. Multiplayer: Optional Network Features
+
+Namespace: `JmcModLib.Multiplayer`
+
+This module binds a static bool config, its exclusive `INetMessage` marker, and runtime protocol state. The initial manifest uses `affects_gameplay=false`; JML promotes the owning MOD to gameplay-affecting and adds its compatibility identity only while the feature is actually enabled.
+
+### 17.1 `OptionalNetworkFeatureAttribute`
+
+The target must be a static `bool` field or property that also carries `[Config]`.
+
+| Member | Description |
+|---|---|
+| `OptionalNetworkFeatureAttribute(string id, Type messageMarkerType)` | Declares a stable feature ID and exclusive message marker; the marker must be an interface inheriting `INetMessage` |
+| `Id` | Stable feature identifier within the owning MOD |
+| `MessageMarkerType` | Exclusive message marker for the feature |
+| `CompatibilityVersion` | Protocol compatibility version, default `"1"`; increment after incompatible changes |
+
+A concrete message cannot belong to two optional features. Every message owned by the feature must implement its marker.
+Declarations must be scanned during normal MOD initialization. Registration after the game's base protocol has initialized is rejected and fails closed.
+
+### 17.2 `OptionalNetworkFeatureHandle`
+
+| Member | Description |
+|---|---|
+| `Id` | Feature ID |
+| `ModId` | Owning MOD ID |
+| `CompatibilityVersion` | Current compatibility version |
+| `RequestedEnabled` | State requested by the user's config, possibly not yet applied |
+| `EffectiveEnabled` | State actually used by the current message protocol; handlers, send paths, and business entry points must use this value |
+| `ApplyState` | Current apply state |
+| `HasPendingApply` | Whether the request or apply state is still incomplete |
+| `StateChanged` | Raised when any public state changes |
+| `EffectiveEnabledChanged` | Raised when effective enablement really changes; use it to register/unregister handlers and cancel unfinished work |
+
+`OptionalNetworkFeatureApplyState` values:
+
+| Value | Description |
+|---|---|
+| `Applied` | The request has been applied to the current runtime protocol |
+| `PendingNetworkIdle` | The config is saved and waiting for host/join/session activity to fully disconnect |
+| `RestartRequired` | Hot rebuild failed; the previous effective protocol remains active and restart is needed to apply the request |
+
+### 17.3 `OptionalNetworkFeatures`
+
+| Member | Description |
+|---|---|
+| `Get(string id, Assembly? assembly = null)` | Gets a handle from an Assembly; throws `KeyNotFoundException` when unregistered, invalid, or missing |
+| `Get<TOwner>(string id)` | Gets a handle using `TOwner`'s Assembly |
+| `TryGet(string id, out OptionalNetworkFeatureHandle? handle, Assembly? assembly = null)` | Attempts to get a handle |
+
+Query the handle after `ModRegistry.Register` completes Attribute scanning. Business code must not use the config field directly to decide whether to register or send messages: `RequestedEnabled` and `EffectiveEnabled` intentionally differ while waiting for disconnect.
+
+### 17.4 Apply Strategy
+
+- While networking is idle, JML rebuilds the game's message table at a safe main-thread point and hot-applies the change.
+- While host startup, join flow, lobby, or an in-run session remains active, JML keeps the old protocol and reports `PendingNetworkIdle`; it applies the latest request after full disconnect.
+- If rebuilding fails, JML rolls back to the old protocol, reports `RestartRequired`, and reuses the confirmation and safe-exit flow from `GameRestart.ShowRestartConfirmationAsync`.
+- Normal switching does not require `[Config(RestartRequired=true)]`.
+- While enabled, the compatibility identity includes `ModId`, feature `Id`, and `CompatibilityVersion`; both peers must match.
+
+See [Optional Network Features](JML_OptionalNetworkFeatures_en.md) for the full example, manifest constraints, and integration checklist.

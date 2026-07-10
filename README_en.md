@@ -74,9 +74,10 @@ The core of this Mod comes from my [JmcModLib](https://github.com/JMC2002/JmcMod
 - A reflection helper library with built-in caching.
 - Logging wrappers.
 - Localization wrappers.
+- Optional network-feature protocol support, so local features can stay loaded while multiplayer messages join compatibility checks only when enabled, with safe-point hot application.
 
 ## 🔔 3. Other
-- If you want to use this Mod, start with the [Quick Start](./docs/JML_QuickStart_en.md) and [API Reference](./docs/JML_API_Reference_en.md), and use them together with the [Demo](https://github.com/JMC-Mods/SlayTheSpire2_JmcModLibDemo).
+- If you want to use this Mod, start with the [Quick Start](./docs/JML_QuickStart_en.md), [API Reference](./docs/JML_API_Reference_en.md), and [Optional Network Features](./docs/JML_OptionalNetworkFeatures_en.md), and use them together with the [Demo](https://github.com/JMC-Mods/SlayTheSpire2_JmcModLibDemo).
 - This Mod is still under active construction. If you want to use it, joining the [Discord server](https://discord.gg/peRD8SUxXg) or QQ group (617674584) is recommended.
 - The core of this Mod comes from [JmcModLib](https://github.com/JMC2002/JmcModLib), with development assistance from CodeX.
 - This Mod's documentation and localization text rely on AI-generated content. If you find any translation that feels off, suggestions are welcome.

@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 API 文档
 
-源码基准：JML `1.5.12`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
+源码基准：JML `1.6.1`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
 
 ```csharp
 using JmcModLib.Core;
@@ -15,6 +15,7 @@ using JmcModLib.UI.PauseMenu;
 using JmcModLib.Reflection;
 using JmcModLib.Utils;
 using JmcModLib.Prefabs;
+using JmcModLib.Multiplayer;
 ```
 
 `ExprHelper` 已位于 `JmcModLib.Utils` 命名空间，通常由 `global using JmcModLib.Utils;` 自动引入。
@@ -83,8 +84,8 @@ flowchart TD
 | 成员 | 说明 |
 |---|---|
 | `const string Name = "JmcModLib"` | JML 名称 |
-| `const string Version = "1.5.12"` | JML 版本 |
-| `string Tag` | `"[JmcModLib v1.5.12]"` |
+| `const string Version = "1.6.1"` | JML 版本 |
+| `string Tag` | `"[JmcModLib v1.6.1]"` |
 | `GetName(Assembly? assembly = null)` | 获取指定程序集名称，JML 自身返回固定名称 |
 | `GetVersion(Assembly? assembly = null)` | 获取指定程序集版本，JML 自身返回固定版本 |
 | `GetTag(Assembly? assembly = null)` | 生成日志标签 |
@@ -1625,8 +1626,74 @@ flowchart LR
     UI --> L10n[L10n]
     UI --> Prefabs[Prefabs]
     UI --> PauseMenu[Pause Menu Buttons]
+    Config --> Multiplayer[Optional Network Features]
+    Multiplayer --> Logger
     Logger --> Core
     Reflection --> Logger
 ```
 
 架构上最重要的方向是保持 `Core` 轻、`Config` 稳、`Input/UI` 可替换。游戏 UI 和 Steam Input 都属于外部易变区域，应把硬编码选择器和 manifest 合并逻辑隔离在内部层。
+
+---
+
+## 17. Multiplayer：可选网络功能
+
+命名空间：`JmcModLib.Multiplayer`
+
+该模块把一个静态布尔配置、它独占的 `INetMessage` 标记接口和运行时协议状态绑定在一起。初始 manifest 使用 `affects_gameplay=false`；功能真正启用时，JML 才把所属 MOD 提升为影响玩法并加入兼容性身份。
+
+### 17.1 `OptionalNetworkFeatureAttribute`
+
+目标必须是同时带 `[Config]` 的静态 `bool` 字段或属性。
+
+| 成员 | 说明 |
+|---|---|
+| `OptionalNetworkFeatureAttribute(string id, Type messageMarkerType)` | 声明稳定功能 ID 与独占消息标记接口；标记必须是继承 `INetMessage` 的接口 |
+| `Id` | 功能在所属 MOD 内的稳定标识 |
+| `MessageMarkerType` | 该功能独占的消息标记接口 |
+| `CompatibilityVersion` | 协议兼容版本，默认 `"1"`；不兼容修改时递增 |
+
+一个具体消息不能同时属于两项可选功能。所有属于该功能的消息都必须实现其标记接口。
+声明必须在常规 MOD 初始化阶段完成扫描；游戏基础协议初始化后的延迟注册会被拒绝并安全回退。
+
+### 17.2 `OptionalNetworkFeatureHandle`
+
+| 成员 | 说明 |
+|---|---|
+| `Id` | 功能 ID |
+| `ModId` | 所属 MOD ID |
+| `CompatibilityVersion` | 当前兼容版本 |
+| `RequestedEnabled` | 用户配置请求的状态，可能尚未应用 |
+| `EffectiveEnabled` | 当前消息协议真正采用的状态；消息注册、发送和业务入口必须以此为准 |
+| `ApplyState` | 当前应用状态 |
+| `HasPendingApply` | 请求或应用状态是否仍未完成 |
+| `StateChanged` | 任意公开状态变化时触发 |
+| `EffectiveEnabledChanged` | 真正生效的启用状态变化时触发，适合注册/注销消息处理器并清理未完成流程 |
+
+`OptionalNetworkFeatureApplyState`：
+
+| 值 | 说明 |
+|---|---|
+| `Applied` | 请求状态已应用到当前运行时协议 |
+| `PendingNetworkIdle` | 配置已保存，正在等待主机、加入流程或会话完整断开 |
+| `RestartRequired` | 热重建失败，已保留旧的有效协议，需要重启完成应用 |
+
+### 17.3 `OptionalNetworkFeatures`
+
+| 成员 | 说明 |
+|---|---|
+| `Get(string id, Assembly? assembly = null)` | 获取指定程序集的句柄；未注册、声明无效或 ID 不存在时抛出 `KeyNotFoundException` |
+| `Get<TOwner>(string id)` | 使用 `TOwner` 所在程序集获取句柄 |
+| `TryGet(string id, out OptionalNetworkFeatureHandle? handle, Assembly? assembly = null)` | 尝试获取句柄 |
+
+句柄应在 `ModRegistry.Register` 完成 Attribute 扫描后查询。业务代码不得直接用配置字段决定是否注册或发送消息：等待断开时，`RequestedEnabled` 与 `EffectiveEnabled` 会有意保持不同。
+
+### 17.4 应用策略
+
+- 无网络活动时，JML 在主线程安全点重建游戏消息表并热应用。
+- 主机创建、加入流程、大厅或局内仍活跃时，保持旧协议并进入 `PendingNetworkIdle`；完整断开后自动应用最后一次请求。
+- 重建失败时回滚旧协议、进入 `RestartRequired`，并复用 `GameRestart.ShowRestartConfirmationAsync` 的确认与安全退出流程。
+- 正常切换不需要为 `[Config]` 设置 `RestartRequired=true`。
+- 协议启用时兼容性身份包含 `ModId`、功能 `Id` 与 `CompatibilityVersion`，两端必须一致。
+
+完整示例、manifest 约束和接入检查表见[可选网络功能专题](JML_OptionalNetworkFeatures.md)。

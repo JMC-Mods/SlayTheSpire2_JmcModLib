@@ -1,5 +1,6 @@
 using Godot;
 using HarmonyLib;
+using JmcModLib.Multiplayer.Internal;
 using MegaCrit.Sts2.Core.Modding;
 using System.Reflection;
 
@@ -11,6 +12,7 @@ public partial class MainFile : Node
     public static void Initialize()
     {
         GameRestart.MarkMainThread();
+        OptionalNetworkFeatureManager.Init();
         ModRegistry.Register<MainFile>();
 
         ModLogger.Info("======================================");

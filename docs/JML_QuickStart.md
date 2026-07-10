@@ -5,6 +5,8 @@
 推荐配合[Demo](https://github.com/JMC-Mods/SlayTheSpire2_JmcModLibDemo)使用
 
 如果你的 MOD 需要按 STS2 版本加载不同 DLL，请查看[多版本 DLL 分派](JML_Dispatch.md)。
+
+如果你的 MOD 同时包含单人功能和可开关的多人消息，请查看[可选网络功能](JML_OptionalNetworkFeatures.md)。
 ---
 
 ## 0. 先理解 JML 的默认工作方式
@@ -57,10 +59,40 @@ ModRegistry.Register<MainFile>();
   "version": "1.0.0",
   "has_pck": true,
   "has_dll": true,
-  "dependencies": ["JmcModLib"],
+  "dependencies": [
+    {
+      "id": "JmcModLib",
+      "min_version": "1.6.1"
+    }
+  ],
   "affects_gameplay": false
 }
 ```
+
+### 单人功能常驻、多人协议可选
+
+这类 MOD 仍应让 manifest 保持 `affects_gameplay=false`，再把带 `[Config]` 的静态布尔配置声明为可选网络功能：
+
+```csharp
+using JmcModLib.Config;
+using JmcModLib.Config.UI;
+using JmcModLib.Multiplayer;
+using MegaCrit.Sts2.Core.Multiplayer.Serialization;
+
+[UIToggle]
+[Config("启用多人功能", Key = "multiplayer.enabled")]
+[OptionalNetworkFeature(
+    "my-mod.multiplayer",
+    typeof(IMyOptionalNetMessage),
+    CompatibilityVersion = "1")]
+public static bool MultiplayerEnabled = false;
+
+internal interface IMyOptionalNetMessage : INetMessage;
+```
+
+所有属于该功能的具体 `INetMessage` 都实现这个独占标记接口。注册完成后用 `OptionalNetworkFeatures.Get<MainFile>("my-mod.multiplayer")` 获取句柄；注册处理器、发送消息和开放业务入口必须只读取 `handle.EffectiveEnabled`，不能直接读取配置字段。
+
+无网络活动时配置会热应用；正在创建主机、加入或联机时会等待完整断开；重建失败才会复用 JML 现有的重启确认流程。完整约束与事件用法见[可选网络功能专题](JML_OptionalNetworkFeatures.md)。
 
 ---
 

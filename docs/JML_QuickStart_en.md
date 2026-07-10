@@ -3,6 +3,8 @@
 # JmcModLib STS2 Quick Start
 
 Recommended for use together with the [Demo](https://github.com/JMC-Mods/SlayTheSpire2_JmcModLibDemo).
+
+For per-version Runtime DLL loading, see [Multi-version DLL Dispatch](JML_Dispatch.md). If your MOD combines local single-player behavior with toggleable multiplayer messages, see [Optional Network Features](JML_OptionalNetworkFeatures_en.md).
 ---
 
 ## 0. Understand JML's Default Workflow First
@@ -55,10 +57,40 @@ The child MOD manifest must depend on JML:
   "version": "1.0.0",
   "has_pck": true,
   "has_dll": true,
-  "dependencies": ["JmcModLib"],
+  "dependencies": [
+    {
+      "id": "JmcModLib",
+      "min_version": "1.6.1"
+    }
+  ],
   "affects_gameplay": false
 }
 ```
+
+### Keep Local Features Loaded and Make the Multiplayer Protocol Optional
+
+This kind of MOD should still keep `affects_gameplay=false` in its manifest, then declare a static bool `[Config]` member as an optional network feature:
+
+```csharp
+using JmcModLib.Config;
+using JmcModLib.Config.UI;
+using JmcModLib.Multiplayer;
+using MegaCrit.Sts2.Core.Multiplayer.Serialization;
+
+[UIToggle]
+[Config("Enable Multiplayer Feature", Key = "multiplayer.enabled")]
+[OptionalNetworkFeature(
+    "my-mod.multiplayer",
+    typeof(IMyOptionalNetMessage),
+    CompatibilityVersion = "1")]
+public static bool MultiplayerEnabled = false;
+
+internal interface IMyOptionalNetMessage : INetMessage;
+```
+
+Every concrete `INetMessage` owned by the feature implements this exclusive marker. After registration, obtain the handle with `OptionalNetworkFeatures.Get<MainFile>("my-mod.multiplayer")`; handler registration, message sending, and feature entry points must use only `handle.EffectiveEnabled`, never the config field directly.
+
+Changes hot-apply while networking is idle, wait for a full disconnect while hosting/joining/in session, and reuse JML's existing restart confirmation only if rebuilding fails. See the [Optional Network Features guide](JML_OptionalNetworkFeatures_en.md) for the complete constraints and event pattern.
 
 ---
 
