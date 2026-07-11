@@ -6,6 +6,12 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.7.0] - 2026-7-11
+### Added
+- Child mods can now mark a feature as optionally affecting multiplayer at runtime. For example, when a QuickSL user disables its multiplayer feature at runtime, multiplayer SL no longer affects multiplayer compatibility, without requiring a manual restart.
+- When multiplayer join validation fails because of a feature registered as optionally affecting multiplayer at runtime, JML now prompts the user to change that feature in the settings.
+- Consolidated the game-version compatibility layer and exposed a compatibility module for child mods.
+
 ## [1.6.0] - 2026-7-9
 ### Added
 - Added a public cross-platform restart API. After the user confirms in a popup, it restarts the game; on Android and iOS it fails gracefully and falls back.
