@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 API Reference
 
-Source baseline: JML `1.6.8`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
+Source baseline: JML `1.6.9`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
 
 ```csharp
 using JmcModLib.Core;
@@ -1699,7 +1699,15 @@ Declarations must be scanned during normal MOD initialization. Registration afte
 
 Query the handle after `ModRegistry.Register` completes Attribute scanning. Business code must not use the config field directly to decide whether to register or send messages: `RequestedEnabled` and `EffectiveEnabled` intentionally differ while waiting for disconnect.
 
-### 17.4 Apply Strategy
+### 17.4 `OptionalNetworkMismatch`
+
+| Member | Description |
+|---|---|
+| `ShouldHandle(NetErrorInfo info)` | Detects a valid JML optional-network marker in a MOD-mismatch error so JML's prompt can take precedence |
+
+This method only classifies the error; it does not create UI or mutate state. A third-party MOD that also intercepts `NErrorPopup.Create(NetErrorInfo)` can call it before replacing the current result and yield to JML when it returns `true`.
+
+### 17.5 Apply Strategy
 
 - While networking is idle, JML rebuilds the game's message table at a safe main-thread point and hot-applies the change.
 - While host startup, join flow, lobby, or an in-run session remains active, JML keeps the old protocol and reports `PendingNetworkIdle`; it applies the latest request after full disconnect.

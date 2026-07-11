@@ -1605,6 +1605,26 @@
             <param name="assembly">所属程序集；留空时自动解析调用方程序集。</param>
             <returns>找到有效声明时返回 <see langword="true"/>。</returns>
         </member>
+        <member name="T:JmcModLib.Multiplayer.OptionalNetworkMismatch">
+            <summary>
+            提供 JML 可选网络功能不匹配错误的路由判断。
+            </summary>
+        </member>
+        <member name="M:JmcModLib.Multiplayer.OptionalNetworkMismatch.ShouldHandle(MegaCrit.Sts2.Core.Entities.Multiplayer.NetErrorInfo)">
+            <summary>
+            判断指定联机错误是否应优先交由 JML 的可选网络功能提示处理。
+            </summary>
+            <param name="info">游戏联机错误信息。</param>
+            <returns>
+            错误为 MOD 不匹配，且任一侧的缺失项中包含有效的 JML
+            可选网络功能兼容标记时返回 <see langword="true"/>。
+            </returns>
+            <remarks>
+            第三方 MOD 若也接管 MOD 不匹配弹窗，应在覆盖当前结果前调用此方法；
+            返回 <see langword="true"/> 时应保留 JML 已生成的提示。本方法只进行分类，
+            不创建 UI，也不修改网络功能状态。
+            </remarks>
+        </member>
         <member name="T:JmcModLib.Persistence.JmcClientRunDataAttribute">
             <summary>
             将静态 <see cref="T:JmcModLib.Persistence.JmcRunDataSlot`1"/> 字段或属性注册为当前客户端、当前 run 生命周期内的数据。

@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 API 文档
 
-源码基准：JML `1.6.8`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
+源码基准：JML `1.6.9`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
 
 ```csharp
 using JmcModLib.Core;
@@ -1705,7 +1705,15 @@ flowchart LR
 
 句柄应在 `ModRegistry.Register` 完成 Attribute 扫描后查询。业务代码不得直接用配置字段决定是否注册或发送消息：等待断开时，`RequestedEnabled` 与 `EffectiveEnabled` 会有意保持不同。
 
-### 17.4 应用策略
+### 17.4 `OptionalNetworkMismatch`
+
+| 成员 | 说明 |
+|---|---|
+| `ShouldHandle(NetErrorInfo info)` | 判断 MOD 不匹配错误是否包含有效的 JML 可选网络功能标记，应优先保留 JML 提示 |
+
+本方法仅进行分类，不创建 UI 也不修改状态。同样接管 `NErrorPopup.Create(NetErrorInfo)` 的第三方 MOD 可在覆盖当前结果前调用；返回 `true` 时应让路给 JML。
+
+### 17.5 应用策略
 
 - 无网络活动时，JML 在主线程安全点重建游戏消息表并热应用。
 - 主机创建、加入流程、大厅或局内仍活跃时，保持旧协议并进入 `PendingNetworkIdle`；完整断开后自动应用最后一次请求。

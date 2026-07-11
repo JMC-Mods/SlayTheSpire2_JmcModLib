@@ -1,4 +1,3 @@
-using JmcModLib.Compat;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
@@ -12,11 +11,9 @@ internal static class OptionalNetworkMismatchPresenter
     internal static bool TryCreatePopup(NetErrorInfo info, out NErrorPopup? popup)
     {
         popup = null;
-        if (info.GetReason() != NetError.ModMismatch
-            || !MultiplayerCompat.TryGetConnectionExtraInfo(
+        if (!OptionalNetworkMismatch.TryGetHandledExtraInfo(
                 info,
-                out ConnectionFailureExtraInfo? extraInfo)
-            || extraInfo == null)
+                out ConnectionFailureExtraInfo? extraInfo))
         {
             return false;
         }
