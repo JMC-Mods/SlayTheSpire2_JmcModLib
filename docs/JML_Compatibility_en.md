@@ -17,7 +17,7 @@ This layer does not replace general reflection. Only cross-version access with s
 | `ModCompat.GetPckName()` | Read the PCK name | no such member was found in archived 0.99.1–0.108 DLLs; `pckName` / `PckName` are defensive candidates for unarchived historical or future builds |
 | `ModCompat.GetManifestId/Name/Version()` | Read manifest metadata | lowercase fields in archived 0.99.1–0.108 DLLs; PascalCase names are defensive fallbacks |
 | `MultiplayerCompat.TryGetConnectionExtraInfo()` | Read multiplayer error details | private `_connectionExtraInfo` in 0.99.1–0.107.1; public `ConnectionExtraInfo` in 0.108 |
-| `MultiplayerCompat.TryGetJoinFlowNetService()` | Read the join-flow network service | internally created `NetClientGameService?` property in 0.99.1–0.107.1; constructor-injected `INetClientGameService` property in 0.108; `_netService` is a defensive fallback |
+| `MultiplayerCompat.TryGetJoinFlowNetService()` | Read the join-flow network service | `NetClientGameService?` created inside `Begin()` in 0.99.1–0.107.1, where a pre-call null value does not mean the member is missing; constructor-injected `INetClientGameService` property in 0.108; `_netService` is a defensive fallback |
 
 Early versions in this table explain the historical origin of compatibility candidates; they do not define the complete support range of the current JML package. The effective minimum version is the published manifest's `min_game_version`.
 

@@ -134,8 +134,16 @@
             <remarks>
             游戏 0.99.1–0.107.1 返回可空的具体类型 <c>NetClientGameService</c>；0.108 改为构造函数
             注入的 <c>INetClientGameService</c>。本方法以两者共同的 <see cref="T:MegaCrit.Sts2.Core.Multiplayer.Game.INetGameService"/>
-            对外暴露稳定语义。
+            对外暴露稳定语义。0.107.1 在 <c>JoinFlow.Begin()</c> 内部才创建服务，
+            因此在 <c>Begin()</c> 执行前调用本方法会返回 <see langword="false"/>，
+            但这不表示当前游戏版本缺少该成员。
             </remarks>
+        </member>
+        <member name="M:JmcModLib.Compat.MultiplayerCompat.TryReadJoinFlowNetService(MegaCrit.Sts2.Core.Multiplayer.Game.JoinFlow,MegaCrit.Sts2.Core.Multiplayer.Game.INetGameService@)">
+            <summary>
+            尝试读取 JoinFlow 的网络服务成员，并区分“成员缺失”与“成员尚未初始化”。
+            </summary>
+            <returns>成员存在且读取成功时返回 <see langword="true"/>；此时 <paramref name="service"/> 仍可为空。</returns>
         </member>
         <member name="T:JmcModLib.Config.ConfigAttribute">
             <summary>
@@ -1327,6 +1335,24 @@
             <remarks>
             方法可重复调用；第一次调用会触发 <see cref="E:JmcModLib.Core.ModRegistry.OnRegistered"/>，后续调用只返回已有上下文。
             </remarks>
+        </member>
+        <member name="M:JmcModLib.Core.ModRuntime.FindModById(System.String)">
+            <summary>
+            按 manifest ID 查找游戏已识别的 MOD。
+            </summary>
+            <param name="modId">需要查找的 manifest ID。</param>
+            <returns>匹配的 MOD；未找到时返回 <see langword="null"/>。</returns>
+            <remarks>
+            本方法包含正在执行初始化器、尚未被游戏标记为 <see cref="F:MegaCrit.Sts2.Core.Modding.ModLoadState.Loaded"/>
+            的 MOD。如果只希望查找已完成加载的 MOD，请使用 <see cref="M:JmcModLib.Core.ModRuntime.FindLoadedMod(System.String)"/>。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Core.ModRuntime.FindLoadedMod(System.String)">
+            <summary>
+            在已完成加载的 MOD 中，按 manifest ID、PCK 名称、显示名称或程序集名称查找。
+            </summary>
+            <param name="modId">需要查找的 MOD 标识或名称。</param>
+            <returns>匹配的已加载 MOD；未找到时返回 <see langword="null"/>。</returns>
         </member>
         <member name="T:JmcModLib.Input.GodotActionInputBackend">
             <summary>

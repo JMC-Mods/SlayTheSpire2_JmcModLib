@@ -17,7 +17,7 @@ JML 将已经确认的 STS2 版本成员差异集中在 `Compat` 目录和 `JmcM
 | `ModCompat.GetPckName()` | 获取 PCK 名称 | 0.99.1–0.108 归档 DLL 均未发现该成员；`pckName` / `PckName` 是历史非归档构建和未来构建的防御性候选 |
 | `ModCompat.GetManifestId/Name/Version()` | 获取 manifest 元数据 | 0.99.1–0.108 均为小写字段；PascalCase 名称是防御性回退 |
 | `MultiplayerCompat.TryGetConnectionExtraInfo()` | 获取联机错误附加信息 | 0.99.1–0.107.1 `_connectionExtraInfo` 私有字段；0.108 `ConnectionExtraInfo` 公开属性 |
-| `MultiplayerCompat.TryGetJoinFlowNetService()` | 获取加入流程网络服务 | 0.99.1–0.107.1 内部创建的 `NetClientGameService?` 属性；0.108 构造注入的 `INetClientGameService` 属性；`_netService` 是防御性回退 |
+| `MultiplayerCompat.TryGetJoinFlowNetService()` | 获取加入流程网络服务 | 0.99.1–0.107.1 在 `Begin()` 内部创建的 `NetClientGameService?` 属性，调用前为空不代表成员缺失；0.108 构造注入的 `INetClientGameService` 属性；`_netService` 是防御性回退 |
 
 表中的早期版本用于说明兼容候选的历史来源，不等同于当前 JML 发布包的完整支持范围；实际最低版本以发布 manifest 的 `min_game_version` 为准。
 

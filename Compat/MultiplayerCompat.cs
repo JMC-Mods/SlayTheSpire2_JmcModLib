@@ -66,19 +66,36 @@ public static class MultiplayerCompat
     /// <remarks>
     /// 游戏 0.99.1–0.107.1 返回可空的具体类型 <c>NetClientGameService</c>；0.108 改为构造函数
     /// 注入的 <c>INetClientGameService</c>。本方法以两者共同的 <see cref="INetGameService"/>
-    /// 对外暴露稳定语义。
+    /// 对外暴露稳定语义。0.107.1 在 <c>JoinFlow.Begin()</c> 内部才创建服务，
+    /// 因此在 <c>Begin()</c> 执行前调用本方法会返回 <see langword="false"/>，
+    /// 但这不表示当前游戏版本缺少该成员。
     /// </remarks>
     public static bool TryGetJoinFlowNetService(
         JoinFlow flow,
         [NotNullWhen(true)] out INetGameService? service)
+    {
+        return TryReadJoinFlowNetService(flow, out service) && service != null;
+    }
+
+    /// <summary>
+    /// 尝试读取 JoinFlow 的网络服务成员，并区分“成员缺失”与“成员尚未初始化”。
+    /// </summary>
+    /// <returns>成员存在且读取成功时返回 <see langword="true"/>；此时 <paramref name="service"/> 仍可为空。</returns>
+    internal static bool TryReadJoinFlowNetService(JoinFlow flow, out INetGameService? service)
     {
         ArgumentNullException.ThrowIfNull(flow);
 
         try
         {
             MemberAccessor? accessor = JoinFlowNetServiceAccessor.Value;
-            service = accessor?.GetValue<JoinFlow, INetGameService?>(flow);
-            return service != null;
+            if (accessor == null)
+            {
+                service = null;
+                return false;
+            }
+
+            service = accessor.GetValue<JoinFlow, INetGameService?>(flow);
+            return true;
         }
         catch (Exception ex)
         {

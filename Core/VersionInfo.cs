@@ -6,7 +6,7 @@ namespace JmcModLib.Core;
 public static class VersionInfo
 {
     public const string Name = "JmcModLib";
-    public const string Version = "1.6.6";
+    public const string Version = "1.6.8";
 
     public static string Tag => $"[{Name} v{Version}]";
 

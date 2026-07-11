@@ -98,7 +98,8 @@ internal static class OptionalNetworkJoinFlowPatch
     [HarmonyPrefix]
     private static void Prefix(JoinFlow __instance, ref INetGameService? __state)
     {
-        INetGameService? service = ResolveService(__instance);
+        // 0.107.1 在 Begin() 内部才创建 NetService，前缀阶段为空是正常状态。
+        INetGameService? service = ResolveService(__instance, allowUninitialized: true);
         if (OptionalNetworkActivityTracker.TryTrack(service))
         {
             __state = service;
@@ -111,7 +112,8 @@ internal static class OptionalNetworkJoinFlowPatch
         ref Task<JoinResult> __result,
         ref INetGameService? __state)
     {
-        INetGameService? service = ResolveService(__instance);
+        // async Begin() 返回 Task 前会同步执行到首个 await，0.107.1 此时已创建 NetService。
+        INetGameService? service = ResolveService(__instance, allowUninitialized: false);
         if (__state == null && OptionalNetworkActivityTracker.TryTrack(service))
         {
             __state = service;
@@ -134,12 +136,18 @@ internal static class OptionalNetworkJoinFlowPatch
         return __exception;
     }
 
-    private static INetGameService? ResolveService(JoinFlow flow)
+    private static INetGameService? ResolveService(JoinFlow flow, bool allowUninitialized)
     {
-        if (!MultiplayerCompat.TryGetJoinFlowNetService(flow, out INetGameService? service))
+        if (!MultiplayerCompat.TryReadJoinFlowNetService(flow, out INetGameService? service))
         {
             OptionalNetworkActivityTracker.MarkUnreliable("当前游戏版本缺少 JoinFlow.NetService，无法安全热重建网络协议。");
             return null;
+        }
+
+        if (service == null && !allowUninitialized)
+        {
+            OptionalNetworkActivityTracker.MarkUnreliable(
+                "JoinFlow.Begin 返回后 NetService 仍未初始化，无法安全热重建网络协议。");
         }
 
         return service;

@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 API 文档
 
-源码基准：JML `1.6.6`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
+源码基准：JML `1.6.8`。本文按源码重新整理，不以旧文档为准。命名空间常用组合：
 
 ```csharp
 using JmcModLib.Core;
@@ -159,8 +159,8 @@ flowchart TD
 | `GetPckName(Assembly? assembly = null)` | pck 名，失败回退 Assembly 名 |
 | `GetDisplayName(Assembly? assembly = null)` | manifest name 或 Assembly 名 |
 | `GetLoadedVersion(Assembly? assembly = null)` | manifest version 或 Assembly version |
-| `FindModById(string modId)` | 按 manifest id 精确查找 |
-| `FindLoadedMod(string modId)` | 按 id/pck/name/assembly 名查找 |
+| `FindModById(string modId)` | 按 manifest id 在全部已识别 MOD 中精确查找，包含正在执行初始化器的 MOD |
+| `FindLoadedMod(string modId)` | 仅在已完成加载的 MOD 中按 id/pck/name/assembly 名查找 |
 
 ### 2.7 `ModCompat` / `MultiplayerCompat`
 

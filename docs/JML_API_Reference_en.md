@@ -2,7 +2,7 @@
 
 # JmcModLib STS2 API Reference
 
-Source baseline: JML `1.6.6`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
+Source baseline: JML `1.6.8`. This document is reorganized from the source and does not treat older documentation as authoritative. Common namespace imports:
 
 ```csharp
 using JmcModLib.Core;
@@ -159,8 +159,8 @@ Namespace: `JmcModLib.Core`
 | `GetPckName(Assembly? assembly = null)` | pck name; falls back to Assembly name on failure |
 | `GetDisplayName(Assembly? assembly = null)` | Manifest name or Assembly name |
 | `GetLoadedVersion(Assembly? assembly = null)` | Manifest version or Assembly version |
-| `FindModById(string modId)` | Finds by exact manifest id |
-| `FindLoadedMod(string modId)` | Finds by id/pck/name/assembly name |
+| `FindModById(string modId)` | Finds by exact manifest id among all known MODs, including one whose initializer is currently running |
+| `FindLoadedMod(string modId)` | Finds only fully loaded MODs by id/pck/name/assembly name |
 
 ### 2.7 `ModCompat` / `MultiplayerCompat`
 

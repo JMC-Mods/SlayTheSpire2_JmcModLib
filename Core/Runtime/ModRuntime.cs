@@ -51,6 +51,15 @@ public static class ModRuntime
         return assembly.GetName().Version;
     }
 
+    /// <summary>
+    /// 按 manifest ID 查找游戏已识别的 MOD。
+    /// </summary>
+    /// <param name="modId">需要查找的 manifest ID。</param>
+    /// <returns>匹配的 MOD；未找到时返回 <see langword="null"/>。</returns>
+    /// <remarks>
+    /// 本方法包含正在执行初始化器、尚未被游戏标记为 <see cref="ModLoadState.Loaded"/>
+    /// 的 MOD。如果只希望查找已完成加载的 MOD，请使用 <see cref="FindLoadedMod"/>。
+    /// </remarks>
     public static Mod? FindModById(string modId)
     {
         if (string.IsNullOrWhiteSpace(modId))
@@ -58,13 +67,18 @@ public static class ModRuntime
             return null;
         }
 
-        return ModCompat.GetLoadedMods().FirstOrDefault(mod =>
+        return ModCompat.GetKnownMods().FirstOrDefault(mod =>
             string.Equals(
                 ModCompat.GetManifestId(ModCompat.GetManifest(mod)),
                 modId,
                 StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>
+    /// 在已完成加载的 MOD 中，按 manifest ID、PCK 名称、显示名称或程序集名称查找。
+    /// </summary>
+    /// <param name="modId">需要查找的 MOD 标识或名称。</param>
+    /// <returns>匹配的已加载 MOD；未找到时返回 <see langword="null"/>。</returns>
     public static Mod? FindLoadedMod(string modId)
     {
         if (string.IsNullOrWhiteSpace(modId))
