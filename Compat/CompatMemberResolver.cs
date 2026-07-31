@@ -4,7 +4,8 @@ namespace JmcModLib.Compat;
 
 internal static class CompatMemberResolver
 {
-    // 兼容层只在这里枚举游戏 DLL 的候选成员，实际读取仍统一使用 JML 的反射访问器。
+    // 0.110 集中出现了成员改名、可见性收紧和字段改方法等变化；候选解析统一放在这里，
+    // 实际读写仍使用 JML 的 MemberAccessor / MethodAccessor，避免各兼容项重复原生反射代码。
     internal static MemberAccessor? FindReadableMember(
         Type type,
         bool isStatic,
@@ -18,6 +19,33 @@ internal static class CompatMemberResolver
                 {
                     MemberAccessor accessor = MemberAccessor.Get(current, memberName);
                     if (accessor.CanRead && accessor.IsStatic == isStatic)
+                    {
+                        return accessor;
+                    }
+                }
+                catch (MissingMemberException)
+                {
+                    // 不同游戏版本使用不同成员名称，继续尝试下一个候选。
+                }
+            }
+        }
+
+        return null;
+    }
+
+    internal static MemberAccessor? FindWritableMember(
+        Type type,
+        bool isStatic,
+        params string[] memberNames)
+    {
+        for (Type? current = type; current != null; current = current.BaseType)
+        {
+            foreach (string memberName in memberNames)
+            {
+                try
+                {
+                    MemberAccessor accessor = MemberAccessor.Get(current, memberName);
+                    if (accessor.CanWrite && accessor.IsStatic == isStatic)
                     {
                         return accessor;
                     }

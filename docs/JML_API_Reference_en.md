@@ -1703,9 +1703,9 @@ Query the handle after `ModRegistry.Register` completes Attribute scanning. Busi
 
 | Member | Description |
 |---|---|
-| `ShouldHandle(NetErrorInfo info)` | Detects a valid JML optional-network marker in a MOD-mismatch error so JML's prompt can take precedence |
+| `ShouldHandle(NetErrorInfo info)` | Detects whether a MOD-mismatch error should keep JML's prompt; on game 0.110+, the host side returns `false` and keeps the native prompt |
 
-This method only classifies the error; it does not create UI or mutate state. A third-party MOD that also intercepts `NErrorPopup.Create(NetErrorInfo)` can call it before replacing the current result and yield to JML when it returns `true`.
+This method only classifies the error; it does not create UI or mutate state. A third-party MOD that also intercepts `NErrorPopup.Create(NetErrorInfo)` can call it before replacing the current result and yield to JML when it returns `true`. Starting with game `0.110`, hosts also receive failure details. Because JML's dedicated wording uses the joining player's perspective, the host side returns `false` and falls back to the native popup. Older versions do not expose this host-side error detail and are unaffected.
 
 ### 17.5 Apply Strategy
 

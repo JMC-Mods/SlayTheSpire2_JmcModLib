@@ -1,4 +1,5 @@
 using Godot;
+using JmcModLib.Compat;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 
@@ -317,11 +318,11 @@ internal sealed partial class ModSettingsPanel
     {
         if (focusableControls.Count == 0)
         {
-            _firstControl = null;
+            SettingsPanelCompat.SetDefaultFocusedControl(this, null);
             return;
         }
 
-        _firstControl = focusableControls[0];
+        SettingsPanelCompat.SetDefaultFocusedControl(this, focusableControls[0]);
 
         for (int i = 0; i < focusableControls.Count; i++)
         {

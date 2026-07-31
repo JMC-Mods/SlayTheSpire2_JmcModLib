@@ -174,7 +174,7 @@ JML 不会在活跃会话中替换协议，因为当前或稍后加入的玩家�
 
 当加入房间时的 MOD 不匹配由可选联机功能开关造成，JML 会识别兼容性身份，并把游戏原本显示的 `JML-ONF1:...` 原始令牌替换为专用本地化提示。提示会区分“本机已开启而房主未开启”和“房主已开启而本机未开启”，同时保留其它普通 MOD 不匹配信息。
 
-同样接管 MOD 不匹配弹窗的第三方 MOD 可调用 `OptionalNetworkMismatch.ShouldHandle(info)`。返回 `true` 表示该错误包含 JML 可选网络功能标记，应保留 JML 生成的当前弹窗；没有标记时则可继续执行订阅、禁用或其它普通 MOD 不匹配流程。
+同样接管 MOD 不匹配弹窗的第三方 MOD 可调用 `OptionalNetworkMismatch.ShouldHandle(info)`。返回 `true` 表示该错误包含 JML 可选网络功能标记且当前客户端应保留 JML 生成的弹窗；返回 `false` 时可继续执行订阅、禁用或其它普通 MOD 不匹配流程。游戏 `0.110` 起房主也会收到失败详情，但 JML 专用文案采用加入方视角，因此房主侧会返回 `false` 并交由游戏原生弹窗处理；旧版不会向房主提供这类详情，不受影响。
 
 专用提示通过 `MultiplayerCompat.TryGetConnectionExtraInfo` 兼容游戏 `0.107.1` 的私有 `_connectionExtraInfo` 字段和 `0.108` 起的公开 `ConnectionExtraInfo` 属性；无法识别未来版本成员时会安全回退游戏原始提示。完整兼容矩阵见[游戏版本兼容层](JML_Compatibility.md)。
 
@@ -188,7 +188,7 @@ JML 不会在活跃会话中替换协议，因为当前或稍后加入的玩家�
 | `OptionalNetworkFeatures.Get(id, assembly)` | 获取指定程序集中的功能句柄；不存在时抛出异常 |
 | `OptionalNetworkFeatures.Get<TOwner>(id)` | 用类型所在程序集获取句柄 |
 | `OptionalNetworkFeatures.TryGet(id, out handle, assembly)` | 尝试查询句柄 |
-| `OptionalNetworkMismatch.ShouldHandle(info)` | 判断不匹配错误是否应优先交由 JML 提示处理 |
+| `OptionalNetworkMismatch.ShouldHandle(info)` | 判断不匹配错误是否应优先交由 JML 提示处理；0.110+ 房主侧回退原生提示 |
 | `OptionalNetworkFeatureHandle.RequestedEnabled` | 用户配置请求的状态 |
 | `OptionalNetworkFeatureHandle.EffectiveEnabled` | 当前协议真正采用的状态；业务判断的唯一依据 |
 | `OptionalNetworkFeatureHandle.ApplyState` | `Applied`、`PendingNetworkIdle` 或 `RestartRequired` |

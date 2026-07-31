@@ -1,4 +1,5 @@
 using Godot;
+using JmcModLib.Compat;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
@@ -58,7 +59,7 @@ internal sealed class JmcSettingsTickbox : NButton
     protected override void OnFocus()
     {
         base.OnFocus();
-        if (NControllerManager.Instance?.IsUsingController == true)
+        if (InputCompat.IsUsingDirectionalNavigation(NControllerManager.Instance))
         {
             selectionReticle?.OnSelect();
         }

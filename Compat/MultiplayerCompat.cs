@@ -11,7 +11,7 @@ namespace JmcModLib.Compat;
 public static class MultiplayerCompat
 {
     // 0.99.1–0.107.1：NetErrorInfo 使用私有 readonly 字段 _connectionExtraInfo。
-    // 0.108：该字段被移除，数据改由公开只读属性 ConnectionExtraInfo 保存。
+    // 0.108 起：该字段被移除，数据改由公开只读属性 ConnectionExtraInfo 保存；0.110 仍沿用该属性。
     private static readonly Lazy<MemberAccessor?> ConnectionExtraInfoAccessor = new(() =>
         CompatMemberResolver.FindReadableMember(
             typeof(NetErrorInfo),
@@ -28,6 +28,42 @@ public static class MultiplayerCompat
             isStatic: false,
             "NetService",
             "_netService"));
+
+    // 0.99.1–0.109.1：ConnectionFailureExtraInfo 直接保存以房主/本机为语义的
+    // missingModsOnHost / missingModsOnLocal 字段；0.110 删除了这两个字段。
+    private static readonly Lazy<MemberAccessor?> MissingModsOnHostAccessor = new(() =>
+        CompatMemberResolver.FindReadableMember(
+            typeof(ConnectionFailureExtraInfo),
+            isStatic: false,
+            "missingModsOnHost"));
+
+    private static readonly Lazy<MemberAccessor?> MissingModsOnLocalAccessor = new(() =>
+        CompatMemberResolver.FindReadableMember(
+            typeof(ConnectionFailureExtraInfo),
+            isStatic: false,
+            "missingModsOnLocal"));
+
+    // 0.110 起：改为保存 localInfo / remoteInfo，并通过以下两个方法动态计算本机/对端差集。
+    private static readonly Lazy<MethodAccessor?> GetMissingModsOnLocalMethod = new(() =>
+        CompatMemberResolver.FindMethod(
+            typeof(ConnectionFailureExtraInfo),
+            isStatic: false,
+            "GetMissingModsOnLocal",
+            typeof(bool)));
+
+    private static readonly Lazy<MethodAccessor?> GetMissingModsOnRemoteMethod = new(() =>
+        CompatMemberResolver.FindMethod(
+            typeof(ConnectionFailureExtraInfo),
+            isStatic: false,
+            "GetMissingModsOnRemote",
+            typeof(bool)));
+
+    // localInfo / remoteInfo 不再等价于 host / client；0.110 新增 localIsHost 用于恢复旧版的房主/本机语义。
+    private static readonly Lazy<MemberAccessor?> LocalIsHostAccessor = new(() =>
+        CompatMemberResolver.FindReadableMember(
+            typeof(ConnectionFailureExtraInfo),
+            isStatic: false,
+            "localIsHost"));
 
     /// <summary>
     /// 尝试读取联机错误携带的 MOD 不匹配等附加信息。
@@ -103,5 +139,74 @@ public static class MultiplayerCompat
             ModLogger.Warn("读取 JoinFlow 网络服务失败。", ex);
             return false;
         }
+    }
+
+    internal static bool TryGetGameplayModMismatch(
+        ConnectionFailureExtraInfo extraInfo,
+        out List<string> missingOnHost,
+        out List<string> missingOnLocal,
+        out bool localIsHost)
+    {
+        ArgumentNullException.ThrowIfNull(extraInfo);
+
+        missingOnHost = [];
+        missingOnLocal = [];
+        localIsHost = false;
+
+        try
+        {
+            MethodAccessor? getMissingOnLocal = GetMissingModsOnLocalMethod.Value;
+            MethodAccessor? getMissingOnRemote = GetMissingModsOnRemoteMethod.Value;
+            if (getMissingOnLocal != null && getMissingOnRemote != null)
+            {
+                // 0.110 方法参数 nonGameplay=false 表示读取影响玩法的 MOD；JML 兼容令牌就在该集合中。
+                List<string> missingOnCurrentPeer = ToStringList(
+                    getMissingOnLocal.Invoke(extraInfo, false));
+                List<string> missingOnRemotePeer = ToStringList(
+                    getMissingOnRemote.Invoke(extraInfo, false));
+                localIsHost = LocalIsHostAccessor.Value?.GetValue(extraInfo) is true;
+
+                // 0.110 返回的是本机/对端方向，这里转换回 JML 对外一直使用的房主/本机方向。
+                if (localIsHost)
+                {
+                    missingOnHost = missingOnCurrentPeer;
+                    missingOnLocal = missingOnRemotePeer;
+                }
+                else
+                {
+                    missingOnHost = missingOnRemotePeer;
+                    missingOnLocal = missingOnCurrentPeer;
+                }
+
+                return true;
+            }
+
+            // 0.107.1–0.109.1 没有上述方法，回退读取原有的 host/local 字段。
+            MemberAccessor? missingOnHostAccessor = MissingModsOnHostAccessor.Value;
+            MemberAccessor? missingOnLocalAccessor = MissingModsOnLocalAccessor.Value;
+            if (missingOnHostAccessor == null || missingOnLocalAccessor == null)
+            {
+                return false;
+            }
+
+            missingOnHost = ToStringList(missingOnHostAccessor.GetValue(extraInfo));
+            missingOnLocal = ToStringList(missingOnLocalAccessor.GetValue(extraInfo));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            missingOnHost = [];
+            missingOnLocal = [];
+            localIsHost = false;
+            ModLogger.Warn("读取联机 MOD 不匹配列表失败。", ex);
+            return false;
+        }
+    }
+
+    private static List<string> ToStringList(object? value)
+    {
+        return value is IEnumerable<string> entries
+            ? [.. entries.Where(static entry => !string.IsNullOrWhiteSpace(entry))]
+            : [];
     }
 }

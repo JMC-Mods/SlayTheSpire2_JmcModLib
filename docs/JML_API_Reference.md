@@ -1709,9 +1709,9 @@ flowchart LR
 
 | 成员 | 说明 |
 |---|---|
-| `ShouldHandle(NetErrorInfo info)` | 判断 MOD 不匹配错误是否包含有效的 JML 可选网络功能标记，应优先保留 JML 提示 |
+| `ShouldHandle(NetErrorInfo info)` | 判断 MOD 不匹配错误是否应优先保留 JML 提示；游戏 0.110 起房主侧返回 `false` 并保留原生提示 |
 
-本方法仅进行分类，不创建 UI 也不修改状态。同样接管 `NErrorPopup.Create(NetErrorInfo)` 的第三方 MOD 可在覆盖当前结果前调用；返回 `true` 时应让路给 JML。
+本方法仅进行分类，不创建 UI 也不修改状态。同样接管 `NErrorPopup.Create(NetErrorInfo)` 的第三方 MOD 可在覆盖当前结果前调用；返回 `true` 时应让路给 JML。游戏 `0.110` 起房主也会收到失败详情，但 JML 专用文案采用加入方视角，因此房主侧返回 `false`，由游戏原生弹窗处理；旧版不会向房主提供这类详情，不受影响。
 
 ### 17.5 应用策略
 

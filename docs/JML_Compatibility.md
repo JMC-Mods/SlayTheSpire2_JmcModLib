@@ -16,26 +16,23 @@ JML 将已经确认的 STS2 版本成员差异集中在 `Compat` 目录和 `JmcM
 | `ModCompat.GetManifest()` | 获取 manifest | 0.99.1–0.107.1 `ModManifest` 为 class，0.108 改为 record；`manifest` 字段未改名 |
 | `ModCompat.GetPckName()` | 获取 PCK 名称 | 0.99.1–0.108 归档 DLL 均未发现该成员；`pckName` / `PckName` 是历史非归档构建和未来构建的防御性候选 |
 | `ModCompat.GetManifestId/Name/Version()` | 获取 manifest 元数据 | 0.99.1–0.108 均为小写字段；PascalCase 名称是防御性回退 |
-| `MultiplayerCompat.TryGetConnectionExtraInfo()` | 获取联机错误附加信息 | 0.99.1–0.107.1 `_connectionExtraInfo` 私有字段；0.108 `ConnectionExtraInfo` 公开属性 |
+| `MultiplayerCompat.TryGetConnectionExtraInfo()` | 获取联机错误附加信息对象 | 0.99.1–0.107.1 `_connectionExtraInfo` 私有字段；0.108 起 `ConnectionExtraInfo` 公开属性；0.110 将对象内部差集改为 `localInfo` / `remoteInfo` 与 `GetMissingModsOnLocal/Remote()`，因此原始对象的字段布局不属于稳定接口 |
 | `MultiplayerCompat.TryGetJoinFlowNetService()` | 获取加入流程网络服务 | 0.99.1–0.107.1 在 `Begin()` 内部创建的 `NetClientGameService?` 属性，调用前为空不代表成员缺失；0.108 构造注入的 `INetClientGameService` 属性；`_netService` 是防御性回退 |
 
-表中的早期版本用于说明兼容候选的历史来源，不等同于当前 JML 发布包的完整支持范围；实际最低版本以发布 manifest 的 `min_game_version` 为准。
+表中的版本范围用于说明兼容候选的历史来源或最近一次已知成员变化，并不表示 JML 只支持到范围末尾；实际最低版本以发布 manifest 的 `min_game_version` 为准。除非表中另有说明，后续受支持版本会沿用最近列出的成员形态。
 
 ## 子 MOD 调用
 
 ```csharp
 using JmcModLib.Compat;
+using JmcModLib.Multiplayer;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 
 int loadedModCount = ModCompat.GetLoadedMods().Count;
-
-if (MultiplayerCompat.TryGetConnectionExtraInfo(errorInfo, out ConnectionFailureExtraInfo? extraInfo))
-{
-    IReadOnlyCollection<string> hostOnlyMods = extraInfo.missingModsOnLocal ?? [];
-}
+bool keepJmlPrompt = OptionalNetworkMismatch.ShouldHandle(errorInfo);
 ```
 
-所有 `Try...` 方法在当前游戏版本缺少可识别成员或读取失败时返回 `false`。调用方应保留游戏原始流程或禁用依赖该信息的增强功能，不应猜测字段布局。
+所有 `Try...` 方法在当前游戏版本缺少可识别成员或读取失败时返回 `false`。调用方应保留游戏原始流程或禁用依赖该信息的增强功能，不应猜测字段布局。`TryGetConnectionExtraInfo` 只稳定解决附加信息对象位于私有字段还是公开属性的问题；子 MOD 若需要判断 JML 可选联机功能不匹配，应调用 `OptionalNetworkMismatch.ShouldHandle`，不要直接读取原始对象中已在 0.110 删除的 `missingModsOnHost` / `missingModsOnLocal` 字段。
 
 ## 维护约定
 

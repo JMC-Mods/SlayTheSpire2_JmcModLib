@@ -1,4 +1,5 @@
 using Godot;
+using JmcModLib.Compat;
 using JmcModLib.Reflection;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
@@ -210,10 +211,12 @@ internal static class RestartConfirmButtonUi
 
     private static void HideControllerHotkeyIcon(NConfirmButton button)
     {
-        TextureRect? controllerIcon = button.GetNodeOrNull<TextureRect>("%ControllerIcon");
-        if (controllerIcon != null)
+        // 0.107.1–0.109.1 使用 %ControllerIcon；0.110 换成可显示键盘/手柄提示的 %HotkeyIcon。
+        Control? hotkeyIcon = button.GetNodeOrNull<Control>("%HotkeyIcon")
+            ?? button.GetNodeOrNull<Control>("%ControllerIcon");
+        if (hotkeyIcon != null)
         {
-            controllerIcon.Visible = false;
+            hotkeyIcon.Visible = false;
         }
 
         try
@@ -230,7 +233,13 @@ internal static class RestartConfirmButtonUi
     {
         try
         {
-            return MemberAccessor.Get(typeof(NButton), "_controllerHotkeyIcon");
+            // 与节点同步变化：0.107.1–0.109.1 为 TextureRect _controllerHotkeyIcon，
+            // 0.110 改为 NHotkeyIcon _hotkeyIcon；只按名称写 null，避免程序集引用新版独有类型。
+            return CompatMemberResolver.FindWritableMember(
+                typeof(NButton),
+                isStatic: false,
+                "_hotkeyIcon",
+                "_controllerHotkeyIcon");
         }
         catch (Exception ex)
         {

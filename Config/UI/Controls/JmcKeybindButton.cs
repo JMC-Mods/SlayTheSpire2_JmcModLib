@@ -27,8 +27,10 @@ internal sealed class JmcKeybindButton : NButton
     private Action<JmcKeyBinding>? onChanged;
     private bool isListening;
     private Control? bg;
-    private MegaRichTextLabel? inputLabel;
-    private MegaRichTextLabel? keyBindingLabel;
+    private Control? inputLabel;
+    private Control? keyBindingLabel;
+    private Control? keyboardOnlyModeBindingLabel;
+    private Control? missingControllerBindingLabel;
     private TextureRect? controllerBindingIcon;
     private NControllerManager? connectedControllerManager;
     private Callable? controllerDetectedCallable;
@@ -89,12 +91,28 @@ internal sealed class JmcKeybindButton : NButton
         ConnectSignals();
         bg = GetNodeOrNull<Control>("%Bg")
             ?? NativeTemplateCloner.FindDescendantByName<Control>(this, "Bg");
-        inputLabel = GetNodeOrNull<MegaRichTextLabel>("%InputLabel")
-            ?? NativeTemplateCloner.FindDescendantByName<MegaRichTextLabel>(this, "InputLabel");
-        keyBindingLabel = GetNodeOrNull<MegaRichTextLabel>("%KeyBindingInputLabel")
-            ?? NativeTemplateCloner.FindDescendantByName<MegaRichTextLabel>(this, "KeyBindingInputLabel");
+
+        // 0.107.1–0.109.1 的两个文字节点都是 MegaRichTextLabel，键位节点名为 %KeyBindingInputLabel；
+        // 0.110 将它们改为 MegaLabel，并把键位节点改名为 %MKbBindingInputLabel。
+        inputLabel = GetNodeOrNull<Control>("%InputLabel")
+            ?? NativeTemplateCloner.FindDescendantByName<Control>(this, "InputLabel");
+        keyBindingLabel = FindVisualNode("MKbBindingInputLabel", "KeyBindingInputLabel");
+        keyboardOnlyModeBindingLabel = FindVisualNode("KbModeBindingInputLabel");
+        missingControllerBindingLabel = FindVisualNode("MissingControllerBindingLabel");
         controllerBindingIcon = GetNodeOrNull<TextureRect>("%ControllerBindingIcon")
             ?? NativeTemplateCloner.FindDescendantByName<TextureRect>(this, "ControllerBindingIcon");
+
+        // 0.110 的原生模板额外包含键盘专用模式列和无手柄绑定占位符。
+        // JML 的一个配置项只维护一组键盘绑定和一组手柄绑定，因此隐藏原生额外列。
+        if (keyboardOnlyModeBindingLabel != null)
+        {
+            keyboardOnlyModeBindingLabel.Visible = false;
+        }
+
+        if (missingControllerBindingLabel != null)
+        {
+            missingControllerBindingLabel.Visible = false;
+        }
 
         if (inputLabel == null || keyBindingLabel == null || controllerBindingIcon == null)
         {
@@ -249,9 +267,8 @@ internal sealed class JmcKeybindButton : NButton
 
     private void UpdateDisplay()
     {
-        inputLabel?.SetTextAutoSize(labelText);
-
-        keyBindingLabel?.SetTextAutoSize(GetKeyboardText());
+        SetLabelText(inputLabel, labelText);
+        SetLabelText(keyBindingLabel, GetKeyboardText());
 
         if (controllerBindingIcon != null)
         {
@@ -324,22 +341,66 @@ internal sealed class JmcKeybindButton : NButton
         }
     }
 
-    private static void NormalizeLabel(MegaRichTextLabel label, float width, HorizontalAlignment alignment)
+    private Control? FindVisualNode(params string[] names)
+    {
+        foreach (string name in names)
+        {
+            Control? node = GetNodeOrNull<Control>($"%{name}")
+                ?? NativeTemplateCloner.FindDescendantByName<Control>(this, name);
+            if (node != null)
+            {
+                return node;
+            }
+        }
+
+        return null;
+    }
+
+    private static void SetLabelText(Control? label, string text)
+    {
+        // 对应上述 0.110 标签类型替换：新版走 MegaLabel，旧版走 MegaRichTextLabel。
+        switch (label)
+        {
+            case MegaLabel megaLabel:
+                megaLabel.SetTextAutoSize(text);
+                break;
+            case MegaRichTextLabel megaRichTextLabel:
+                megaRichTextLabel.SetTextAutoSize(text);
+                break;
+        }
+    }
+
+    private static void NormalizeLabel(Control label, float width, HorizontalAlignment alignment)
     {
         label.CustomMinimumSize = new Vector2(width, RowHeight);
         label.SizeFlagsHorizontal = alignment == HorizontalAlignment.Left
             ? SizeFlags.ExpandFill
             : SizeFlags.ShrinkCenter;
         label.SizeFlagsVertical = SizeFlags.ShrinkCenter;
-        label.FitContent = false;
-        label.ScrollActive = false;
-        label.AutoSizeEnabled = false;
-        label.MinFontSize = FontSize;
-        label.MaxFontSize = FontSize;
-        label.AutowrapMode = TextServer.AutowrapMode.Off;
-        label.HorizontalAlignment = alignment;
-        label.VerticalAlignment = VerticalAlignment.Center;
-        label.Call("SetFontSize", FontSize);
+        // MegaLabel 与 MegaRichTextLabel 的布局属性不完全相同，分别设置才能同时覆盖 0.110 与旧版模板。
+        switch (label)
+        {
+            case MegaLabel megaLabel:
+                megaLabel.AutoSizeEnabled = false;
+                megaLabel.MinFontSize = FontSize;
+                megaLabel.MaxFontSize = FontSize;
+                megaLabel.AutowrapMode = TextServer.AutowrapMode.Off;
+                megaLabel.HorizontalAlignment = alignment;
+                megaLabel.VerticalAlignment = VerticalAlignment.Center;
+                megaLabel.Call("SetFontSize", FontSize);
+                break;
+            case MegaRichTextLabel megaRichTextLabel:
+                megaRichTextLabel.FitContent = false;
+                megaRichTextLabel.ScrollActive = false;
+                megaRichTextLabel.AutoSizeEnabled = false;
+                megaRichTextLabel.MinFontSize = FontSize;
+                megaRichTextLabel.MaxFontSize = FontSize;
+                megaRichTextLabel.AutowrapMode = TextServer.AutowrapMode.Off;
+                megaRichTextLabel.HorizontalAlignment = alignment;
+                megaRichTextLabel.VerticalAlignment = VerticalAlignment.Center;
+                megaRichTextLabel.Call("SetFontSize", FontSize);
+                break;
+        }
     }
 
     private void TryConnectControllerSignals()

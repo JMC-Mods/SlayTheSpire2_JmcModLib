@@ -11,15 +11,17 @@ internal static class OptionalNetworkMismatchPresenter
     internal static bool TryCreatePopup(NetErrorInfo info, out NErrorPopup? popup)
     {
         popup = null;
-        if (!OptionalNetworkMismatch.TryGetHandledExtraInfo(
+        if (!OptionalNetworkMismatch.TryGetHandledMismatch(
                 info,
-                out ConnectionFailureExtraInfo? extraInfo))
+                out List<string> missingOnHost,
+                out List<string> missingOnLocal,
+                out bool localIsHost)
+            || localIsHost)
         {
+            // 0.110 起房主也会收到失败详情；旧提示文案以加入方视角编写，房主侧交还游戏原生提示。
             return false;
         }
 
-        List<string> missingOnHost = [.. extraInfo.missingModsOnHost ?? []];
-        List<string> missingOnLocal = [.. extraInfo.missingModsOnLocal ?? []];
         List<OptionalNetworkFeatureIdentity> localOnly = ExtractFeatureIdentities(missingOnHost);
         List<OptionalNetworkFeatureIdentity> hostOnly = ExtractFeatureIdentities(missingOnLocal);
         if (localOnly.Count == 0 && hostOnly.Count == 0)

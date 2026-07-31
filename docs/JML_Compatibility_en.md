@@ -16,26 +16,23 @@ This layer does not replace general reflection. Only cross-version access with s
 | `ModCompat.GetManifest()` | Read the manifest | `ModManifest` is a class in 0.99.1–0.107.1 and a record in 0.108; the `manifest` field name did not change |
 | `ModCompat.GetPckName()` | Read the PCK name | no such member was found in archived 0.99.1–0.108 DLLs; `pckName` / `PckName` are defensive candidates for unarchived historical or future builds |
 | `ModCompat.GetManifestId/Name/Version()` | Read manifest metadata | lowercase fields in archived 0.99.1–0.108 DLLs; PascalCase names are defensive fallbacks |
-| `MultiplayerCompat.TryGetConnectionExtraInfo()` | Read multiplayer error details | private `_connectionExtraInfo` in 0.99.1–0.107.1; public `ConnectionExtraInfo` in 0.108 |
+| `MultiplayerCompat.TryGetConnectionExtraInfo()` | Read the multiplayer error-detail object | private `_connectionExtraInfo` in 0.99.1–0.107.1; public `ConnectionExtraInfo` since 0.108; 0.110 replaces the object's old mismatch fields with `localInfo` / `remoteInfo` and `GetMissingModsOnLocal/Remote()`, so the raw object's field layout is not a stable API |
 | `MultiplayerCompat.TryGetJoinFlowNetService()` | Read the join-flow network service | `NetClientGameService?` created inside `Begin()` in 0.99.1–0.107.1, where a pre-call null value does not mean the member is missing; constructor-injected `INetClientGameService` property in 0.108; `_netService` is a defensive fallback |
 
-Early versions in this table explain the historical origin of compatibility candidates; they do not define the complete support range of the current JML package. The effective minimum version is the published manifest's `min_game_version`.
+Version ranges in this table describe the historical origin of compatibility candidates or the latest known member change; they do not mean that JML only supports versions through the range endpoint. The effective minimum version is the published manifest's `min_game_version`. Unless stated otherwise, later supported versions retain the most recently listed member shape.
 
 ## Child-MOD usage
 
 ```csharp
 using JmcModLib.Compat;
+using JmcModLib.Multiplayer;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 
 int loadedModCount = ModCompat.GetLoadedMods().Count;
-
-if (MultiplayerCompat.TryGetConnectionExtraInfo(errorInfo, out ConnectionFailureExtraInfo? extraInfo))
-{
-    IReadOnlyCollection<string> hostOnlyMods = extraInfo.missingModsOnLocal ?? [];
-}
+bool keepJmlPrompt = OptionalNetworkMismatch.ShouldHandle(errorInfo);
 ```
 
-Every `Try...` method returns `false` when the current game version exposes no recognized member or access fails. Callers should preserve the native flow or disable the dependent enhancement instead of guessing a field layout.
+Every `Try...` method returns `false` when the current game version exposes no recognized member or access fails. Callers should preserve the native flow or disable the dependent enhancement instead of guessing a field layout. `TryGetConnectionExtraInfo` only stabilizes whether the error-detail object is stored in a private field or public property. Child MODs that need to classify JML optional-network mismatches should call `OptionalNetworkMismatch.ShouldHandle` instead of directly reading the raw `missingModsOnHost` / `missingModsOnLocal` fields removed in 0.110.
 
 ## Maintenance rules
 

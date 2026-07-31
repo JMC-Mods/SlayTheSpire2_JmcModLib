@@ -28,7 +28,7 @@ internal sealed partial class ModSettingsPanel
         dynamicVisibilityBindings.Clear();
         dynamicVisibilityDependents.Clear();
         listeningKeybind = null;
-        _firstControl = null;
+        SettingsPanelCompat.SetDefaultFocusedControl(this, null);
 
         List<Mod> modsWithConfig = [.. ModCompat.GetKnownMods()
             .Where(ModConfigUiBridge.HasConfig)

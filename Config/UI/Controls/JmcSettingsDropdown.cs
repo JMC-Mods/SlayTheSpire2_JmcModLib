@@ -1,4 +1,5 @@
 using Godot;
+using JmcModLib.Compat;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
@@ -223,7 +224,7 @@ internal sealed class JmcSettingsDropdown : NButton
         base.OnFocus();
         currentHighlight?.Modulate = new Color("3C5B6B");
 
-        if (NControllerManager.Instance?.IsUsingController == true)
+        if (InputCompat.IsUsingDirectionalNavigation(NControllerManager.Instance))
         {
             selectionReticle?.OnSelect();
         }
