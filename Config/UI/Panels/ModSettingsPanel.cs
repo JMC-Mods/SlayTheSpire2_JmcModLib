@@ -23,7 +23,6 @@ internal sealed partial class ModSettingsPanel : NSettingsPanel
     private const float ActionButtonHeight = 56f;
     private const float KeybindEnableToggleWidth = 64f;
 
-    private CenterContainer? centerRoot;
     private VBoxContainer? root;
     private VBoxContainer? listRoot;
     private HBoxContainer? titleActions;

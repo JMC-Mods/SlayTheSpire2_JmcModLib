@@ -38,7 +38,6 @@ internal sealed partial class ModSettingsPanel
         dynamicVisibilityBindings.Clear();
         dynamicVisibilityDependents.Clear();
         listeningKeybind = null;
-        centerRoot = null;
         root = null;
         listRoot = null;
         titleActions = null;

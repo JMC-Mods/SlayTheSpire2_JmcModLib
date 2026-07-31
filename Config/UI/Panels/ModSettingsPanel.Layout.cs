@@ -13,14 +13,6 @@ internal sealed partial class ModSettingsPanel
         SizeFlagsHorizontal = SizeFlags.ExpandFill;
         SizeFlagsVertical = SizeFlags.ShrinkBegin;
 
-        centerRoot = new CenterContainer
-        {
-            Name = "CenterRoot",
-            SizeFlagsHorizontal = SizeFlags.ExpandFill,
-            SizeFlagsVertical = SizeFlags.ShrinkBegin
-        };
-        AddChild(centerRoot);
-
         root = new VBoxContainer
         {
             Name = "VBoxContainer",
@@ -29,7 +21,10 @@ internal sealed partial class ModSettingsPanel
             CustomMinimumSize = new Vector2(PreferredContentWidth, 0f)
         };
         root.AddThemeConstantOverride("separation", 14);
-        centerRoot.AddChild(root);
+        // JML 1.6.0 为适配非 16:9 宽度加入 CenterContainer 后，内容重建时可能用旧高度居中，
+        // 导致首次显示的内容被排到视口外。0.107.1–0.110 均直接顶端挂载内容，横向宽度仍由
+        // ResolveContentBounds 参考原生 GeneralSettings 计算，因此不会回退宽屏与窄屏兼容。
+        AddChild(root);
 
         var titleRow = new HBoxContainer
         {
@@ -121,7 +116,7 @@ internal sealed partial class ModSettingsPanel
 
     private void RefreshPanelSize()
     {
-        if (root == null || centerRoot == null)
+        if (root == null)
         {
             return;
         }
@@ -138,14 +133,13 @@ internal sealed partial class ModSettingsPanel
 
         root.CustomMinimumSize = new Vector2(width, 0f);
         root.Size = new Vector2(width, root.Size.Y);
-        centerRoot.CustomMinimumSize = new Vector2(width, 0f);
         ApplyResponsiveEditorWidths(width);
 
         Vector2 minimumSize = root.GetMinimumSize();
         float height = MathF.Max(minimumSize.Y, 1f);
         Size = new Vector2(width, height);
-        centerRoot.Size = Size;
         root.Size = new Vector2(width, height);
+        root.Position = Vector2.Zero;
         Position = new Vector2(positionX, Position.Y);
     }
 
