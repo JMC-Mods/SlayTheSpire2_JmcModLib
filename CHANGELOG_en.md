@@ -6,6 +6,14 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.8.0] - 2026-7-31
+### Added
+- Added a multiplayer compatibility module for game version 0.110 and later.
+
+### Fixed
+- Added compatibility with game version 0.110.
+- Fixed an issue introduced in version 1.6.0 where the settings content was not displayed the first time the settings screen was opened.
+
 ## [1.7.0] - 2026-7-11
 ### Added
 - Child mods can now mark a feature as optionally affecting multiplayer at runtime. For example, when a QuickSL user disables its multiplayer feature at runtime, multiplayer SL no longer affects multiplayer compatibility, without requiring a manual restart.
