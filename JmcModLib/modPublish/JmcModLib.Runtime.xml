@@ -139,6 +139,30 @@
             但这不表示当前游戏版本缺少该成员。
             </remarks>
         </member>
+        <member name="M:JmcModLib.Compat.MultiplayerCompat.GetRunLobbyPlayerIds(MegaCrit.Sts2.Core.Multiplayer.Game.Lobby.RunLobby)">
+            <summary>
+            获取进行中多人局大厅当前记录的玩家 ID 快照。
+            </summary>
+            <param name="lobby">目标进行中大厅；为空时返回空集合。</param>
+            <returns>当前大厅玩家 ID 的只读快照；当前游戏版本缺少可识别成员或读取失败时返回空集合。</returns>
+            <remarks>
+            游戏 0.99.1–0.109.1 使用 <c>ConnectedPlayerIds</c>，0.110 将玩家记录扩展为
+            <c>RunLobbyPlayer</c> 后改由 <c>PlayerIds</c> 提供相同的纯 ID 视图。
+            返回值是调用时复制的快照，修改它不会影响游戏大厅。
+            </remarks>
+        </member>
+        <member name="M:JmcModLib.Compat.MultiplayerCompat.GetLoadRunLobbyPlayerIds(MegaCrit.Sts2.Core.Multiplayer.Game.Lobby.LoadRunLobby)">
+            <summary>
+            获取载入存档大厅当前记录的玩家 ID 快照。
+            </summary>
+            <param name="lobby">目标载入大厅；为空时返回空集合。</param>
+            <returns>当前大厅玩家 ID 的只读快照；当前游戏版本缺少可识别成员或读取失败时返回空集合。</returns>
+            <remarks>
+            游戏 0.99.1–0.109.1 使用 <c>ConnectedPlayerIds</c>，0.110 将玩家记录扩展为
+            <c>LoadRunLobbyPlayer</c> 后改由 <c>PlayerIds</c> 提供相同的纯 ID 视图。
+            返回值是调用时复制的快照，修改它不会影响游戏大厅。
+            </remarks>
+        </member>
         <member name="M:JmcModLib.Compat.MultiplayerCompat.TryReadJoinFlowNetService(MegaCrit.Sts2.Core.Multiplayer.Game.JoinFlow,MegaCrit.Sts2.Core.Multiplayer.Game.INetGameService@)">
             <summary>
             尝试读取 JoinFlow 的网络服务成员，并区分“成员缺失”与“成员尚未初始化”。

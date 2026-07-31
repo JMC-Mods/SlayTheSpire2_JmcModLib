@@ -18,6 +18,7 @@ JML 将已经确认的 STS2 版本成员差异集中在 `Compat` 目录和 `JmcM
 | `ModCompat.GetManifestId/Name/Version()` | 获取 manifest 元数据 | 0.99.1–0.108 均为小写字段；PascalCase 名称是防御性回退 |
 | `MultiplayerCompat.TryGetConnectionExtraInfo()` | 获取联机错误附加信息对象 | 0.99.1–0.107.1 `_connectionExtraInfo` 私有字段；0.108 起 `ConnectionExtraInfo` 公开属性；0.110 将对象内部差集改为 `localInfo` / `remoteInfo` 与 `GetMissingModsOnLocal/Remote()`，因此原始对象的字段布局不属于稳定接口 |
 | `MultiplayerCompat.TryGetJoinFlowNetService()` | 获取加入流程网络服务 | 0.99.1–0.107.1 在 `Begin()` 内部创建的 `NetClientGameService?` 属性，调用前为空不代表成员缺失；0.108 构造注入的 `INetClientGameService` 属性；`_netService` 是防御性回退 |
+| `MultiplayerCompat.GetRunLobbyPlayerIds()` / `GetLoadRunLobbyPlayerIds()` | 获取大厅玩家 ID 快照 | 0.99.1–0.109.1 `ConnectedPlayerIds`；0.110 玩家记录改为携带版本信息的对象，并通过 `PlayerIds` 暴露纯 ID 视图 |
 
 表中的版本范围用于说明兼容候选的历史来源或最近一次已知成员变化，并不表示 JML 只支持到范围末尾；实际最低版本以发布 manifest 的 `min_game_version` 为准。除非表中另有说明，后续受支持版本会沿用最近列出的成员形态。
 
@@ -29,6 +30,7 @@ using JmcModLib.Multiplayer;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 
 int loadedModCount = ModCompat.GetLoadedMods().Count;
+IReadOnlyList<ulong> runPlayerIds = MultiplayerCompat.GetRunLobbyPlayerIds(runManager.RunLobby);
 bool keepJmlPrompt = OptionalNetworkMismatch.ShouldHandle(errorInfo);
 ```
 

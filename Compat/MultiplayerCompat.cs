@@ -1,6 +1,7 @@
 using JmcModLib.Reflection;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
+using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using System.Diagnostics.CodeAnalysis;
 
 namespace JmcModLib.Compat;
@@ -65,6 +66,24 @@ public static class MultiplayerCompat
             isStatic: false,
             "localIsHost"));
 
+    // 0.99.1–0.109.1：RunLobby 公开 ConnectedPlayerIds；0.110 将玩家扩展为携带版本信息的
+    // RunLobbyPlayer，并把纯 ID 视图改名为 PlayerIds。
+    private static readonly Lazy<MemberAccessor?> RunLobbyPlayerIdsAccessor = new(() =>
+        CompatMemberResolver.FindReadableMember(
+            typeof(RunLobby),
+            isStatic: false,
+            "PlayerIds",
+            "ConnectedPlayerIds"));
+
+    // 0.99.1–0.109.1：LoadRunLobby 公开可变 ConnectedPlayerIds；0.110 改为 Players 列表，
+    // 并通过只读枚举 PlayerIds 暴露相同的玩家 ID 语义。
+    private static readonly Lazy<MemberAccessor?> LoadRunLobbyPlayerIdsAccessor = new(() =>
+        CompatMemberResolver.FindReadableMember(
+            typeof(LoadRunLobby),
+            isStatic: false,
+            "PlayerIds",
+            "ConnectedPlayerIds"));
+
     /// <summary>
     /// 尝试读取联机错误携带的 MOD 不匹配等附加信息。
     /// </summary>
@@ -111,6 +130,36 @@ public static class MultiplayerCompat
         [NotNullWhen(true)] out INetGameService? service)
     {
         return TryReadJoinFlowNetService(flow, out service) && service != null;
+    }
+
+    /// <summary>
+    /// 获取进行中多人局大厅当前记录的玩家 ID 快照。
+    /// </summary>
+    /// <param name="lobby">目标进行中大厅；为空时返回空集合。</param>
+    /// <returns>当前大厅玩家 ID 的只读快照；当前游戏版本缺少可识别成员或读取失败时返回空集合。</returns>
+    /// <remarks>
+    /// 游戏 0.99.1–0.109.1 使用 <c>ConnectedPlayerIds</c>，0.110 将玩家记录扩展为
+    /// <c>RunLobbyPlayer</c> 后改由 <c>PlayerIds</c> 提供相同的纯 ID 视图。
+    /// 返回值是调用时复制的快照，修改它不会影响游戏大厅。
+    /// </remarks>
+    public static IReadOnlyList<ulong> GetRunLobbyPlayerIds(RunLobby? lobby)
+    {
+        return GetLobbyPlayerIds(lobby, RunLobbyPlayerIdsAccessor, "RunLobby");
+    }
+
+    /// <summary>
+    /// 获取载入存档大厅当前记录的玩家 ID 快照。
+    /// </summary>
+    /// <param name="lobby">目标载入大厅；为空时返回空集合。</param>
+    /// <returns>当前大厅玩家 ID 的只读快照；当前游戏版本缺少可识别成员或读取失败时返回空集合。</returns>
+    /// <remarks>
+    /// 游戏 0.99.1–0.109.1 使用 <c>ConnectedPlayerIds</c>，0.110 将玩家记录扩展为
+    /// <c>LoadRunLobbyPlayer</c> 后改由 <c>PlayerIds</c> 提供相同的纯 ID 视图。
+    /// 返回值是调用时复制的快照，修改它不会影响游戏大厅。
+    /// </remarks>
+    public static IReadOnlyList<ulong> GetLoadRunLobbyPlayerIds(LoadRunLobby? lobby)
+    {
+        return GetLobbyPlayerIds(lobby, LoadRunLobbyPlayerIdsAccessor, "LoadRunLobby");
     }
 
     /// <summary>
@@ -208,5 +257,30 @@ public static class MultiplayerCompat
         return value is IEnumerable<string> entries
             ? [.. entries.Where(static entry => !string.IsNullOrWhiteSpace(entry))]
             : [];
+    }
+
+    private static IReadOnlyList<ulong> GetLobbyPlayerIds<TLobby>(
+        TLobby? lobby,
+        Lazy<MemberAccessor?> lazyAccessor,
+        string lobbyName)
+        where TLobby : class
+    {
+        if (lobby == null)
+        {
+            return [];
+        }
+
+        try
+        {
+            MemberAccessor? accessor = lazyAccessor.Value;
+            return accessor?.GetValue(lobby) is IEnumerable<ulong> playerIds
+                ? [.. playerIds]
+                : [];
+        }
+        catch (Exception ex)
+        {
+            ModLogger.Warn($"读取 {lobbyName} 玩家 ID 列表失败。", ex);
+            return [];
+        }
     }
 }

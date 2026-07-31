@@ -175,6 +175,7 @@ Namespace: `JmcModLib.Compat`. This layer centralizes confirmed STS2 member diff
 | `ModCompat` | `GetManifestId/Name/Version(ModManifest?)` | Reads compatible manifest metadata |
 | `MultiplayerCompat` | `TryGetConnectionExtraInfo(NetErrorInfo, out ConnectionFailureExtraInfo?)` | Bridges the private 0.107.1 field and public 0.108+ property |
 | `MultiplayerCompat` | `TryGetJoinFlowNetService(JoinFlow, out INetGameService?)` | Reads the join-flow network service |
+| `MultiplayerCompat` | `GetRunLobbyPlayerIds(RunLobby?)` / `GetLoadRunLobbyPlayerIds(LoadRunLobby?)` | Bridges the 0.109.1-and-earlier `ConnectedPlayerIds` view and the 0.110 `PlayerIds` view |
 
 See the [game-version compatibility guide](JML_Compatibility_en.md) for the complete matrix, examples, and maintenance rules.
 
