@@ -176,7 +176,7 @@ JML 不会在活跃会话中替换协议，因为当前或稍后加入的玩家�
 
 同样接管 MOD 不匹配弹窗的第三方 MOD 可调用 `OptionalNetworkMismatch.ShouldHandle(info)`。返回 `true` 表示该错误包含 JML 可选网络功能标记且当前客户端应保留 JML 生成的弹窗；返回 `false` 时可继续执行订阅、禁用或其它普通 MOD 不匹配流程。游戏 `0.110` 起房主也会收到失败详情，但 JML 专用文案采用加入方视角，因此房主侧会返回 `false` 并交由游戏原生弹窗处理；旧版不会向房主提供这类详情，不受影响。
 
-专用提示通过 `MultiplayerCompat.TryGetConnectionExtraInfo` 兼容游戏 `0.107.1` 的私有 `_connectionExtraInfo` 字段和 `0.108` 起的公开 `ConnectionExtraInfo` 属性；无法识别未来版本成员时会安全回退游戏原始提示。完整兼容矩阵见[游戏版本兼容层](JML_Compatibility.md)。
+专用提示通过 `MultiplayerCompat.TryGetConnectionExtraInfo` 兼容游戏 `0.107.1` 的私有 `_connectionExtraInfo` 字段和 `0.108` 起的公开 `ConnectionExtraInfo` 属性；`OptionalNetworkMismatch.ShouldHandle` 按运行时枚举名称识别 MOD 不匹配，不依赖 `0.107.1–0.110.1` 的数值 `14` 或 `0.111` 的数值 `107`。无法识别未来版本成员时会安全回退游戏原始提示。完整兼容矩阵见[游戏版本兼容层](JML_Compatibility.md)。
 
 ---
 

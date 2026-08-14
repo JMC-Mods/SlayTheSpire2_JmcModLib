@@ -19,6 +19,7 @@ JML 将已经确认的 STS2 版本成员差异集中在 `Compat` 目录和 `JmcM
 | `MultiplayerCompat.TryGetConnectionExtraInfo()` | 获取联机错误附加信息对象 | 0.99.1–0.107.1 `_connectionExtraInfo` 私有字段；0.108 起 `ConnectionExtraInfo` 公开属性；0.110 将对象内部差集改为 `localInfo` / `remoteInfo` 与 `GetMissingModsOnLocal/Remote()`，因此原始对象的字段布局不属于稳定接口 |
 | `MultiplayerCompat.TryGetJoinFlowNetService()` | 获取加入流程网络服务 | 0.99.1–0.107.1 在 `Begin()` 内部创建的 `NetClientGameService?` 属性，调用前为空不代表成员缺失；0.108 构造注入的 `INetClientGameService` 属性；`_netService` 是防御性回退 |
 | `MultiplayerCompat.GetRunLobbyPlayerIds()` / `GetLoadRunLobbyPlayerIds()` | 获取大厅玩家 ID 快照 | 0.99.1–0.109.1 `ConnectedPlayerIds`；0.110 玩家记录改为携带版本信息的对象，并通过 `PlayerIds` 暴露纯 ID 视图 |
+| `MultiplayerCompat.GetConnectedHostPeerIds()` | 获取主机已完成连接的远端玩家 ID 快照 | 0.107.1–0.110.1 `ConnectedPeers` 位于 `INetHostGameService`；0.111 从接口删除，但原生主机实现仍保留同名属性 |
 
 表中的版本范围用于说明兼容候选的历史来源或最近一次已知成员变化，并不表示 JML 只支持到范围末尾；实际最低版本以发布 manifest 的 `min_game_version` 为准。除非表中另有说明，后续受支持版本会沿用最近列出的成员形态。
 
@@ -31,10 +32,11 @@ using MegaCrit.Sts2.Core.Entities.Multiplayer;
 
 int loadedModCount = ModCompat.GetLoadedMods().Count;
 IReadOnlyList<ulong> runPlayerIds = MultiplayerCompat.GetRunLobbyPlayerIds(runManager.RunLobby);
+IReadOnlyList<ulong> connectedPeerIds = MultiplayerCompat.GetConnectedHostPeerIds(hostService);
 bool keepJmlPrompt = OptionalNetworkMismatch.ShouldHandle(errorInfo);
 ```
 
-所有 `Try...` 方法在当前游戏版本缺少可识别成员或读取失败时返回 `false`。调用方应保留游戏原始流程或禁用依赖该信息的增强功能，不应猜测字段布局。`TryGetConnectionExtraInfo` 只稳定解决附加信息对象位于私有字段还是公开属性的问题；子 MOD 若需要判断 JML 可选联机功能不匹配，应调用 `OptionalNetworkMismatch.ShouldHandle`，不要直接读取原始对象中已在 0.110 删除的 `missingModsOnHost` / `missingModsOnLocal` 字段。
+所有 `Try...` 方法在当前游戏版本缺少可识别成员或读取失败时返回 `false`；快照方法在相同情况下返回空集合。调用方应保留游戏原始流程或禁用依赖该信息的增强功能，不应猜测字段布局。`TryGetConnectionExtraInfo` 只稳定解决附加信息对象位于私有字段还是公开属性的问题；子 MOD 若需要判断 JML 可选联机功能不匹配，应调用 `OptionalNetworkMismatch.ShouldHandle`，不要直接读取原始对象中已在 0.110 删除的 `missingModsOnHost` / `missingModsOnLocal` 字段，也不要依赖 0.111 已重编号的 `NetError` 整数值。
 
 ## 维护约定
 

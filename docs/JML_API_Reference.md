@@ -176,6 +176,7 @@ flowchart TD
 | `MultiplayerCompat` | `TryGetConnectionExtraInfo(NetErrorInfo, out ConnectionFailureExtraInfo?)` | 兼容 0.107.1 私有字段与 0.108+ 公开属性 |
 | `MultiplayerCompat` | `TryGetJoinFlowNetService(JoinFlow, out INetGameService?)` | 兼容读取加入流程网络服务 |
 | `MultiplayerCompat` | `GetRunLobbyPlayerIds(RunLobby?)` / `GetLoadRunLobbyPlayerIds(LoadRunLobby?)` | 兼容读取 0.109.1 及更早的 `ConnectedPlayerIds` 与 0.110 的 `PlayerIds` 快照 |
+| `MultiplayerCompat` | `GetConnectedHostPeerIds(INetHostGameService)` | 兼容读取 0.107.1–0.110.1 接口属性与 0.111 原生实现属性中的已连接远端玩家 ID 快照 |
 
 完整版本矩阵、调用示例与维护约定见[游戏版本兼容层专题](JML_Compatibility.md)。
 

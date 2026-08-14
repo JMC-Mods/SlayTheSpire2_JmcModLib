@@ -19,6 +19,7 @@ This layer does not replace general reflection. Only cross-version access with s
 | `MultiplayerCompat.TryGetConnectionExtraInfo()` | Read the multiplayer error-detail object | private `_connectionExtraInfo` in 0.99.1–0.107.1; public `ConnectionExtraInfo` since 0.108; 0.110 replaces the object's old mismatch fields with `localInfo` / `remoteInfo` and `GetMissingModsOnLocal/Remote()`, so the raw object's field layout is not a stable API |
 | `MultiplayerCompat.TryGetJoinFlowNetService()` | Read the join-flow network service | `NetClientGameService?` created inside `Begin()` in 0.99.1–0.107.1, where a pre-call null value does not mean the member is missing; constructor-injected `INetClientGameService` property in 0.108; `_netService` is a defensive fallback |
 | `MultiplayerCompat.GetRunLobbyPlayerIds()` / `GetLoadRunLobbyPlayerIds()` | Read a snapshot of lobby player IDs | `ConnectedPlayerIds` in 0.99.1–0.109.1; 0.110 stores version-aware player records and exposes their plain IDs through `PlayerIds` |
+| `MultiplayerCompat.GetConnectedHostPeerIds()` | Read a snapshot of fully connected remote host peers | `ConnectedPeers` belongs to `INetHostGameService` in 0.107.1–0.110.1; 0.111 removes it from the interface while retaining the property on the native host implementation |
 
 Version ranges in this table describe the historical origin of compatibility candidates or the latest known member change; they do not mean that JML only supports versions through the range endpoint. The effective minimum version is the published manifest's `min_game_version`. Unless stated otherwise, later supported versions retain the most recently listed member shape.
 
@@ -31,10 +32,11 @@ using MegaCrit.Sts2.Core.Entities.Multiplayer;
 
 int loadedModCount = ModCompat.GetLoadedMods().Count;
 IReadOnlyList<ulong> runPlayerIds = MultiplayerCompat.GetRunLobbyPlayerIds(runManager.RunLobby);
+IReadOnlyList<ulong> connectedPeerIds = MultiplayerCompat.GetConnectedHostPeerIds(hostService);
 bool keepJmlPrompt = OptionalNetworkMismatch.ShouldHandle(errorInfo);
 ```
 
-Every `Try...` method returns `false` when the current game version exposes no recognized member or access fails. Callers should preserve the native flow or disable the dependent enhancement instead of guessing a field layout. `TryGetConnectionExtraInfo` only stabilizes whether the error-detail object is stored in a private field or public property. Child MODs that need to classify JML optional-network mismatches should call `OptionalNetworkMismatch.ShouldHandle` instead of directly reading the raw `missingModsOnHost` / `missingModsOnLocal` fields removed in 0.110.
+Every `Try...` method returns `false` when the current game version exposes no recognized member or access fails; snapshot methods return an empty collection under the same conditions. Callers should preserve the native flow or disable the dependent enhancement instead of guessing a field layout. `TryGetConnectionExtraInfo` only stabilizes whether the error-detail object is stored in a private field or public property. Child MODs that need to classify JML optional-network mismatches should call `OptionalNetworkMismatch.ShouldHandle` instead of directly reading the raw `missingModsOnHost` / `missingModsOnLocal` fields removed in 0.110 or relying on `NetError` integer values renumbered in 0.111.
 
 ## Maintenance rules
 

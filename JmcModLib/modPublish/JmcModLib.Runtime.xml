@@ -163,6 +163,21 @@
             返回值是调用时复制的快照，修改它不会影响游戏大厅。
             </remarks>
         </member>
+        <member name="M:JmcModLib.Compat.MultiplayerCompat.GetConnectedHostPeerIds(MegaCrit.Sts2.Core.Multiplayer.Game.INetHostGameService)">
+            <summary>
+            获取主机网络服务当前已完成连接的远端玩家 ID 快照。
+            </summary>
+            <param name="hostService">目标主机网络服务。</param>
+            <returns>
+            当前已连接远端玩家 ID 的只读快照；当前游戏版本缺少可识别成员或读取失败时返回空集合。
+            返回值不包含本地主机 ID。
+            </returns>
+            <remarks>
+            游戏 0.107.1–0.110.1 通过 <c>INetHostGameService.ConnectedPeers</c> 暴露玩家，
+            0.111 将该属性从接口移除，但当前原生主机实现仍保留同名属性。调用方不应直接绑定
+            任一版本的接口布局。
+            </remarks>
+        </member>
         <member name="M:JmcModLib.Compat.MultiplayerCompat.TryReadJoinFlowNetService(MegaCrit.Sts2.Core.Multiplayer.Game.JoinFlow,MegaCrit.Sts2.Core.Multiplayer.Game.INetGameService@)">
             <summary>
             尝试读取 JoinFlow 的网络服务成员，并区分“成员缺失”与“成员尚未初始化”。
@@ -1649,7 +1664,8 @@
             第三方 MOD 若也接管 MOD 不匹配弹窗，应在覆盖当前结果前调用此方法；
             返回 <see langword="true"/> 时应保留 JML 已生成的提示。本方法只进行分类，
             不创建 UI，也不修改网络功能状态。旧游戏版本不会向房主提供该错误详情，
-            因此不受房主侧回退行为影响。
+            因此不受房主侧回退行为影响。错误原因按运行时枚举名称识别，不依赖不同游戏版本中
+            <c>NetError.ModMismatch</c> 的底层数值。
             </remarks>
         </member>
         <member name="T:JmcModLib.Persistence.JmcClientRunDataAttribute">

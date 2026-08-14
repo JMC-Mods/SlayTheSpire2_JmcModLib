@@ -23,7 +23,8 @@ public static class OptionalNetworkMismatch
     /// 第三方 MOD 若也接管 MOD 不匹配弹窗，应在覆盖当前结果前调用此方法；
     /// 返回 <see langword="true"/> 时应保留 JML 已生成的提示。本方法只进行分类，
     /// 不创建 UI，也不修改网络功能状态。旧游戏版本不会向房主提供该错误详情，
-    /// 因此不受房主侧回退行为影响。
+    /// 因此不受房主侧回退行为影响。错误原因按运行时枚举名称识别，不依赖不同游戏版本中
+    /// <c>NetError.ModMismatch</c> 的底层数值。
     /// </remarks>
     public static bool ShouldHandle(NetErrorInfo info)
     {
@@ -40,7 +41,7 @@ public static class OptionalNetworkMismatch
         missingOnHost = [];
         missingOnLocal = [];
         localIsHost = false;
-        if (info.GetReason() != NetError.ModMismatch
+        if (!IsModMismatch(info.GetReason())
             || !MultiplayerCompat.TryGetConnectionExtraInfo(
                 info,
                 out ConnectionFailureExtraInfo? extraInfo))
@@ -59,6 +60,16 @@ public static class OptionalNetworkMismatch
 
         return ContainsOptionalFeatureToken(missingOnHost)
             || ContainsOptionalFeatureToken(missingOnLocal);
+    }
+
+    private static bool IsModMismatch(NetError reason)
+    {
+        // 0.107.1–0.110.1 的 ModMismatch 底层值为 14，0.111 重编号为 107。
+        // 使用运行时枚举名称，避免当前编译版本的常量值被内联进子 MOD 兼容判断。
+        return string.Equals(
+            reason.ToString(),
+            nameof(NetError.ModMismatch),
+            StringComparison.Ordinal);
     }
 
     private static bool ContainsOptionalFeatureToken(IEnumerable<string>? entries)

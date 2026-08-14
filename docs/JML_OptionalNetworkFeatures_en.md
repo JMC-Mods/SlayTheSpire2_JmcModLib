@@ -176,7 +176,7 @@ When a room join fails because optional multiplayer switches differ, JML recogni
 
 Third-party MODs that also intercept MOD-mismatch popups can call `OptionalNetworkMismatch.ShouldHandle(info)`. A `true` result means the error contains a JML optional-network marker and the current client should preserve JML's popup. When it returns `false`, the caller can continue with subscription, disablement, or another ordinary mismatch workflow. Starting with game `0.110`, hosts also receive failure details. Because JML's dedicated wording uses the joining player's perspective, the host side returns `false` and falls back to the native popup. Older versions do not expose this host-side detail and are unaffected.
 
-The dedicated prompt uses `MultiplayerCompat.TryGetConnectionExtraInfo` to support both the private `_connectionExtraInfo` field in game `0.107.1` and the public `ConnectionExtraInfo` property introduced in `0.108`. If a future game version exposes neither recognizable member, JML safely falls back to the game's original prompt. See the [game-version compatibility layer](JML_Compatibility_en.md) for the complete matrix.
+The dedicated prompt uses `MultiplayerCompat.TryGetConnectionExtraInfo` to support both the private `_connectionExtraInfo` field in game `0.107.1` and the public `ConnectionExtraInfo` property introduced in `0.108`. `OptionalNetworkMismatch.ShouldHandle` identifies MOD mismatches by the runtime enum name instead of depending on numeric value `14` in `0.107.1–0.110.1` or `107` in `0.111`. If a future game version exposes neither recognizable member, JML safely falls back to the game's original prompt. See the [game-version compatibility layer](JML_Compatibility_en.md) for the complete matrix.
 
 ---
 

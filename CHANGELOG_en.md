@@ -6,6 +6,10 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.9.0] - 2026-8-14
+### Added
+- Added a multiplayer compatibility layer for game version 0.111.0.
+
 ## [1.8.0] - 2026-7-31
 ### Added
 - Added a multiplayer compatibility module for game version 0.110 and later.

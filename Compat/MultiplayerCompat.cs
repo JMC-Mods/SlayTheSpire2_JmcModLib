@@ -2,6 +2,7 @@ using JmcModLib.Reflection;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
 namespace JmcModLib.Compat;
@@ -160,6 +161,61 @@ public static class MultiplayerCompat
     public static IReadOnlyList<ulong> GetLoadRunLobbyPlayerIds(LoadRunLobby? lobby)
     {
         return GetLobbyPlayerIds(lobby, LoadRunLobbyPlayerIdsAccessor, "LoadRunLobby");
+    }
+
+    /// <summary>
+    /// 获取主机网络服务当前已完成连接的远端玩家 ID 快照。
+    /// </summary>
+    /// <param name="hostService">目标主机网络服务。</param>
+    /// <returns>
+    /// 当前已连接远端玩家 ID 的只读快照；当前游戏版本缺少可识别成员或读取失败时返回空集合。
+    /// 返回值不包含本地主机 ID。
+    /// </returns>
+    /// <remarks>
+    /// 游戏 0.107.1–0.110.1 通过 <c>INetHostGameService.ConnectedPeers</c> 暴露玩家，
+    /// 0.111 将该属性从接口移除，但当前原生主机实现仍保留同名属性。调用方不应直接绑定
+    /// 任一版本的接口布局。
+    /// </remarks>
+    public static IReadOnlyList<ulong> GetConnectedHostPeerIds(INetHostGameService hostService)
+    {
+        ArgumentNullException.ThrowIfNull(hostService);
+
+        try
+        {
+            MemberAccessor? peersAccessor = CompatMemberResolver.FindReadableMember(
+                hostService.GetType(),
+                isStatic: false,
+                "ConnectedPeers");
+            if (peersAccessor?.GetValue(hostService) is not IEnumerable peers)
+            {
+                return [];
+            }
+
+            List<ulong> peerIds = [];
+            foreach (object? peer in peers)
+            {
+                if (peer == null)
+                {
+                    continue;
+                }
+
+                MemberAccessor? peerIdAccessor = CompatMemberResolver.FindReadableMember(
+                    peer.GetType(),
+                    isStatic: false,
+                    "peerId");
+                if (peerIdAccessor?.GetValue(peer) is ulong peerId)
+                {
+                    peerIds.Add(peerId);
+                }
+            }
+
+            return peerIds;
+        }
+        catch (Exception ex)
+        {
+            ModLogger.Warn("读取主机已连接玩家列表失败。", ex);
+            return [];
+        }
     }
 
     /// <summary>
