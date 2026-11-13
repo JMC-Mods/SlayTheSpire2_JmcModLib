@@ -1283,6 +1283,10 @@ Namespace: `JmcModLib.Utils`. The source file is `Utils/GameRestart.cs`.
 
 `GameRestart` requests a game restart. On desktop platforms it uses Godot `OS.SetRestartOnExit` to schedule relaunch after exit, then calls the game's native `NGame.Quit()` so settings, progress, and profile saves still run. On platforms where Godot does not support automatic restart, such as Android and iOS, it returns `false`; callers should tell the user to restart manually.
 
+`preserveCommandLineArguments` defaults to `true`: JML first reads the complete process arguments, removes the executable name, and passes the remaining array to Godot in its original order. This preserves engine options such as `--rendering-driver opengl3` and `--rendering-method`, as well as custom user arguments after `--` / `++`. Arguments containing spaces do not need manual quoting.
+
+Some native hosts on Linux/macOS do not expose complete arguments to .NET. In that case, JML logs a warning and falls back to Godot-visible arguments plus the current rendering method and driver (or `--headless` in headless mode), then appends user arguments after `--`. This fallback cannot guarantee preservation of other options already consumed by the engine. Passing `false` supplies no startup arguments, so the game uses its default configuration.
+
 | Member | Description |
 |---|---|
 | `IsRestartSupported` | Whether the current platform supports automatic restart through JML |
@@ -1294,6 +1298,7 @@ Namespace: `JmcModLib.Utils`. The source file is `Utils/GameRestart.cs`.
 using JmcModLib.Utils;
 
 bool requested = await GameRestart.ShowRestartConfirmationAsync(
+    preserveCommandLineArguments: true,
     assembly: typeof(MainFile).Assembly);
 ```
 

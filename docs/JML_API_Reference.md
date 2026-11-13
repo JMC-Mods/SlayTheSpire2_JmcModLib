@@ -1289,6 +1289,10 @@ flowchart TD
 
 `GameRestart` 用于请求游戏重启。桌面平台会调用 Godot `OS.SetRestartOnExit` 安排退出后重启，并通过游戏原生 `NGame.Quit()` 退出，以保留设置、进度和档案保存流程。Android、iOS 等 Godot 当前不支持自动重启的平台会返回 `false`，调用方应提示用户手动重启。
 
+`preserveCommandLineArguments` 默认为 `true`：优先从进程读取完整启动参数，去掉可执行文件名后按原顺序传给 Godot，保留 `--rendering-driver opengl3`、`--rendering-method` 等引擎选项，以及 `--` / `++` 分隔符后的自定义用户参数。参数以数组传递，包含空格的参数无需自行拼接引号。
+
+部分 Linux/macOS 原生宿主不会向 .NET 提供完整参数，此时会记录警告，并回退保留 Godot 可见参数、当前渲染方法和驱动（无窗口模式下保留 `--headless`），再用 `--` 拼接用户参数；回退无法保证保留其他已被引擎处理的启动选项。显式传 `false` 则不传入任何启动参数，由游戏按默认配置启动。
+
 | 成员 | 说明 |
 |---|---|
 | `IsRestartSupported` | 当前平台是否支持由 JML 请求自动重启 |
@@ -1300,6 +1304,7 @@ flowchart TD
 using JmcModLib.Utils;
 
 bool requested = await GameRestart.ShowRestartConfirmationAsync(
+    preserveCommandLineArguments: true,
     assembly: typeof(MainFile).Assembly);
 ```
 

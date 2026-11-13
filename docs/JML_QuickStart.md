@@ -896,6 +896,8 @@ if (JmcConfirmationPopup.IsAvailable)
 
 需要提供“重启游戏”入口时，优先使用 `GameRestart.ShowRestartConfirmationAsync`。它会先显示 JML 确认弹窗，用户确认后通过游戏原生退出流程保存数据，并在支持的平台上自动重启。Android、iOS 等不支持自动重启的平台会返回 `false` 并显示回退提示。
 
+默认保留进程启动参数，包括 `--rendering-driver opengl3` 和分隔符后的用户参数。完整参数不可用时，会记录警告并回退保留 Godot 可见参数、用户参数及当前渲染配置；其他引擎选项可能无法保留。仅在有意使用默认启动配置时传入 `preserveCommandLineArguments: false`。
+
 ```csharp
 using JmcModLib.Config.UI;
 using JmcModLib.Utils;
@@ -905,6 +907,7 @@ using MegaCrit.Sts2.Core.Helpers;
 public static void RestartGameButton()
 {
     TaskHelper.RunSafely(GameRestart.ShowRestartConfirmationAsync(
+        preserveCommandLineArguments: true,
         assembly: typeof(MainFile).Assembly));
 }
 ```

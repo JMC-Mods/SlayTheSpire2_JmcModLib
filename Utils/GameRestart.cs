@@ -12,6 +12,9 @@ namespace JmcModLib.Utils;
 /// 桌面平台会优先使用 Godot 的 <see cref="OS.SetRestartOnExit(bool, string[])"/>，
 /// 并通过游戏自身的 <see cref="NGame.Quit"/> 退出流程保存设置和进度。Android、iOS 等
 /// Godot 当前不支持自动重启的平台会返回失败，并保留给调用方显示提示。
+/// 默认优先沿用完整进程参数，包括引擎参数及 <c>--</c> 后的用户参数。
+/// 原生宿主未向 .NET 提供进程参数时，回退保留 Godot 可见参数、用户参数和当前渲染配置，
+/// 但无法保证还原其他已被引擎处理的启动选项。
 /// </remarks>
 public static class GameRestart
 {
@@ -27,7 +30,7 @@ public static class GameRestart
     /// <summary>
     /// 安排游戏在正常退出后自动重启，并请求游戏执行原生退出流程。
     /// </summary>
-    /// <param name="preserveCommandLineArguments">是否沿用当前进程的命令行参数启动新进程。</param>
+    /// <param name="preserveCommandLineArguments">是否保留启动参数及渲染配置；完整进程参数不可用时按类说明回退。设为 <see langword="false"/> 时不传入启动参数。</param>
     /// <param name="assembly">日志归属程序集；留空时自动推断调用方程序集。</param>
     /// <returns>成功安排重启并发出退出请求时返回 <see langword="true"/>；当前平台不支持或安排失败时返回 <see langword="false"/>。</returns>
     public static bool RequestRestart(bool preserveCommandLineArguments = true, Assembly? assembly = null)
@@ -45,7 +48,7 @@ public static class GameRestart
     /// <summary>
     /// 显示 JML 原生确认弹窗；用户确认后安排自动重启并退出游戏。
     /// </summary>
-    /// <param name="preserveCommandLineArguments">是否沿用当前进程的命令行参数启动新进程。</param>
+    /// <param name="preserveCommandLineArguments">是否保留启动参数及渲染配置；完整进程参数不可用时按类说明回退。设为 <see langword="false"/> 时不传入启动参数。</param>
     /// <param name="assembly">日志归属程序集；留空时自动推断调用方程序集。</param>
     /// <returns>用户确认且重启请求已发出时返回 <see langword="true"/>；用户取消或当前平台不支持时返回 <see langword="false"/>。</returns>
     public static async Task<bool> ShowRestartConfirmationAsync(
@@ -81,7 +84,7 @@ public static class GameRestart
     /// <summary>
     /// 仅安排游戏在下次正常退出后自动重启，不主动退出游戏。
     /// </summary>
-    /// <param name="preserveCommandLineArguments">是否沿用当前进程的命令行参数启动新进程。</param>
+    /// <param name="preserveCommandLineArguments">是否保留启动参数及渲染配置；完整进程参数不可用时按类说明回退。设为 <see langword="false"/> 时不传入启动参数。</param>
     /// <param name="assembly">日志归属程序集；留空时自动推断调用方程序集。</param>
     /// <returns>成功写入重启计划时返回 <see langword="true"/>；当前平台不支持或写入失败时返回 <see langword="false"/>。</returns>
     public static bool TryScheduleRestart(bool preserveCommandLineArguments = true, Assembly? assembly = null)
@@ -95,7 +98,7 @@ public static class GameRestart
 
         try
         {
-            string[] arguments = preserveCommandLineArguments ? OS.GetCmdlineArgs() : [];
+            string[] arguments = preserveCommandLineArguments ? GetRestartArguments(resolvedAssembly) : [];
             OS.SetRestartOnExit(true, arguments);
             bool scheduled = OS.IsRestartOnExitSet();
             if (!scheduled)
@@ -115,6 +118,48 @@ public static class GameRestart
     internal static void MarkMainThread()
     {
         mainThreadId ??= System.Environment.CurrentManagedThreadId;
+    }
+
+    private static string[] GetRestartArguments(Assembly assembly)
+    {
+        // Godot 会消耗 --rendering-driver 等引擎选项，因此优先读取进程参数并去掉可执行文件名。
+        string[] processArguments = System.Environment.GetCommandLineArgs();
+        if (processArguments.Length > 0)
+        {
+            return processArguments[1..];
+        }
+
+        // Linux/macOS 的原生 .NET 宿主可能返回空数组；此时至少保留当前渲染配置和用户参数。
+        ModLogger.Warn("无法读取完整进程参数，重启将保留 Godot 可见参数、用户参数和当前渲染配置；其他引擎启动选项可能无法保留。", assembly);
+        List<string> arguments = [.. OS.GetCmdlineArgs()];
+        if (OS.HasFeature("headless"))
+        {
+            arguments.Add("--headless");
+        }
+        else
+        {
+            string renderingMethod = RenderingServer.GetCurrentRenderingMethod();
+            if (!string.IsNullOrEmpty(renderingMethod))
+            {
+                arguments.AddRange(["--rendering-method", renderingMethod]);
+            }
+
+            string renderingDriver = RenderingServer.GetCurrentRenderingDriverName();
+            if (!string.IsNullOrEmpty(renderingDriver))
+            {
+                arguments.AddRange(["--rendering-driver", renderingDriver]);
+            }
+        }
+
+        // 引擎参数必须放在分隔符前，否则会被当成自定义用户参数而失效。
+        string[] userArguments = OS.GetCmdlineUserArgs();
+        if (userArguments.Length > 0)
+        {
+            arguments.Add("--");
+            arguments.AddRange(userArguments);
+        }
+
+        return [.. arguments];
     }
 
     private static bool IsDesktopPlatform()

@@ -3592,6 +3592,9 @@
             桌面平台会优先使用 Godot 的 <see cref="M:Godot.OS.SetRestartOnExit(System.Boolean,System.String[])"/>，
             并通过游戏自身的 <see cref="M:MegaCrit.Sts2.Core.Nodes.NGame.Quit"/> 退出流程保存设置和进度。Android、iOS 等
             Godot 当前不支持自动重启的平台会返回失败，并保留给调用方显示提示。
+            默认优先沿用完整进程参数，包括引擎参数及 <c>--</c> 后的用户参数。
+            原生宿主未向 .NET 提供进程参数时，回退保留 Godot 可见参数、用户参数和当前渲染配置，
+            但无法保证还原其他已被引擎处理的启动选项。
             </remarks>
         </member>
         <member name="P:JmcModLib.Utils.GameRestart.IsRestartSupported">
@@ -3603,7 +3606,7 @@
             <summary>
             安排游戏在正常退出后自动重启，并请求游戏执行原生退出流程。
             </summary>
-            <param name="preserveCommandLineArguments">是否沿用当前进程的命令行参数启动新进程。</param>
+            <param name="preserveCommandLineArguments">是否保留启动参数及渲染配置；完整进程参数不可用时按类说明回退。设为 <see langword="false"/> 时不传入启动参数。</param>
             <param name="assembly">日志归属程序集；留空时自动推断调用方程序集。</param>
             <returns>成功安排重启并发出退出请求时返回 <see langword="true"/>；当前平台不支持或安排失败时返回 <see langword="false"/>。</returns>
         </member>
@@ -3611,7 +3614,7 @@
             <summary>
             显示 JML 原生确认弹窗；用户确认后安排自动重启并退出游戏。
             </summary>
-            <param name="preserveCommandLineArguments">是否沿用当前进程的命令行参数启动新进程。</param>
+            <param name="preserveCommandLineArguments">是否保留启动参数及渲染配置；完整进程参数不可用时按类说明回退。设为 <see langword="false"/> 时不传入启动参数。</param>
             <param name="assembly">日志归属程序集；留空时自动推断调用方程序集。</param>
             <returns>用户确认且重启请求已发出时返回 <see langword="true"/>；用户取消或当前平台不支持时返回 <see langword="false"/>。</returns>
         </member>
@@ -3619,7 +3622,7 @@
             <summary>
             仅安排游戏在下次正常退出后自动重启，不主动退出游戏。
             </summary>
-            <param name="preserveCommandLineArguments">是否沿用当前进程的命令行参数启动新进程。</param>
+            <param name="preserveCommandLineArguments">是否保留启动参数及渲染配置；完整进程参数不可用时按类说明回退。设为 <see langword="false"/> 时不传入启动参数。</param>
             <param name="assembly">日志归属程序集；留空时自动推断调用方程序集。</param>
             <returns>成功写入重启计划时返回 <see langword="true"/>；当前平台不支持或写入失败时返回 <see langword="false"/>。</returns>
         </member>
