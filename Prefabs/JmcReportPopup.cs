@@ -3,13 +3,9 @@ using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
-using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens.ScreenContext;
 using System.Reflection;
 using System.Text;
-using LayoutPreset = Godot.Control.LayoutPreset;
-using MouseFilterEnum = Godot.Control.MouseFilterEnum;
-using SizeFlags = Godot.Control.SizeFlags;
 
 namespace JmcModLib.Prefabs;
 

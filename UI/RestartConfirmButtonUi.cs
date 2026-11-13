@@ -4,7 +4,6 @@ using JmcModLib.Reflection;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace JmcModLib.UI;
