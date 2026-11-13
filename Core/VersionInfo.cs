@@ -6,7 +6,8 @@ namespace JmcModLib.Core;
 public static class VersionInfo
 {
     public const string Name = "JmcModLib";
-    public const string Version = "1.9.1";
+    /// <summary>当前发布版本号，用于日志标识与版本信息展示。</summary>
+    public const string Version = "1.10.0";
 
     public static string Tag => $"[{Name} v{Version}]";
 

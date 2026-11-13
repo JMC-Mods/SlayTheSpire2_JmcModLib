@@ -1393,6 +1393,9 @@
             <param name="modId">需要查找的 MOD 标识或名称。</param>
             <returns>匹配的已加载 MOD；未找到时返回 <see langword="null"/>。</returns>
         </member>
+        <member name="F:JmcModLib.Core.VersionInfo.Version">
+            <summary>当前发布版本号，用于日志标识与版本信息展示。</summary>
+        </member>
         <member name="T:JmcModLib.Input.GodotActionInputBackend">
             <summary>
             Godot Action 输入后端。当前 Godot 输入仍由热键中继直接处理 InputEvent，这里只保留统一调度占位。

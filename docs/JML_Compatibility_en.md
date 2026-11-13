@@ -23,6 +23,15 @@ This layer does not replace general reflection. Only cross-version access with s
 
 Version ranges in this table describe the historical origin of compatibility candidates or the latest known member change; they do not mean that JML only supports versions through the range endpoint. The effective minimum version is the published manifest's `min_game_version`. Unless stated otherwise, later supported versions retain the most recently listed member shape.
 
+## 0.113 adaptation
+
+JML 1.10.0 keeps the existing public API unchanged and handles these differences internally:
+
+- The join-flow patch resolves both the old `Begin(IClientConnectionInitializer, SceneTree)` and 0.113's `Begin(SceneTree)`, allowing initialization to reach the hotkey input patches.
+- Settings hover tips keep their constructor-generated ID instead of assigning the now-read-only `HoverTip.Id`. Each owner displays one tip in its own set.
+- Tip positioning prefers `NSettingsScreen.GetSettingTipPosition(Control)` in 0.113, including native RTL layout handling, and falls back to `settingTipsOffset` on older versions.
+- The existing peer-ID snapshot API continues to enumerate `ConnectedPeers` after its change to a read-only list in 0.113; child MOD calls do not change.
+
 ## Child-MOD usage
 
 ```csharp

@@ -23,6 +23,15 @@ JML 将已经确认的 STS2 版本成员差异集中在 `Compat` 目录和 `JmcM
 
 表中的版本范围用于说明兼容候选的历史来源或最近一次已知成员变化，并不表示 JML 只支持到范围末尾；实际最低版本以发布 manifest 的 `min_game_version` 为准。除非表中另有说明，后续受支持版本会沿用最近列出的成员形态。
 
+## 0.113 适配说明
+
+JML 1.10.0 保持现有公开接口不变，并在内部处理以下版本差异：
+
+- 联机加入补丁同时识别旧版 `Begin(IClientConnectionInitializer, SceneTree)` 和 0.113 的 `Begin(SceneTree)`，避免初始化中断后热键输入桥无法安装。
+- 设置悬浮提示不再写入 0.113 中只读的 `HoverTip.Id`；每个控件独立显示一条提示，保留构造函数生成的标识即可。
+- 提示位置优先调用 0.113 的 `NSettingsScreen.GetSettingTipPosition(Control)`，沿用游戏的从右向左布局处理；旧版回退到 `settingTipsOffset`。
+- 0.113 的 `ConnectedPeers` 改为只读列表，现有玩家 ID 快照接口继续通过可枚举成员读取，无需修改子 MOD 调用。
+
 ## 子 MOD 调用
 
 ```csharp

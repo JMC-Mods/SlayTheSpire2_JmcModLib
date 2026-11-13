@@ -84,6 +84,7 @@ The core of this Mod comes from my [JmcModLib](https://github.com/JMC2002/JmcMod
 - This Mod's documentation and localization text rely on AI-generated content. If you find any translation that feels off, suggestions are welcome.
 
 ## 🧩 4. Compatibility and Dependencies
+- Use JML 1.10.0 or newer on game 0.113.0. It adapts the join-flow signature and settings hover tips, restoring initialization of the hotkey bridge while retaining older-game fallbacks.
 - This Mod depends on `Newtonsoft.Json 13.0.4` and `Harmony`. The former has been published in the release menu.
 - Since the game is still in EA, this Mod may stop working after game updates.
 

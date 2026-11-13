@@ -6,6 +6,14 @@ All notable changes to this project will be recorded in this file.
 
 Versioning rule: major.minor.patch. The major version is used for larger feature-complete milestones, the minor version is generally updated when a new Steam Workshop version is published, and the patch version is updated after each code-related commit, starting from 0.
 
+## [1.10.0] - 2026-11-13
+### Fixed
+- Adapted to changes to multiplayer join API parameters in game version 0.113.0.
+- Fixed compatibility issues with settings-screen hover tips in game version 0.113.0.
+
+### Added
+- JML now attempts to preserve the game's command-line arguments when restarting it.
+
 ## [1.9.0] - 2026-8-14
 ### Added
 - Added a multiplayer compatibility layer for game version 0.111.0.

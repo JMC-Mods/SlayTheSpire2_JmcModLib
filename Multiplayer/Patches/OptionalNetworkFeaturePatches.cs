@@ -10,6 +10,7 @@ using MegaCrit.Sts2.Core.Multiplayer.Connection;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Multiplayer.Serialization;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
+using System.Reflection;
 
 namespace JmcModLib.Multiplayer.Patches;
 
@@ -89,12 +90,27 @@ internal static class OptionalNetworkMismatchPopupPatch
     }
 }
 
-[HarmonyPatch(
-    typeof(JoinFlow),
-    nameof(JoinFlow.Begin),
-    [typeof(IClientConnectionInitializer), typeof(SceneTree)])]
+[HarmonyPatch]
 internal static class OptionalNetworkJoinFlowPatch
 {
+    [HarmonyTargetMethod]
+    private static MethodBase TargetMethod()
+    {
+        // 0.113 将连接初始化器移到构造函数；按实际签名选择入口，保留旧版本兼容。
+        var method = CompatMemberResolver.FindMethod(
+            typeof(JoinFlow), isStatic: false, nameof(JoinFlow.Begin), typeof(SceneTree))
+            ?? CompatMemberResolver.FindMethod(
+                typeof(JoinFlow), isStatic: false, nameof(JoinFlow.Begin),
+                typeof(IClientConnectionInitializer), typeof(SceneTree));
+
+        if (method?.MemberInfo.ReturnType != typeof(Task<JoinResult>))
+        {
+            throw new MissingMethodException("当前游戏版本缺少受支持的 JoinFlow.Begin 加入入口。");
+        }
+
+        return method.MemberInfo;
+    }
+
     [HarmonyPrefix]
     private static void Prefix(JoinFlow __instance, ref INetGameService? __state)
     {
